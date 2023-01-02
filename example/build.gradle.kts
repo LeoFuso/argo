@@ -1,6 +1,6 @@
 plugins {
     java
-    id("com.ncorti.kotlin.gradle.template.plugin")
+    id("io.github.leofuso.argo")
 }
 
 templateExampleConfig {

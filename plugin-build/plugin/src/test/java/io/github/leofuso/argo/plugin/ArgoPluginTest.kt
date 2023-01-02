@@ -1,4 +1,4 @@
-package com.ncorti.kotlin.gradle.template.plugin
+package io.github.leofuso.argo.plugin
 
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Assert.assertEquals
@@ -6,12 +6,12 @@ import org.junit.Assert.assertNotNull
 import org.junit.Test
 import java.io.File
 
-class TemplatePluginTest {
+class ArgoPluginTest {
 
     @Test
     fun `plugin is applied correctly to the project`() {
         val project = ProjectBuilder.builder().build()
-        project.pluginManager.apply("com.ncorti.kotlin.gradle.template.plugin")
+        project.pluginManager.apply("io.github.leofuso.argo")
 
         assert(project.tasks.getByName("templateExample") is TemplateExampleTask)
     }
@@ -19,7 +19,7 @@ class TemplatePluginTest {
     @Test
     fun `extension templateExampleConfig is created correctly`() {
         val project = ProjectBuilder.builder().build()
-        project.pluginManager.apply("com.ncorti.kotlin.gradle.template.plugin")
+        project.pluginManager.apply("io.github.leofuso.argo")
 
         assertNotNull(project.extensions.getByName("templateExampleConfig"))
     }
@@ -27,9 +27,9 @@ class TemplatePluginTest {
     @Test
     fun `parameters are passed correctly from extension to task`() {
         val project = ProjectBuilder.builder().build()
-        project.pluginManager.apply("com.ncorti.kotlin.gradle.template.plugin")
+        project.pluginManager.apply("io.github.leofuso.argo")
         val aFile = File(project.projectDir, ".tmp")
-        (project.extensions.getByName("templateExampleConfig") as TemplateExtension).apply {
+        (project.extensions.getByName("templateExampleConfig") as ArgoExtension).apply {
             tag.set("a-sample-tag")
             message.set("just-a-message")
             outputFile.set(aFile)

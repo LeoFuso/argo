@@ -1,3 +1,5 @@
+
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     kotlin("jvm")
     `java-gradle-plugin`
@@ -5,6 +7,7 @@ plugins {
 }
 
 dependencies {
+
     implementation(kotlin("stdlib"))
     implementation(gradleApi())
 
@@ -18,11 +21,11 @@ java {
 
 gradlePlugin {
     plugins {
-        create(property("ID").toString()) {
-            id = property("ID").toString()
-            implementationClass = property("IMPLEMENTATION_CLASS").toString()
-            version = property("VERSION").toString()
-            displayName = property("DISPLAY_NAME").toString()
+        create("io.github.leofuso.argo") {
+            id = "io.github.leofuso.argo"
+            implementationClass = "io.github.leofuso.argo.plugin.ArgoPlugin"
+            version = "0.0.1-SNAPSHOT"
+            displayName = "Argo"
         }
     }
 }
@@ -32,11 +35,12 @@ pluginBundle {
     website = property("WEBSITE").toString()
     vcsUrl = property("VCS_URL").toString()
     description = property("DESCRIPTION").toString()
-    tags = listOf("plugin", "gradle", "sample", "template")
+    tags = listOf("plugin", "gradle", "avro", "kafka", "schema-registry", "confluent", "java")
 }
 
 tasks.create("setupPluginUploadFromEnvironment") {
     doLast {
+
         val key = System.getenv("GRADLE_PUBLISH_KEY")
         val secret = System.getenv("GRADLE_PUBLISH_SECRET")
 
