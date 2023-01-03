@@ -1,26 +1,47 @@
 package io.github.leofuso.argo.plugin
 
-import org.gradle.api.Project
-import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
-import javax.inject.Inject
+import org.gradle.api.tasks.Nested
+import java.nio.charset.Charset
 
-const val DEFAULT_OUTPUT_FILE = "template-example.txt"
 
-@Suppress("UnnecessaryAbstractClass")
-abstract class ArgoExtension @Inject constructor(project: Project) {
+interface ArgoExtension {
+    @Nested
+    fun getColumbae(): ColumbaeOptions
 
-    private val objects = project.objects
+}
 
-    // Example of a property that is mandatory. The task will
-    // fail if this property is not set as is annotated with @Optional.
-    val message: Property<String> = objects.property(String::class.java)
+interface ColumbaeOptions {
 
-    // Example of a property that is optional.
-    val tag: Property<String> = objects.property(String::class.java)
+    val outputEncoding: Property<in Charset>
 
-    // Example of a property with a default set with .convention
-    val outputFile: RegularFileProperty = objects.fileProperty().convention(
-        project.layout.buildDirectory.file(DEFAULT_OUTPUT_FILE)
-    )
+    @Nested
+    fun getFields(): FieldOptions
+
+    @Nested
+    fun getAccessors(): AccessorOptions
+
+    val velocityTemplatesDir: DirectoryProperty
+
+}
+
+interface FieldOptions {
+
+    val stringType: Property<String>
+
+    val visibility: Property<String>
+
+    val useBigDecimal: Property<Boolean>
+
+}
+
+interface AccessorOptions {
+
+    val noSetters: Property<Boolean>
+
+    val addExtraOptionalGetters: Property<Boolean>
+
+    val optionalGetters: Property<String>
+
 }
