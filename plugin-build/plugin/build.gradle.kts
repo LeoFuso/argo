@@ -10,6 +10,7 @@ dependencies {
 
     implementation(kotlin("stdlib"))
     implementation(gradleApi())
+    implementation("org.apache.avro:avro-compiler:1.11.1")
 
     testImplementation(libs.junit)
 }
@@ -30,7 +31,7 @@ gradlePlugin {
     }
 }
 
-// Configuration Block for the Plugin Marker artifact on Plugin Central
+
 pluginBundle {
     website = property("WEBSITE").toString()
     vcsUrl = property("VCS_URL").toString()
