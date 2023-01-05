@@ -1,6 +1,16 @@
 package io.github.leofuso.argo.plugin
 
-const val AVRO_COMPILER_TEMPLATE_DEPENDENCY = "org.apache.avro:avro-compiler:%s"
-const val AVRO_COMPILER_DEFAULT_RAW_VERSION = "1.11.1"
+const val KOTLIN_PLUGIN_ID = "org.jetbrains.kotlin.jvm"
+const val KOTLIN_LANGUAGE_NAME = "kotlin"
 
 const val ARGO_EXTENSION = "argo"
+
+const val GROUP_SOURCE_GENERATION = "Source Generation"
+/**
+ * Extensions
+ */
+const val SCHEMA_EXTENSION = "avsc"
+const val PROTOCOL_EXTENSION = "avpr"
+const val IDL_EXTENSION = "avdl"
+const val JAVA_EXTENSION = "java"
+const val AVRO_EXTENSION_NAME = "avro"

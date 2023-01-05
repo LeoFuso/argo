@@ -1,0 +1,25 @@
+import org.apache.avro.generic.GenericData
+
+plugins {
+    id 'java'
+    id 'idea'
+    id 'io.github.leofuso.argo'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.avro:avro:1.11.0'
+    implementation 'org.apache.avro:avro-compiler:1.11.1'
+}
+
+argo {
+    columbae {
+        fields {
+            stringType = GenericData.StringType.Utf8
+        }
+    }
+}
+

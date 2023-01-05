@@ -1,9 +1,9 @@
 package io.github.leofuso.argo.plugin
 
 import org.gradle.testfixtures.ProjectBuilder
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Test
 import java.io.File
 
 class ArgoPluginTest {
@@ -29,10 +29,10 @@ class ArgoPluginTest {
         val project = ProjectBuilder.builder().build()
         project.pluginManager.apply("io.github.leofuso.argo")
         val aFile = File(project.projectDir, ".tmp")
-        (project.extensions.getByName("templateExampleConfig") as ArgoExtension).apply {
-            tag.set("a-sample-tag")
-            message.set("just-a-message")
-            outputFile.set(aFile)
+        (project.extensions.getByName(ARGO_EXTENSION) as ArgoExtension).apply {
+//            tag.set("a-sample-tag")
+//            message.set("just-a-message")
+//            outputFile.set(aFile)
         }
 
         val task = project.tasks.getByName("templateExample") as TemplateExampleTask

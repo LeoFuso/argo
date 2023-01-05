@@ -8,29 +8,45 @@ plugins {
 
 dependencies {
 
-    implementation(kotlin("stdlib"))
     implementation(gradleApi())
-    implementation("org.apache.avro:avro-compiler:1.11.1")
+    implementation(kotlin("stdlib"))
 
-    testImplementation(libs.junit)
+    implementation(libs.compiler)
+
+    testImplementation(libs.bundles.junit)
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+
+    withJavadocJar()
+    withSourcesJar()
+
 }
+
+tasks.withType<JavaCompile> {
+    options.compilerArgs.add("-Xlint:all")
+    options.compilerArgs.add("-Xlint:-options")
+    options.compilerArgs.add("-Werror")
+}
+
+tasks.withType<AbstractArchiveTask> {
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+
 
 gradlePlugin {
     plugins {
-        create("io.github.leofuso.argo") {
-            id = "io.github.leofuso.argo"
-            implementationClass = "io.github.leofuso.argo.plugin.ArgoPlugin"
-            version = "0.0.1-SNAPSHOT"
-            displayName = "Argo"
+        create(property("ID").toString()) {
+            id = property("ID").toString()
+            implementationClass = property("IMPLEMENTATION_CLASS").toString()
+            version = property("VERSION").toString()
+            displayName = property("DISPLAY_NAME").toString()
         }
     }
 }
-
 
 pluginBundle {
     website = property("WEBSITE").toString()
