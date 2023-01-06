@@ -1,6 +1,9 @@
 package io.github.leofuso.argo.plugin
 
+import io.github.leofuso.argo.plugin.options.OptionalGettersStrategy
 import io.github.leofuso.argo.plugin.tasks.SpecificRecordCompileTask
+import org.apache.avro.compiler.specific.SpecificCompiler
+import org.apache.avro.generic.GenericData
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
@@ -53,21 +56,33 @@ abstract class ArgoPlugin : Plugin<Project> {
 
         val extension = extension.getColumbae()
         val tasks = project.tasks
-        val register = tasks.register(taskName, SpecificRecordCompileTask::class.java) {
-            it.source(project.avroSourceDir(sourceSet))
-            it.include("**/*.${SCHEMA_EXTENSION}", "**/*.${PROTOCOL_EXTENSION}")
-            it.destination.convention(project.layout.getSpecificRecordBuildDirectory(sourceSet))
-            sourceSet.java.srcDir(it.destination)
-        }
 
         val javaCompile = tasks.named(
             sourceSet.compileJavaTaskName,
             JavaCompile::class.java
         ).get()
 
-        register.configure { it.encoding.convention(javaCompile.options.encoding).set(extension.getOutputEncoding()) }
-        javaCompile.source(register)
+        val register = tasks.register(taskName, SpecificRecordCompileTask::class.java) {
+            sourceSet.java.srcDir(it.destination)
 
+            it.source(project.avroSourceDir(sourceSet))
+            it.include("**/*.${SCHEMA_EXTENSION}", "**/*.${PROTOCOL_EXTENSION}")
+
+            it.destination.convention(project.layout.getSpecificRecordBuildDirectory(sourceSet))
+
+            it.encoding.convention(javaCompile.options.encoding?: "UTF-8").set(extension.getOutputEncoding())
+            it.additionalVelocityTools.convention(listOf())
+            it.stringType.convention(GenericData.StringType.CharSequence)
+            it.fieldVisibility.convention(SpecificCompiler.FieldVisibility.PRIVATE)
+            it.useBigDecimal.convention(true)
+            it.noSetters.convention(true)
+            it.addExtraOptionalGetters.convention(false)
+            it.optionalGetters.convention(OptionalGettersStrategy.ONLY_NULLABLE_FIELDS)
+            it.logicalTypeFactories.convention(mapOf())
+            it.additionalConverters.convention(listOf())
+        }
+
+        javaCompile.source(register)
         tasks.matching(sourceSet.sourcesJarTaskName::equals)
             .configureEach { it.dependsOn(register) }
 

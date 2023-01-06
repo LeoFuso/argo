@@ -18,7 +18,7 @@ import org.gradle.api.tasks.*
 import java.io.File
 import java.nio.charset.StandardCharsets
 
-@CacheableTask
+//@CacheableTask
 abstract class SpecificRecordCompileTask : OutputTask() {
 
     init {
@@ -27,9 +27,11 @@ abstract class SpecificRecordCompileTask : OutputTask() {
     }
 
     @get:Input
+    @get:Optional
     abstract val encoding: Property<String>
 
     @get:Input
+    @get:Optional
     abstract val additionalVelocityTools: ListProperty<Class<*>>
 
     @get:Optional
@@ -37,70 +39,63 @@ abstract class SpecificRecordCompileTask : OutputTask() {
     abstract val templateDirectory: DirectoryProperty
 
     @get:Input
+    @get:Optional
     abstract val stringType: Property<StringType>
 
     @get:Input
+    @get:Optional
     abstract val fieldVisibility: Property<FieldVisibility>
 
     @get:Input
+    @get:Optional
     abstract val useBigDecimal: Property<Boolean>
 
     @get:Input
+    @get:Optional
     abstract val noSetters: Property<Boolean>
 
     @get:Input
+    @get:Optional
     abstract val addExtraOptionalGetters: Property<Boolean>
 
     @get:Input
+    @get:Optional
     abstract val optionalGetters: Property<OptionalGettersStrategy>
 
     @get:Input
+    @get:Optional
     abstract val logicalTypeFactories: MapProperty<String, Class<out LogicalTypes.LogicalTypeFactory>>
 
     @get:Input
+    @get:Optional
     abstract val additionalConverters: ListProperty<Class<out Conversion<*>>>
-
-    private fun conventions() {
-        encoding.convention(StandardCharsets.UTF_8.name())
-        additionalVelocityTools.convention(listOf())
-        stringType.convention(StringType.CharSequence)
-        fieldVisibility.convention(FieldVisibility.PRIVATE)
-        useBigDecimal.convention(true)
-        noSetters.convention(true)
-        addExtraOptionalGetters.convention(false)
-        optionalGetters.convention(OptionalGettersStrategy.ONLY_NULLABLE_FIELDS)
-        logicalTypeFactories.convention(mapOf())
-        additionalConverters.convention(listOf())
-    }
 
     @TaskAction
     fun process() {
-        conventions()
-        compile(source.singleFile, destination.map(Directory::getAsFile).get())
+        compile()
     }
 
-    private fun compile(source: File, destination: File) {
+    private fun compile() {
         val parser = Schema.Parser()
-        source.listFiles { f ->
+        source.filter { f ->
             f.isFile && SCHEMA_EXTENSION == f.extension
-        }?.forEach { rawSchema ->
+        }.forEach { rawSchema ->
             val schema = parser.parse(rawSchema)
             val compiler = SpecificCompiler(schema)
-            doCompile(compiler, rawSchema, destination)
+            doCompile(compiler, rawSchema)
         }
     }
 
-    private fun doCompile(compiler: SpecificCompiler, source: File, destination: File) {
+    private fun doCompile(compiler: SpecificCompiler, source: File) {
 
         compiler.setStringType(stringType.get())
         compiler.isCreateSetters = noSetters.map(Boolean::not).get()
-        compiler.isGettersReturnOptional = true
-        compiler.isOptionalGettersForNullableFieldsOnly = true
-        compiler.isCreateOptionalGetters = false
+        compiler.isGettersReturnOptional = optionalGetters.isPresent
+        compiler.isOptionalGettersForNullableFieldsOnly = optionalGetters.get() == OptionalGettersStrategy.ONLY_NULLABLE_FIELDS
+        compiler.isCreateOptionalGetters = addExtraOptionalGetters.get()
         compiler.setEnableDecimalLogicalType(useBigDecimal.get())
-        compiler.setOutputCharacterEncoding(encoding.get())
+        encoding.orNull?.let { compiler.setOutputCharacterEncoding(it) }
         compiler.setFieldVisibility(fieldVisibility.get())
-
-        compiler.compileToDestination(source, destination)
+        compiler.compileToDestination(source, destination.get().asFile)
     }
 }
