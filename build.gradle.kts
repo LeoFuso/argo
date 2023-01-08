@@ -1,15 +1,15 @@
-import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+@file:Suppress("DSL_SCOPE_VIOLATION")
+
 import io.gitlab.arturbosch.detekt.Detekt
 
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.kotlin) apply false
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
-    alias(libs.plugins.versionCheck)
 }
 
 subprojects {
+
     apply {
         plugin(rootProject.libs.plugins.detekt.get().pluginId)
         plugin(rootProject.libs.plugins.ktlint.get().pluginId)
@@ -40,28 +40,19 @@ tasks.withType<Detekt>().configureEach {
     }
 }
 
-tasks.withType<DependencyUpdatesTask> {
-    rejectVersionIf {
-        candidate.version.isNonStable()
-    }
-}
-
-fun String.isNonStable() = "^[0-9,.v-]+(-r)?$".toRegex().matches(this).not()
-
 tasks.register("clean", Delete::class.java) {
     delete(rootProject.buildDir)
 }
 
-tasks.register("reformatAll") {
+tasks.register("format") {
+    group = "formatting"
     description = "Reformat all the Kotlin Code"
-
     dependsOn("ktlintFormat")
     dependsOn(gradle.includedBuild("plugin-build").task(":plugin:ktlintFormat"))
 }
 
 tasks.register("preMerge") {
-    description = "Runs all the tests/verification tasks on both top level and included build."
-
+    description = "Runs all the tests/verification tasks on all levels and included builds."
     dependsOn(":example:check")
     dependsOn(gradle.includedBuild("plugin-build").task(":plugin:check"))
     dependsOn(gradle.includedBuild("plugin-build").task(":plugin:validatePlugins"))

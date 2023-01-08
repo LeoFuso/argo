@@ -1,8 +1,9 @@
+@file:Suppress("DSL_SCOPE_VIOLATION")
 
-@Suppress("DSL_SCOPE_VIOLATION")
+
 plugins {
-    kotlin("jvm")
     `java-gradle-plugin`
+    alias(libs.plugins.kotlin)
     alias(libs.plugins.pluginPublish)
 }
 
@@ -10,6 +11,7 @@ dependencies {
 
     implementation(gradleApi())
     implementation(kotlin("stdlib"))
+    implementation(gradleKotlinDsl())
 
     implementation(libs.compiler)
 
@@ -17,12 +19,12 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-
     withJavadocJar()
     withSourcesJar()
+}
 
+kotlin {
+    jvmToolchain(JavaVersion.VERSION_17.ordinal)
 }
 
 tasks.withType<JavaCompile> {
@@ -35,7 +37,6 @@ tasks.withType<AbstractArchiveTask> {
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
 }
-
 
 gradlePlugin {
     plugins {
@@ -56,6 +57,7 @@ pluginBundle {
 }
 
 tasks.create("setupPluginUploadFromEnvironment") {
+
     doLast {
 
         val key = System.getenv("GRADLE_PUBLISH_KEY")

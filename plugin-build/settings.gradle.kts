@@ -1,3 +1,6 @@
+@file:Suppress("UnstableApiUsage")
+
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -32,5 +35,4 @@ gradleEnterprise {
 }
 
 rootProject.name = ("plugin-build")
-
 include(":plugin")

@@ -1,3 +1,4 @@
+import org.apache.avro.compiler.specific.SpecificCompiler
 import org.apache.avro.generic.GenericData
 
 plugins {
@@ -16,9 +17,15 @@ dependencies {
 }
 
 argo {
-    columbae {
+    columba {
+        excluded = "obs.statement-line.avsc".toList()
         fields {
             stringType = GenericData.StringType.Utf8
+            visibility = SpecificCompiler.FieldVisibility.PRIVATE
+            useDecimalType = true
+        }
+        accessors {
+            addExtraOptionalGetters = true
         }
     }
 }
