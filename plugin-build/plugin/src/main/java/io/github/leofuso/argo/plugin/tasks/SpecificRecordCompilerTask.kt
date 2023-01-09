@@ -4,6 +4,7 @@ import io.github.leofuso.argo.plugin.GROUP_SOURCE_GENERATION
 import io.github.leofuso.argo.plugin.OptionalGettersStrategy
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
+import io.github.leofuso.argo.plugin.parser.ParserFactory
 import org.apache.avro.Conversion
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
@@ -50,17 +51,16 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
     abstract fun getFieldVisibility(): Property<FieldVisibility>
 
     @get:Input
-    var useDecimalType = project.objects.property<Boolean>()
+    val useDecimalType = project.objects.property<Boolean>()
 
     @get:Input
-    var noSetters = project.objects.property<Boolean>()
+    val noSetters = project.objects.property<Boolean>()
 
     @get:Input
     abstract val addExtraOptionalGetters: Property<Boolean>
 
     @get:Input
-    @get:Optional
-    abstract var useOptionalGetters: Property<Boolean>
+    abstract val useOptionalGetters: Property<Boolean>
 
     @Input
     @Optional
@@ -76,15 +76,21 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
 
     @TaskAction
     fun process(inputChanges: InputChanges) {
+
+        val parserFactory = ParserFactory(logger)
+        source.visit(parserFactory.getVisitor())
+        val parser = parserFactory.getParser()
+
         compileSchemas()
     }
 
     private fun doCompile(factory: (File) -> SpecificCompiler, spec: Spec<in File>) {
-        source.filter(spec)
-            .forEach { source ->
-                val compiler = factory.invoke(source)
+
+        val sources = source.filter(spec).toList()
+        SchemaCaretaker(factory, sources)
+            .forEach {
                 runCatching {
-                    compiler.compileToDestination(source, getOutputDir().get().asFile)
+                    it.second.compileToDestination(it.first, getOutputDir().get().asFile)
                 }.onFailure { throwable ->
                     throw TaskExecutionException(this, throwable as Exception)
                 }

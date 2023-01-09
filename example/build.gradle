@@ -1,3 +1,4 @@
+import io.github.leofuso.argo.plugin.OptionalGettersStrategy
 import org.apache.avro.compiler.specific.SpecificCompiler
 import org.apache.avro.generic.GenericData
 
@@ -19,6 +20,7 @@ dependencies {
 argo {
     columba {
         excluded = "obs.statement-line.avsc".toList()
+        outputEncoding = 'UTF-8'
         fields {
             stringType = GenericData.StringType.Utf8
             visibility = SpecificCompiler.FieldVisibility.PRIVATE
@@ -26,6 +28,9 @@ argo {
         }
         accessors {
             addExtraOptionalGetters = true
+            noSetters = false
+            useOptionalGetters = true
+            optionalGettersStrategy = OptionalGettersStrategy.ONLY_NULLABLE_FIELDS
         }
     }
 }

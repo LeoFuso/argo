@@ -15,3 +15,12 @@ fun ProjectLayout.getSpecificRecordBuildDirectory(source: SourceSet): Provider<D
 val SourceSet.AVRO_SOURCE_SET_NAME: String
     get() = "avro"
 
+/**
+ * Throws an [AssertionError] calculated by [lazyMessage] if the [value] is false.
+ */
+inline fun assertTrue(value: Boolean, lazyMessage: () -> Any = { "Failed Assertion." }) {
+    if (!value) {
+        val message = lazyMessage()
+        throw AssertionError(message)
+    }
+}

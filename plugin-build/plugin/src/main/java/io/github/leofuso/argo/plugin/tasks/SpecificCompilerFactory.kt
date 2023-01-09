@@ -8,6 +8,7 @@ import org.apache.avro.compiler.specific.SpecificCompiler
 import org.gradle.execution.commandline.TaskConfigurationException
 import java.io.File
 
+
 fun SpecificRecordCompilerTask.configure(): (SpecificCompiler) -> SpecificCompiler = { compiler: SpecificCompiler ->
 
     /* Introduces side effect */
@@ -55,6 +56,7 @@ fun fromSchema(
     config: (SpecificCompiler) -> SpecificCompiler,
     errSupplier: (File, Throwable) -> (TaskConfigurationException)
 ) = { source: File ->
+
     runCatching { parser.parse(source) }
         .mapCatching { SpecificCompiler(it) }
         .mapCatching { config.invoke(it) }
