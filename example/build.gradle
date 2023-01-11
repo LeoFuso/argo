@@ -19,7 +19,6 @@ dependencies {
 
 argo {
     columba {
-        excluded = "obs.statement-line.avsc".toList()
         outputEncoding = 'UTF-8'
         fields {
             stringType = GenericData.StringType.Utf8

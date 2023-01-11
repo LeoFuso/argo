@@ -1,0 +1,43 @@
+{
+    "doc": "A Receipt Line is a traceable unit of an apportionment process, containing the base amount, the resolved share and its ratio.",
+    "type": "record",
+    "namespace": "io.github.leofuso.obs.demo.events",
+    "name": "ReceiptLine",
+    "fields": [
+        {
+            "doc": "A Statement Line containing the base cost associated with an Order, stripped from its baggage.",
+            "name": "object",
+            "type": "io.github.leofuso.obs.demo.events.StatementLine"
+        },
+        {
+            "doc": "The resolved share of an Order in relation with a Statement Line. It can be zero but never negative.",
+            "name": "share",
+            "type": {
+                "type": "bytes",
+                "logicalType": "decimal",
+                "precision": 15,
+                "scale": 3
+            }
+        },
+        {
+            "doc": "The ratio of the share.",
+            "name": "ratio",
+            "type": {
+                "type": "record",
+                "name": "Ratio",
+                "fields": [
+                    {
+                        "doc": "The denominator part. Never zero.",
+                        "name": "denominator",
+                        "type": "int"
+                    },
+                    {
+                        "doc": "The numerator part. Never zero.",
+                        "name": "numerator",
+                        "type": "int"
+                    }
+                ]
+            }
+        }
+    ]
+}

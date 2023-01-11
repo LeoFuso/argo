@@ -9,7 +9,7 @@ import org.gradle.execution.commandline.TaskConfigurationException
 import java.io.File
 
 
-fun SpecificRecordCompilerTask.configure(): (SpecificCompiler) -> SpecificCompiler = { compiler: SpecificCompiler ->
+fun SpecificRecordCompilerTask.configure(): (SpecificCompiler) -> Unit = { compiler: SpecificCompiler ->
 
     /* Introduces side effect */
     getAdditionalLogicalTypeFactories().orNull?.forEach {
@@ -47,8 +47,6 @@ fun SpecificRecordCompilerTask.configure(): (SpecificCompiler) -> SpecificCompil
     useDecimalType.orNull?.let { compiler.setEnableDecimalLogicalType(it) }
     getEncoding().orNull?.let { compiler.setOutputCharacterEncoding(it) }
     getFieldVisibility().orNull?.let { compiler.setFieldVisibility(it) }
-
-    compiler
 }
 
 fun fromSchema(

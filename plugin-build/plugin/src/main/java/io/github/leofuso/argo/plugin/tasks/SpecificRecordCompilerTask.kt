@@ -4,10 +4,9 @@ import io.github.leofuso.argo.plugin.GROUP_SOURCE_GENERATION
 import io.github.leofuso.argo.plugin.OptionalGettersStrategy
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
-import io.github.leofuso.argo.plugin.parser.ParserFactory
+import io.github.leofuso.argo.plugin.parser.SchemaVisitor
 import org.apache.avro.Conversion
 import org.apache.avro.LogicalTypes
-import org.apache.avro.Schema
 import org.apache.avro.compiler.specific.SpecificCompiler
 import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
 import org.apache.avro.generic.GenericData.StringType
@@ -16,7 +15,6 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.*
-import org.gradle.execution.commandline.TaskConfigurationException
 import org.gradle.kotlin.dsl.property
 import org.gradle.work.InputChanges
 import java.io.File
@@ -26,7 +24,7 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
 
     init {
         description =
-            "Generates SpecificRecord Java source files from Schema(.avsc) and Protocol(.avpr) definition files."
+            "Generates SpecificRecord Java source files from Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) definition files."
         group = GROUP_SOURCE_GENERATION
     }
 
@@ -76,12 +74,9 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
 
     @TaskAction
     fun process(inputChanges: InputChanges) {
-
-        val parserFactory = ParserFactory(logger)
-        source.visit(parserFactory.getVisitor())
-        val parser = parserFactory.getParser()
-
-        compileSchemas()
+        val visitor = SchemaVisitor(logger)
+        val definitions = visitor.getDefinitions(source)
+        visitor.compileToDisk(definitions, getOutputDir().get().asFile, configure())
     }
 
     private fun doCompile(factory: (File) -> SpecificCompiler, spec: Spec<in File>) {
@@ -95,33 +90,6 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
                     throw TaskExecutionException(this, throwable as Exception)
                 }
             }
-    }
-
-    private fun compileSchemas() {
-        val parser = Schema.Parser()
-        val factory = fromSchema(parser, configure()) { source, throwable ->
-            TaskConfigurationException(
-                name,
-                "Unexpected error while parsing Schema(.avsc) definition file [${source.name}]",
-                throwable as Exception
-            )
-        }
-        doCompile(factory) { f ->
-            f.isFile && SCHEMA_EXTENSION == f.extension
-        }
-    }
-
-    private fun compileProtocol() {
-        val factory = fromProtocol(configure()) { source, throwable ->
-            TaskConfigurationException(
-                name,
-                "Unexpected error while parsing Protocol(.avpr) definition file [${source.name}]",
-                throwable as Exception
-            )
-        }
-        doCompile(factory) { f ->
-            f.isFile && PROTOCOL_EXTENSION == f.extension
-        }
     }
 }
 

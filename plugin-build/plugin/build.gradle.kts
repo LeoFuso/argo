@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.compiler)
 
     testImplementation(libs.bundles.junit)
+    testImplementation(libs.assertj)
 }
 
 java {
