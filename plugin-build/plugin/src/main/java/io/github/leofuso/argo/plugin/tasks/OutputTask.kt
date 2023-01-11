@@ -7,6 +7,9 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.work.Incremental
 
+/**
+ * An [OutputTask] produces source files as output.
+ */
 abstract class OutputTask : SourceTask() {
 
     private val outputDirectory: DirectoryProperty = project.objects.directoryProperty()
@@ -29,7 +32,7 @@ abstract class OutputTask : SourceTask() {
      * @param dir The directory.
      */
     @Internal
-    fun setOutputDir(dir: Provider<out Directory> ) {
+    fun setOutputDir(dir: Provider<out Directory>) {
         getOutputDir().set(dir)
     }
 }

@@ -62,9 +62,14 @@ abstract class ArgoPlugin : Plugin<Project> {
                 it.dependsOn(taskProvider)
             }
 
+        /* Adding task dependency to every task that generates a Jar */
         taskContainer.matching(sourceSet.sourcesJarTaskName::equals)
             .configureEach { it.dependsOn(taskProvider) }
 
+        /*
+         * Adding a task dependency to Idea module,
+         * [.ref](https://discuss.gradle.org/t/how-do-i-get-intellij-to-recognize-gradle-generated-sources-dir/16847/5)
+         */
         taskContainer.withType<GenerateIdeaModule>()
             .configureEach {
                 val buildDirectory = getSpecificRecordCompileBuildDirectory(project, sourceSet)
