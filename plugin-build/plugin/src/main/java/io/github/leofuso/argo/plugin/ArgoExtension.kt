@@ -39,14 +39,14 @@ abstract class ColumbaOptions {
     abstract fun getOutputEncoding(): Property<String>
 
     @Nested
-    abstract fun getFields(): ColumbaeFieldOptions
+    abstract fun getFields(): ColumbaFieldOptions
 
-    fun fields(action: Action<in ColumbaeFieldOptions>) = action.invoke(getFields())
+    fun fields(action: Action<in ColumbaFieldOptions>) = action.invoke(getFields())
 
     @Nested
-    abstract fun getAccessors(): ColumbaeAccessorOptions
+    abstract fun getAccessors(): ColumbaAccessorOptions
 
-    fun accessors(action: Action<in ColumbaeAccessorOptions>) = action.invoke(getAccessors())
+    fun accessors(action: Action<in ColumbaAccessorOptions>) = action.invoke(getAccessors())
 
     abstract fun getAdditionalVelocityTools(): ListProperty<Class<*>>
 
@@ -59,7 +59,7 @@ abstract class ColumbaOptions {
 }
 
 
-abstract class ColumbaeFieldOptions(@Inject val project: Project) {
+abstract class ColumbaFieldOptions(@Inject val project: Project) {
 
     private val useDecimalTypeProperty = project.objects.property<Boolean>()
 
@@ -77,7 +77,7 @@ abstract class ColumbaeFieldOptions(@Inject val project: Project) {
 
 }
 
-abstract class ColumbaeAccessorOptions(@Inject val project: Project) {
+abstract class ColumbaAccessorOptions(@Inject val project: Project) {
 
     private val noSetterProperty = project.objects.property<Boolean>()
     private val addExtraOptionalGettersProperty = project.objects.property<Boolean>()
