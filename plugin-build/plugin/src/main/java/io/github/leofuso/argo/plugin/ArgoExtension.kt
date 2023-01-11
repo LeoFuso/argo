@@ -9,7 +9,6 @@ import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.kotlin.dsl.invoke
@@ -56,20 +55,45 @@ abstract class ColumbaOptions {
 
     abstract fun getAdditionalConverters(): ListProperty<Class<out Conversion<*>>>
 
+    @Internal
+    fun withConventions(project: Project): ColumbaOptions {
+
+        getExcluded().convention(listOf())
+        getOutputEncoding().convention("UTF-8")
+        getAdditionalVelocityTools().convention(listOf())
+        getVelocityTemplateDirectory().convention(project.objects.directoryProperty())
+        getAdditionalConverters().convention(listOf())
+        getAdditionalLogicalTypeFactories().convention(listOf())
+
+        fields {
+            it.getStringType().convention(StringType.CharSequence)
+            it.getVisibility().convention(FieldVisibility.PRIVATE)
+            it.useDecimalTypeProperty.convention(true)
+        }
+
+        accessors {
+            it.noSetterProperty.convention(true)
+            it.addExtraOptionalGettersProperty.convention(false)
+            it.useOptionalGettersProperty.convention(true)
+            it.getOptionalGettersStrategy().convention(OptionalGettersStrategy.ONLY_NULLABLE_FIELDS)
+        }
+
+        return this
+    }
 }
 
 
 abstract class ColumbaFieldOptions(@Inject val project: Project) {
 
-    private val useDecimalTypeProperty = project.objects.property<Boolean>()
+    private val _useDecimalTypeProperty = project.objects.property<Boolean>()
 
-    val useDecimalTypeProvider: Provider<Boolean>
-        get() = useDecimalTypeProperty
+    val useDecimalTypeProperty: Property<Boolean>
+        get() = _useDecimalTypeProperty
 
     @get:Internal
     var useDecimalType: Boolean
-        get() = useDecimalTypeProperty.get()
-        set(value) = useDecimalTypeProperty.set(value)
+        get() = _useDecimalTypeProperty.get()
+        set(value) = _useDecimalTypeProperty.set(value)
 
     abstract fun getStringType(): Property<StringType>
 
@@ -79,33 +103,33 @@ abstract class ColumbaFieldOptions(@Inject val project: Project) {
 
 abstract class ColumbaAccessorOptions(@Inject val project: Project) {
 
-    private val noSetterProperty = project.objects.property<Boolean>()
-    private val addExtraOptionalGettersProperty = project.objects.property<Boolean>()
-    private val useOptionalGettersProperty = project.objects.property<Boolean>()
+    private val _noSetterProperty = project.objects.property<Boolean>()
+    private val _addExtraOptionalGettersProperty = project.objects.property<Boolean>()
+    private val _useOptionalGettersProperty = project.objects.property<Boolean>()
 
-    val noSetterProvider: Provider<Boolean>
-        get() = noSetterProperty
+    val noSetterProperty: Property<Boolean>
+        get() = _noSetterProperty
 
-    val addExtraOptionalGettersProvider: Provider<Boolean>
-        get() = addExtraOptionalGettersProperty
+    val addExtraOptionalGettersProperty: Property<Boolean>
+        get() = _addExtraOptionalGettersProperty
 
-    val useOptionalGettersProvider: Provider<Boolean>
-        get() = useOptionalGettersProperty
+    val useOptionalGettersProperty: Property<Boolean>
+        get() = _useOptionalGettersProperty
 
     @get:Internal
     var noSetters: Boolean
-        get() = noSetterProperty.get()
-        set(value) = noSetterProperty.set(value)
+        get() = _noSetterProperty.get()
+        set(value) = _noSetterProperty.set(value)
 
     @get:Internal
     var addExtraOptionalGetters: Boolean
-        get() = addExtraOptionalGettersProperty.get()
-        set(value) = addExtraOptionalGettersProperty.set(value)
+        get() = _addExtraOptionalGettersProperty.get()
+        set(value) = _addExtraOptionalGettersProperty.set(value)
 
     @get:Internal
     var useOptionalGetters: Boolean
-        get() = useOptionalGettersProperty.get()
-        set(value) = useOptionalGettersProperty.set(value)
+        get() = _useOptionalGettersProperty.get()
+        set(value) = _useOptionalGettersProperty.set(value)
 
     abstract fun getOptionalGettersStrategy(): Property<OptionalGettersStrategy>
 
