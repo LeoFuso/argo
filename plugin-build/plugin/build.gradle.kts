@@ -14,6 +14,7 @@ dependencies {
     implementation(gradleKotlinDsl())
 
     implementation(libs.compiler)
+    implementation(libs.jacksonDatabind)
 
     testImplementation(libs.bundles.junit)
     testImplementation(libs.assertj)
@@ -29,9 +30,7 @@ kotlin {
 }
 
 tasks.withType<JavaCompile> {
-    options.compilerArgs.add("-Xlint:all")
-    options.compilerArgs.add("-Xlint:-options")
-    options.compilerArgs.add("-Werror")
+    options.compilerArgs = options.compilerArgs + "-Xlint:all" + "-Xlint:-options" + "-Werror"
 }
 
 tasks.withType<AbstractArchiveTask> {
@@ -65,7 +64,7 @@ tasks.create("setupPluginUploadFromEnvironment") {
         val secret = System.getenv("GRADLE_PUBLISH_SECRET")
 
         if (key == null || secret == null) {
-            throw GradleException("gradlePublishKey and/or gradlePublishSecret are not defined environment variables")
+            throw GradleException("gradlePublishKey and/or gradlePublishSecret are not defined environment variables.")
         }
 
         System.setProperty("gradle.publish.key", key)

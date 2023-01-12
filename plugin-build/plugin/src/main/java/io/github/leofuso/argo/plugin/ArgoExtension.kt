@@ -11,9 +11,18 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
+import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
+
+object ArgoExtensionSupplier {
+    fun get(project: Project): ArgoExtension {
+        val extension = project.extensions.create<ArgoExtension>("argo")
+        extension.getColumba().withConventions(project)
+        return extension
+    }
+}
 
 abstract class ArgoExtension {
 
@@ -32,6 +41,8 @@ abstract class ArgoExtension {
 interface NavisOptions
 
 abstract class ColumbaOptions {
+
+    abstract fun getCompiler(): Property<String>
 
     abstract fun getExcluded(): ListProperty<String>
 
@@ -58,6 +69,7 @@ abstract class ColumbaOptions {
     @Internal
     fun withConventions(project: Project): ColumbaOptions {
 
+        getCompiler().convention(DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY)
         getExcluded().convention(listOf())
         getOutputEncoding().convention("UTF-8")
         getAdditionalVelocityTools().convention(listOf())

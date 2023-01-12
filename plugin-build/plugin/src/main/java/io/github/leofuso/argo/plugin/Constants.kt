@@ -16,3 +16,9 @@ const val VELOCITY_TEMPLATE_EXTENSION = "vm"
 const val IDL_EXTENSION = "avdl"
 const val JAVA_EXTENSION = "java"
 const val AVRO_EXTENSION_NAME = "avro"
+
+/**
+* Default dependencies
+*/
+const val DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY = "org.apache.avro:avro-compiler:1.11.1"
+const val DEFAULT_JACKSON_DATABIND_DEPENDENCY = "com.fasterxml.jackson.core:jackson-databind:2.14.1"

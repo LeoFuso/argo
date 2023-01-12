@@ -5,52 +5,58 @@ import io.github.leofuso.argo.plugin.tasks.getSpecificRecordCompileBuildDirector
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.ide.idea.GenerateIdeaModule
 
 abstract class ArgoPlugin : Plugin<Project> {
 
-    private lateinit var extension: ArgoExtension
-    private lateinit var project: Project
+    override fun apply(project: Project) {
 
-    override fun apply(projectArg: Project) {
-        project = projectArg
-        extension = project.extensions.create("argo")
-
+        val extension = ArgoExtensionSupplier.get(project)
         project.plugins.withType<JavaPlugin> {
             project.extensions.getByType<SourceSetContainer>()
-                .configureEach(::configureSpecificRecordCompileTask)
+                .configureEach { source ->
+                    configureColumbaTasks(project, extension.getColumba(), source)
+                }
+            addApacheAvroCompilerDependency(project, extension.getColumba())
         }
-
-        // addCompilerConfiguration()
     }
 
-    private fun addCompilerConfiguration() {
-        val extension = extension.getColumba()
-        //extension.getCompilerVersion().convention("1.11.1")
-        val config = project.configurations.create("compiler") {
+    private fun addApacheAvroCompilerDependency(project: Project, extension: ColumbaOptions) {
+
+        val description = """""
+            Compiler needed to generate code from Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) files."""
+
+        val config = project.configurations.create("apacheAvroCompiler") {
+
+            it.isVisible = true
+            it.isCanBeResolved = false
+            it.isCanBeConsumed = true
+            it.description = description
+
             it.defaultDependencies { dependencies ->
-                val version = "1.11.1"
-                val compilerDependency = String.format("org.apache.avro:avro-compiler:%s", version)
-                dependencies.add(project.dependencies.create(compilerDependency))
+                val compilerDependency = project.dependencies.create(extension.getCompiler().get())
+                val jacksonDependency = project.dependencies.create(DEFAULT_JACKSON_DATABIND_DEPENDENCY)
+                dependencies.add(compilerDependency)
+                dependencies.add(jacksonDependency)
             }
         }
-        config.isVisible = true
-        config.isCanBeResolved = false
-        config.isCanBeConsumed = true
-        config.description = "Compiler needed to generate code from .avsc and .avpr files."
+        project.configurations.findByName(COMPILE_CLASSPATH_CONFIGURATION_NAME)?.extendsFrom(config)
     }
 
-    private fun configureSpecificRecordCompileTask(sourceSet: SourceSet) {
+    private fun configureColumbaTasks(project: Project, extension: ColumbaOptions, sourceSet: SourceSet) {
 
         val taskContainer: TaskContainer = project.tasks
 
         val taskName = sourceSet.getCompileTaskName("apacheAvroJava")
         val taskProvider: TaskProvider<SpecificRecordCompilerTask> =
             taskContainer.register<SpecificRecordCompilerTask>(taskName) {
-                val extension: ColumbaOptions = extension.getColumba().withConventions(project)
                 withExtension(extension)
                 configureSourceSet(sourceSet)
             }

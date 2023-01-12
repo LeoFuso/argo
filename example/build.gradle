@@ -3,8 +3,8 @@ import org.apache.avro.generic.GenericData
 plugins {
     id 'java'
     id 'idea'
-    id 'io.github.leofuso.argo'
     id 'org.jetbrains.kotlin.jvm' version '1.8.0'
+    id 'io.github.leofuso.argo'
 }
 
 repositories {
@@ -13,26 +13,15 @@ repositories {
 
 dependencies {
     implementation 'org.apache.avro:avro:1.11.0'
-    implementation 'org.apache.avro:avro-compiler:1.11.1'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 }
 
 argo {
     columba {
+        compiler = 'org.apache.avro:avro-compiler:1.11.0'
         outputEncoding = 'UTF-8'
         fields {
             stringType = GenericData.StringType.String
         }
-    }
-}
-
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
     }
 }
