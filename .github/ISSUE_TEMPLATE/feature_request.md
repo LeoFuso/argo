@@ -3,13 +3,21 @@ name: Feature request
 about: Suggest an idea for this project
 ---
 
-## ⚠️ Is your feature request related to a problem? Please describe
-<!-- A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->
+<!-- Give it a good title! 😎 -->
 
-## 💡 Describe the solution you'd like
-<!-- A clear and concise description of what you want to happen. -->
+### CONTEXT
 
-## 🤚 Do you want to develop this feature yourself?
-<!-- Put an `x` symbol into braces of desired choice. -->
-- [ ] Yes
-- [ ] No
+_A brief contextualization as to why you think this feature should be implemented.
+This is not a description of a problem to be solved and does not have to be part of
+a common use case, for instance:_
+
+> At my workplace, we use Jars to pass around Schema definitions.
+
+### PROBLEM / SOLUTION
+
+_The description of the atomic problem this feature solves, if any.
+It should be as through as possible!_
+
+_If this feature request is related to an issue, please refer to it 🙃._
+
+<!-- Thanks for contributing! 🥲 -->

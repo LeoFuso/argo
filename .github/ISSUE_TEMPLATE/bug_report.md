@@ -1,24 +1,22 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report an abnormal behavior.
 ---
 
-## 🐛 Describe the bug
-<!-- A clear and concise description of what the bug is. -->
+### CONTEXT
+_A brief contextualization as how this Bug happened._
 
-## ⚠️ Current behavior
-<!-- A clear and concise description of what you expected to happen. -->
+### CURRENT BEHAVIOR
+_A clear and concise description of what you expected to happen._
 
-## ✅ Expected behavior
-<!-- A clear and concise description of what you expected to happen. -->
+## EXPECTED BEHAVIOR
+_A clear and concise description of what you expected to happen._
 
-## 💣 Steps to reproduce
-<!-- How we can reproduce the behavior: -->
+## STEPS TO REPRODUCE
+_How to reproduce the behavior.
+You're welcome to create a unit test, a test project, or just a script._
 
-## 📷 Screenshots
-<!-- If applicable, add screenshots to help explain your problem. -->
-
-## 📱 Tech info
- - Device: <!-- e.g. Nexus One -->
- - OS: <!-- e.g. 7.1.1 -->
- - Library/App version: <!-- e.g. 1.0.0 -->
+## ENVIRONMENT
+ - **java**: _e.g. 17_
+ - **version**: _e.g. 1.0.0_
+ - **stacktrace**: **if any**.
