@@ -16,12 +16,12 @@ data class SchemaDefinition(val source: File, val schema: Schema) {
     }
 }
 
-class SchemaVisitor(private val logger: Logger) {
+class OldSchemaVisitor(private val logger: Logger) {
 
     private val undefinedPattern = Pattern.compile("(?i).*(undefined name|not a defined name|type not supported).*")
     private val duplicatedPattern = Pattern.compile("Can't redefine: (.*)")
 
-    fun getDefinitions(tree: FileTree): Map<String, SchemaDefinition> {
+    fun visit(tree: FileTree): Map<String, SchemaDefinition> {
 
         val queue = ArrayDeque<File>()
         val iterator = queue.listIterator()
@@ -93,7 +93,7 @@ class SchemaVisitor(private val logger: Logger) {
         }
     }
 
-    fun compileToDisk(
+    fun doCompile(
         definitions: Map<String, SchemaDefinition> = mapOf(),
         destination: File,
         config: (SpecificCompiler) -> Unit

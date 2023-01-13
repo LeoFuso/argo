@@ -1,7 +1,7 @@
 package io.github.leofuso.argo.plugin.tasks
 
 import io.github.leofuso.argo.plugin.*
-import io.github.leofuso.argo.plugin.parser.SchemaVisitor
+import io.github.leofuso.argo.plugin.parser.DefaultSchemaParser
 import org.apache.avro.Conversion
 import org.apache.avro.LogicalTypes
 import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
@@ -75,9 +75,11 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
 
     @TaskAction
     fun process(inputChanges: InputChanges) {
-        val visitor = SchemaVisitor(logger)
-        val definitions = visitor.getDefinitions(source)
-        visitor.compileToDisk(definitions, getOutputDir().get().asFile, configure())
+
+        val parser = DefaultSchemaParser(logger)
+        val resolution = parser.parse(source)
+
+        //parser.doCompile(resolution, getOutputDir().get().asFile, configure())
     }
 
     fun withExtension(options: ColumbaOptions) {
@@ -110,6 +112,7 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
     }
 
     private fun getBuildDirectory(source: SourceSet) = getSpecificRecordCompileBuildDirectory(project, source)
+
     fun configureSourceSet(source: SourceSet) {
         val buildDirectory = getBuildDirectory(source)
         setOutputDir(buildDirectory)
