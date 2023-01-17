@@ -1,5 +1,6 @@
 [versions]
 kotlin = "1.8.0"
+klint = "3.13.0"
 detekt = "1.22.0"
 publish = "1.1.0"
 junit = "5.9.1"
@@ -7,11 +8,13 @@ assertj = "3.24.0"
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+klint = { id = "org.jmailen.kotlinter" }
 detekt = { id = "io.gitlab.arturbosch.detekt" }
 publish = { id = "com.gradle.plugin-publish" }
 
 [libraries]
-kotlin = { group ="org.jetbrains.kotlin.jvm", name = "org.jetbrains.kotlin.jvm.gradle.plugin", version.ref = "kotlin" }
+kotlin = { group = "org.jetbrains.kotlin.jvm", name = "org.jetbrains.kotlin.jvm.gradle.plugin", version.ref = "kotlin" }
+klint = { group = "org.jmailen.gradle", name = "kotlinter-gradle", version.ref = "klint" }
 detekt = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
 publish = { group = "com.gradle.publish", name = "plugin-publish-plugin", version.ref = "publish" }
 

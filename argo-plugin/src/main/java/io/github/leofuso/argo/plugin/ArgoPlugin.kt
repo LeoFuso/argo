@@ -6,7 +6,11 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.SourceTask
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
@@ -17,7 +21,6 @@ import org.gradle.plugins.ide.idea.GenerateIdeaModule
 abstract class ArgoPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
-
         val extension = ArgoExtensionSupplier.get(project)
         project.plugins.withType<JavaPlugin> {
             project.extensions.getByType<SourceSetContainer>()
@@ -29,13 +32,11 @@ abstract class ArgoPlugin : Plugin<Project> {
     }
 
     private fun addApacheAvroCompilerDependency(project: Project, extension: ColumbaOptions) {
-
         val description = """
             |Compiler needed to generate code from Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) files.
-            """.trimMargin()
+        """.trimMargin()
 
         val config = project.configurations.create("apacheAvroCompiler") {
-
             it.isVisible = true
             it.isCanBeResolved = false
             it.isCanBeConsumed = true
@@ -52,7 +53,6 @@ abstract class ArgoPlugin : Plugin<Project> {
     }
 
     private fun configureColumbaTasks(project: Project, extension: ColumbaOptions, sourceSet: SourceSet) {
-
         val taskContainer: TaskContainer = project.tasks
 
         val taskName = sourceSet.getCompileTaskName("apacheAvroJava")

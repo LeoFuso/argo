@@ -1,6 +1,5 @@
 package io.github.leofuso.argo.plugin.parser
 
-import io.github.leofuso.argo.plugin.parser.SchemaFileVisitor.FileClassification.*
 import org.apache.avro.Protocol
 import org.apache.avro.Schema
 import org.gradle.api.file.FileTree
@@ -26,7 +25,6 @@ interface DependencyGraphAwareSchemaParser {
      * Parse all definition schemas from the provided [graph], returning all successful resolutions.
      */
     fun parse(graph: FileTree): Resolution {
-
         val visitor = getVisitor()
         graph.visit(visitor)
 
@@ -35,13 +33,13 @@ interface DependencyGraphAwareSchemaParser {
         val queue = visitor.dequeue()
         return queue.map { entry ->
             when (entry.key) {
-                Schema -> {
+                SchemaFileVisitor.FileClassification.Schema -> {
                     val schemas = Schemas(entry.value)
                     val resolution = doParse(schemas)
                     SchemaResolution(resolution)
                 }
 
-                Protocol -> {
+                SchemaFileVisitor.FileClassification.Protocol -> {
                     val protocols = Protocols(entry.value)
                     val resolution = doParse(protocols)
                     ProtocolResolution(resolution)
@@ -57,11 +55,10 @@ interface DependencyGraphAwareSchemaParser {
 
     fun doParse(schemas: Schemas): Map<String, Schema>
 
-    fun doParse(protocols: Protocols): Map<String, Protocol> =
-        protocols.elements.associate {
-            val protocol = Protocol.parse(it)
-            protocol.name to protocol
-        }
+    fun doParse(protocols: Protocols): Map<String, Protocol> = protocols.elements.associate {
+        val protocol = Protocol.parse(it)
+        protocol.name to protocol
+    }
 
     /**
      * @return A [SchemaFileVisitor].

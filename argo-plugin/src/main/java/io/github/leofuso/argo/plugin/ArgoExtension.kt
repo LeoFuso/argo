@@ -68,7 +68,6 @@ abstract class ColumbaOptions {
 
     @Internal
     fun withConventions(project: Project): ColumbaOptions {
-
         getCompiler().convention(DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY)
         getExcluded().convention(listOf())
         getOutputEncoding().convention("UTF-8")

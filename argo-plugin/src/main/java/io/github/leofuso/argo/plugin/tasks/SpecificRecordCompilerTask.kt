@@ -1,6 +1,10 @@
 package io.github.leofuso.argo.plugin.tasks
 
-import io.github.leofuso.argo.plugin.*
+import io.github.leofuso.argo.plugin.ColumbaOptions
+import io.github.leofuso.argo.plugin.GROUP_SOURCE_GENERATION
+import io.github.leofuso.argo.plugin.OptionalGettersStrategy
+import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
+import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
 import io.github.leofuso.argo.plugin.parser.DefaultSchemaParser
 import org.apache.avro.Conversion
 import org.apache.avro.LogicalTypes
@@ -13,7 +17,11 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.property
 import org.gradle.work.InputChanges
 import kotlin.io.path.Path
@@ -30,7 +38,7 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
         description = """
             |Generates SpecificRecord Java source files from Schema(.$SCHEMA_EXTENSION) 
             |and Protocol(.$PROTOCOL_EXTENSION) definition files.
-            """.trimMargin().replace("\n", "")
+        """.trimMargin().replace("\n", "")
 
         group = GROUP_SOURCE_GENERATION
     }
@@ -46,6 +54,7 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
 
     @get:Input
     abstract val useOptionalGetters: Property<Boolean>
+
     @Input
     @Optional
     abstract fun getEncoding(): Property<String>
@@ -65,6 +74,7 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
     @Input
     @Optional
     abstract fun getFieldVisibility(): Property<FieldVisibility>
+
     @Input
     @Optional
     abstract fun getOptionalGettersStrategy(): Property<OptionalGettersStrategy>
@@ -79,7 +89,6 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
 
     @TaskAction
     fun process(inputChanges: InputChanges) {
-
         val parser = DefaultSchemaParser(logger)
         val resolution = parser.parse(source)
 
@@ -87,7 +96,6 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
     }
 
     fun withExtension(options: ColumbaOptions) {
-
         include("**/*.$SCHEMA_EXTENSION", "**/*.$PROTOCOL_EXTENSION")
         exclude(options.getExcluded().get())
 

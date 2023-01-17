@@ -14,17 +14,14 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
     private val duplicatedPattern = Pattern.compile("Can't redefine: (.*)")
 
     override fun doParse(schemas: Schemas): Map<String, Schema> {
-
         val queue = ArrayDeque(schemas.elements)
         val iterator = queue.listIterator()
 
         val definitions = mutableMapOf<String, Schema>()
 
         do {
-
             val initialDefinitions = definitions.size
             while (iterator.hasNext()) {
-
                 val source = iterator.next()
                 val types = definitions.toMap()
                 val tempParser = Schema.Parser()
@@ -55,24 +52,18 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
         return definitions.toMap()
     }
 
-    private fun findSchema(
-        parser: Schema.Parser,
-        source: File,
-        queue: ArrayDeque<File>
-    ): Pair<String, Schema>? {
+    private fun findSchema(parser: Schema.Parser, source: File, queue: ArrayDeque<File>): Pair<String, Schema>? {
         try {
             val schema = parser.parse(source)
             val key = schema.fullName
             return (key to schema)
         } catch (ex: SchemaParseException) {
-
             val errorMessage = ex.message ?: "unknown"
             val undefinedMatcher = undefinedPattern.matcher(errorMessage)
             val duplicatedMatcher = duplicatedPattern.matcher(errorMessage)
 
             val path = source.path
             when {
-
                 undefinedMatcher.matches() -> {
                     if (logger.isDebugEnabled) {
                         logger.debug("Found undefined name at [{}] ({}); will try again.", path, errorMessage)

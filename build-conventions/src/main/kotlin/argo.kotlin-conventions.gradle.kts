@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
+    id("org.jmailen.kotlinter")
     id("io.gitlab.arturbosch.detekt")
 }
 
@@ -55,6 +56,13 @@ tasks {
         }
         maxHeapSize = "1024m"
     }
+}
+
+kotlinter {
+    ignoreFailures = false
+    reporters = arrayOf("plain")
+    experimentalRules = true
+    disabledRules = emptyArray()
 }
 
 detekt {

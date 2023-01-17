@@ -60,20 +60,18 @@ fun fromSchema(
         .fold(onSuccess = {
             it
         }, onFailure = {
-            throw errSupplier.invoke(source, it)
-        })
+                throw errSupplier.invoke(source, it)
+            })
 }
 
-fun fromProtocol(
-    config: (SpecificCompiler) -> SpecificCompiler,
-    errSupplier: (File, Throwable) -> (TaskConfigurationException)
-) = { source: File ->
-    runCatching { Protocol.parse(source) }
-        .mapCatching { SpecificCompiler(it) }
-        .mapCatching { config.invoke(it) }
-        .fold(onSuccess = {
-            it
-        }, onFailure = {
-            throw errSupplier.invoke(source, it)
-        })
-}
+fun fromProtocol(config: (SpecificCompiler) -> SpecificCompiler, errSupplier: (File, Throwable) -> (TaskConfigurationException)) =
+    { source: File ->
+        runCatching { Protocol.parse(source) }
+            .mapCatching { SpecificCompiler(it) }
+            .mapCatching { config.invoke(it) }
+            .fold(onSuccess = {
+                it
+            }, onFailure = {
+                    throw errSupplier.invoke(source, it)
+                })
+    }
