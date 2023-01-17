@@ -1,6 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="17" />
+    <bytecodeTargetLevel target="1.6">
+      <module name="argo-plugin.buildSrc" target="17" />
+      <module name="argo-plugin.buildSrc.main" target="17" />
+      <module name="argo-plugin.buildSrc.test" target="17" />
+      <module name="argo-plugin.conventions" target="17" />
+      <module name="argo-plugin.conventions.main" target="17" />
+      <module name="argo-plugin.conventions.test" target="17" />
+      <module name="argo-plugin.project-specific-conventions" target="17" />
+      <module name="argo-plugin.project-specific-conventions.main" target="17" />
+      <module name="argo-plugin.project-specific-conventions.test" target="17" />
+      <module name="argo-plugin.use-cases.simple-java" target="17" />
+      <module name="argo-plugin.use-cases.simple-java.main" target="17" />
+      <module name="argo-plugin.use-cases.simple-java.test" target="17" />
+      <module name="argo-project.buildSrc" target="17" />
+      <module name="argo-project.buildSrc.main" target="17" />
+      <module name="argo-project.buildSrc.test" target="17" />
+      <module name="plugin-build.plugin" target="16" />
+      <module name="plugin-build.plugin.main" target="16" />
+      <module name="plugin-build.plugin.test" target="16" />
+    </bytecodeTargetLevel>
   </component>
 </project>

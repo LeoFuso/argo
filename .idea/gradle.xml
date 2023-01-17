@@ -7,25 +7,36 @@
         <compositeConfiguration>
           <compositeBuild compositeDefinitionSource="SCRIPT">
             <builds>
-              <build path="$PROJECT_DIR$/plugin-build" name="plugin-build">
+              <build path="$PROJECT_DIR$/build-conventions" name="build-conventions">
                 <projects>
-                  <project path="$PROJECT_DIR$/plugin-build" />
-                  <project path="$PROJECT_DIR$/plugin-build/plugin" />
+                  <project path="$PROJECT_DIR$/build-conventions" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/argo-plugin" name="argo-plugin">
+                <projects>
+                  <project path="$PROJECT_DIR$/argo-plugin" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/use-cases" name="use-cases">
+                <projects>
+                  <project path="$PROJECT_DIR$/use-cases" />
+                  <project path="$PROJECT_DIR$/use-cases/simple-java" />
                 </projects>
               </build>
             </builds>
           </compositeBuild>
         </compositeConfiguration>
         <option name="delegatedBuild" value="true" />
-        <option name="testRunner" value="GRADLE" />
+        <option name="testRunner" value="PLATFORM" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/example" />
-            <option value="$PROJECT_DIR$/plugin-build" />
-            <option value="$PROJECT_DIR$/plugin-build/plugin" />
+            <option value="$PROJECT_DIR$/argo-plugin" />
+            <option value="$PROJECT_DIR$/build-conventions" />
+            <option value="$PROJECT_DIR$/use-cases" />
+            <option value="$PROJECT_DIR$/use-cases/simple-java" />
           </set>
         </option>
       </GradleProjectSettings>

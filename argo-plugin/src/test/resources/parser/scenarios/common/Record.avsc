@@ -1,0 +1,21 @@
+{
+    "doc": "Record doc",
+    "name": "Record",
+    "namespace": "io.github.leofuso.argo.plugin.parser",
+    "type": "record",
+    "fields": [
+        {
+            "name": "firstField",
+            "type": {
+                "type": "string",
+                "logicalType": "uuid"
+            },
+            "doc": "First field doc."
+        },
+        {
+            "name": "secondField",
+            "type": "string",
+            "doc": "Second field doc."
+        },
+    ]
+}

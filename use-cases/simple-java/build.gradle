@@ -1,0 +1,28 @@
+import org.apache.avro.generic.GenericData
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'org.apache.avro', name: 'avro', version: '1.11.0'
+    }
+}
+
+plugins {
+    id 'java'
+    id 'idea'
+    id 'io.github.leofuso.argo'
+}
+
+dependencies {}
+
+argo {
+    columba {
+        compiler = 'org.apache.avro:avro-compiler:1.11.0'
+        outputEncoding = 'UTF-8'
+        fields {
+            stringType = GenericData.StringType.String
+        }
+    }
+}

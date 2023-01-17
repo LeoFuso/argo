@@ -1,0 +1,6 @@
+{
+    "name": "Fixed",
+    "namespace": "io.github.leofuso.argo.plugin.parser",
+    "type": "fixed",
+    "size": 25
+}
