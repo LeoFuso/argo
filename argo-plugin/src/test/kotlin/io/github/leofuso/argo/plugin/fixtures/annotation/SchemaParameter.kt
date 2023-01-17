@@ -1,4 +1,4 @@
-package io.github.leofuso.argo.plugin.fixture.annotation
+package io.github.leofuso.argo.plugin.fixtures.annotation
 
 import org.junit.jupiter.api.extension.ParameterResolver
 

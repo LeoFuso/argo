@@ -1,6 +1,6 @@
-package io.github.leofuso.argo.plugin.fixture
+package io.github.leofuso.argo.plugin.fixtures
 
-import io.github.leofuso.argo.plugin.fixture.annotation.SchemaParameter
+import io.github.leofuso.argo.plugin.fixtures.annotation.SchemaParameter
 import org.gradle.api.file.FileTree
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -21,7 +21,8 @@ class FileTreeParameterResolver : ParameterResolver {
         return parameterContext.findAnnotation(SchemaParameter::class.java)
             .map(SchemaParameter::location)
             .map { location ->
-                project.objects.fileTree().from(location).asFileTree
+                val configurable = project.objects.fileTree()
+                configurable.from(location).asFileTree
             }
             .orElse(null)
     }

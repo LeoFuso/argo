@@ -7,7 +7,8 @@ junit = "5.9.1"
 assertj = "3.24.0"
 
 [plugins]
-kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+idea = { id = "org.gradle.idea" }
+kotlin = { id = "org.jetbrains.kotlin.jvm" }
 klint = { id = "org.jmailen.kotlinter" }
 detekt = { id = "io.gitlab.arturbosch.detekt" }
 publish = { id = "com.gradle.plugin-publish" }
