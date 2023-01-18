@@ -1,4 +1,4 @@
-package io.github.leofuso.argo.plugin.parser
+package io.github.leofuso.argo.plugin.compiler.parser
 
 import org.apache.avro.Protocol
 import org.apache.avro.Schema
@@ -10,7 +10,8 @@ import java.io.File
  * A **DependencyGraphAwareSchemaParser** is a [Parser][org.apache.avro.Schema.Parser] capable of producing
  * [Schemas][org.apache.avro.Schema] and interpreting [Protocols][org.apache.avro.Protocol] by resolving the dependency
  * graph up to *N* degrees without the need of **pre-inlining** them. This parser achieves this by transversing the
- * file structure in depth-first order, and resolving any found Schemas lazily.
+ * file structure in depth-first order, resolving Schemas with O(n²) iterations, where (n) is the number of Schema
+ * definition files.
  *
  * **Notes:**
  *
@@ -28,7 +29,7 @@ interface DependencyGraphAwareSchemaParser {
         val visitor = getVisitor()
         graph.visit(visitor)
 
-        val emptyResolution = Resolution(schema = mapOf(), protocol = mapOf())
+        val emptyResolution = Resolution(schemas = mapOf(), protocol = mapOf())
 
         val queue = visitor.dequeue()
         return queue.map { entry ->
@@ -48,7 +49,7 @@ interface DependencyGraphAwareSchemaParser {
         }.fold(emptyResolution) { res, some ->
             when (some) {
                 is ProtocolResolution -> res.copy(protocol = some.protocol)
-                is SchemaResolution -> res.copy(schema = some.schema)
+                is SchemaResolution -> res.copy(schemas = some.schema)
             }
         }
     }
@@ -79,7 +80,7 @@ interface DependencyGraphAwareSchemaParser {
 /**
  * A Resolution containing all successfully parsed definitions.
  */
-data class Resolution(val schema: Map<String, Schema>, val protocol: Map<String, Protocol>)
+data class Resolution(val schemas: Map<String, Schema>, val protocol: Map<String, Protocol>)
 
 /**
  * A [SchemaFileVisitor] is used to visit each of the definition files in a [FileTree].

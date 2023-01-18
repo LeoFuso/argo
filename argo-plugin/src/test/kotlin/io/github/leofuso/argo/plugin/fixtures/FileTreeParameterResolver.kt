@@ -17,12 +17,14 @@ class FileTreeParameterResolver : ParameterResolver {
     }
 
     override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): FileTree {
-        val project = ProjectBuilder.builder().build()
+        val projectBuilder = ProjectBuilder.builder()
+        val project = projectBuilder.build()
         return parameterContext.findAnnotation(SchemaParameter::class.java)
             .map(SchemaParameter::location)
             .map { location ->
                 val configurable = project.objects.fileTree()
-                configurable.from(location).asFileTree
+                val resource = loadResource<FileTreeParameterResolver>(location)
+                configurable.from(resource).asFileTree
             }
             .orElse(null)
     }

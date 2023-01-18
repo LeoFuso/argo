@@ -5,7 +5,10 @@ import io.github.leofuso.argo.plugin.GROUP_SOURCE_GENERATION
 import io.github.leofuso.argo.plugin.OptionalGettersStrategy
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
-import io.github.leofuso.argo.plugin.parser.DefaultSchemaParser
+import io.github.leofuso.argo.plugin.compiler.configure
+import io.github.leofuso.argo.plugin.compiler.fromProtocol
+import io.github.leofuso.argo.plugin.compiler.fromSchema
+import io.github.leofuso.argo.plugin.compiler.parser.DefaultSchemaParser
 import org.apache.avro.Conversion
 import org.apache.avro.LogicalTypes
 import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
@@ -22,6 +25,7 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.kotlin.dsl.property
 import org.gradle.work.InputChanges
 import kotlin.io.path.Path
@@ -92,7 +96,17 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
         val parser = DefaultSchemaParser(logger)
         val resolution = parser.parse(source)
 
-        // parser.doCompile(resolution, getOutputDir().get().asFile, configure())
+        resolution.schemas
+            .forEach { (_, schema) ->
+                fromSchema(schema, configure()) { cause -> TaskExecutionException(this, cause) }
+            }
+
+        resolution.protocol
+            .forEach { (_, protocol) ->
+                fromProtocol(protocol, configure()) { cause -> TaskExecutionException(this, cause) }
+            }
+
+        didWork = true
     }
 
     fun withExtension(options: ColumbaOptions) {

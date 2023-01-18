@@ -1,8 +1,8 @@
-package io.github.leofuso.argo.plugin.parser
+package io.github.leofuso.argo.plugin.compiler.parser
 
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
-import io.github.leofuso.argo.plugin.parser.SchemaFileVisitor.FileClassification
+import io.github.leofuso.argo.plugin.compiler.parser.SchemaFileVisitor.FileClassification
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.logging.Logger
 import java.io.File

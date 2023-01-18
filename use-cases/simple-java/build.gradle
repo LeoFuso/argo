@@ -17,6 +17,12 @@ plugins {
 
 dependencies {}
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
 argo {
     columba {
         compiler = 'org.apache.avro:avro-compiler:1.11.0'

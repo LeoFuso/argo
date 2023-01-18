@@ -1,7 +1,7 @@
-package io.github.leofuso.argo.plugin.parser
+package io.github.leofuso.argo.plugin.compiler.parser
 
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
-import io.github.leofuso.argo.plugin.parser.DependencyGraphAwareSchemaParser.Schemas
+import io.github.leofuso.argo.plugin.compiler.parser.DependencyGraphAwareSchemaParser.Schemas
 import org.apache.avro.Schema
 import org.apache.avro.SchemaParseException
 import org.gradle.api.logging.Logger

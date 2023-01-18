@@ -1,10 +1,12 @@
-package io.github.leofuso.argo.plugin.tasks
+package io.github.leofuso.argo.plugin.compiler
 
 import io.github.leofuso.argo.plugin.OptionalGettersStrategy
+import io.github.leofuso.argo.plugin.tasks.SpecificRecordCompilerTask
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Protocol
 import org.apache.avro.Schema
 import org.apache.avro.compiler.specific.SpecificCompiler
+import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.execution.commandline.TaskConfigurationException
 import java.io.File
 
@@ -63,6 +65,16 @@ fun fromSchema(
                 throw errSupplier.invoke(source, it)
             })
 }
+
+inline fun fromSchema(schema: Schema, config: (SpecificCompiler) -> Unit, errSupplier: (Throwable) -> (TaskExecutionException)) =
+    runCatching { SpecificCompiler(schema) }
+        .mapCatching { config.invoke(it) }
+        .fold(onSuccess = {}, onFailure = { cause -> throw errSupplier.invoke(cause) })
+
+inline fun fromProtocol(protocol: Protocol, config: (SpecificCompiler) -> Unit, errSupplier: (Throwable) -> (TaskExecutionException)) =
+    runCatching { SpecificCompiler(protocol) }
+        .mapCatching { config.invoke(it) }
+        .fold(onSuccess = {}, onFailure = { cause -> throw errSupplier.invoke(cause) })
 
 fun fromProtocol(config: (SpecificCompiler) -> SpecificCompiler, errSupplier: (File, Throwable) -> (TaskConfigurationException)) =
     { source: File ->

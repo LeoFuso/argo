@@ -12,7 +12,6 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test-junit5"))
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.22.0")
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-libraries:1.22.0")
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-ruleauthors:1.22.0")
@@ -24,12 +23,13 @@ java {
 }
 
 kotlin {
-    jvmToolchain(JavaVersion.VERSION_17.ordinal)
+    jvmToolchain(JavaVersion.VERSION_11.ordinal)
 }
 
 tasks {
 
     withType<Detekt>().configureEach {
+        jvmTarget = "11"
         reports {
             html.required.set(true)
             txt.required.set(true)
@@ -51,15 +51,7 @@ tasks {
     }
 
     test {
-        maxHeapSize = "1024m"
         useJUnitPlatform()
-        jvmArgs(
-            "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-            "--add-opens", "java.base/java.util=ALL-UNNAMED"
-        )
-        testLogging {
-            events ("passed", "skipped", "failed")
-        }
     }
 }
 
