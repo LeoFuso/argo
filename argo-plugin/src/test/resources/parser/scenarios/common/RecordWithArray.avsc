@@ -1,5 +1,5 @@
 {
-    "name": "Record",
+    "name": "RecordWithArray",
     "namespace": "io.github.leofuso.argo.plugin.parser",
     "type": "record",
     "fields": [

@@ -16,6 +16,6 @@
             "name": "secondField",
             "type": "string",
             "doc": "Second field doc."
-        },
+        }
     ]
 }

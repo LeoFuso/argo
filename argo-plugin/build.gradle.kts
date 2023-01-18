@@ -10,8 +10,10 @@ version = "0.0.1-SNAPSHOT"
 dependencies {
     implementation(libs.compiler)
     implementation(libs.jacksonDatabind)
+    testRuntimeOnly(libs.junitLauncher)
     testImplementation(libs.bundles.junit)
     testImplementation(libs.assertj)
+    testImplementation(libs.combinatorics)
 }
 
 gradlePlugin {
