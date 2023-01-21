@@ -1,0 +1,67 @@
+{
+    "type": "record",
+    "name": "Fail",
+    "namespace": "io.github.leofuso.argo.plugin.parser",
+    "fields": [
+        {
+            "name": "start_date",
+            "type": {
+                "type": "record",
+                "name": "date",
+                "fields": [
+                    {
+                        "name": "day",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "name": "month",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "name": "year",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "end_date",
+            "type": {
+                "type": "record",
+                "name": "date",
+                "fields": [
+                    {
+                        "name": "day",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "name": "month",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    },
+                    {
+                        "name": "year",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

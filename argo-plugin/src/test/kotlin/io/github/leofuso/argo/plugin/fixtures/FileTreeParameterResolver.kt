@@ -23,7 +23,7 @@ class FileTreeParameterResolver : ParameterResolver {
             .map(SchemaParameter::location)
             .map { location ->
                 val configurable = project.objects.fileTree()
-                val resource = loadResource<FileTreeParameterResolver>(location)
+                val resource = loadResource(location)
                 configurable.from(resource).asFileTree
             }
             .orElse(null)
