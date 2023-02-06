@@ -193,4 +193,26 @@ class SchemaParserTest {
                 }
             }.toList()
     }
+
+    @Test
+    @DisplayName(
+        """
+        Given an inlined Schema with two dependencies,
+ when parsing,
+ then should resolve into three self-contained valid Schemas.
+        """
+    )
+    fun cabacc37b86b4baea31aaa461e8b7cd2(@SchemaParameter(location = "parser/scenarios/inline") graph: FileTree) {
+
+        /* When */
+        val resolution = subject.parse(graph)
+
+        /* Then */
+        assertThat(resolution)
+            .extracting("schemas")
+            .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
+            .containsOnlyKeys(
+                "io.github.leofuso.obs.demo.events.Receipt"
+            )
+    }
 }
