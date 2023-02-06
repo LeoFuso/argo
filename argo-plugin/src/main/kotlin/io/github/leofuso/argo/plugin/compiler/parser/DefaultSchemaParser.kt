@@ -14,13 +14,20 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
     private val duplicatedPattern = Pattern.compile("Can't redefine: (.*)")
 
     override fun doParse(schemas: Schemas): Map<String, Schema> {
+
+        /* Holding all unresolved resolutions between iterations */
+        val unresolved = ArrayDeque<File>(schemas.elements.size)
+
+        /* A temporary queue used within the iteration */
         val queue = ArrayDeque(schemas.elements)
         val iterator = queue.listIterator()
-
         val definitions = mutableMapOf<String, Schema>()
 
         do {
+
             val initialDefinitions = definitions.size
+
+            queue.addAll(unresolved)
             while (iterator.hasNext()) {
                 val source = iterator.next()
                 val types = definitions.toMap()
@@ -29,21 +36,25 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
 
                 /* Either resolved or re-enqueued */
                 iterator.remove()
-                val definition = findSchema(tempParser, source, queue)
+                val definition = findSchema(tempParser, source, unresolved)
                 if (definition != null) {
+                    unresolved.remove(source)
                     definitions += definition
                 }
             }
+
+            /*
+            * Either finished or there are unresolveable types remaining.
+            * If definition number doesn't change between iterations there's nothing more to be done.
+            */
             val foundDefinitions = definitions.size
+        } while (unresolved.isNotEmpty() && initialDefinitions != foundDefinitions)
 
-            /* Either finished or there are unresolveable types remaining. */
-        } while (queue.isNotEmpty() && initialDefinitions != foundDefinitions)
-
-        if (queue.isNotEmpty()) {
-            val files = queue.map(File::getPath).reduce { acc, next -> "$acc; $next" }
+        if (unresolved.isNotEmpty()) {
+            val files = unresolved.map(File::getPath).reduce { acc, next -> "$acc; $next" }
             logger.lifecycle(
                 "{} Schema(.{}) definition files remaining to be parsed. Files [{}].",
-                queue.size,
+                unresolved.size,
                 SCHEMA_EXTENSION,
                 files
             )
@@ -68,7 +79,10 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
                     if (logger.isDebugEnabled) {
                         logger.debug("Found undefined name at [{}] ({}); will try again.", path, errorMessage)
                     }
-                    queue.addLast(source)
+                    val notEnqueued = queue.contains(source).not()
+                    if(notEnqueued) {
+                        queue.addLast(source)
+                    }
                 }
 
                 duplicatedMatcher.matches() -> {

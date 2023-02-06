@@ -41,3 +41,7 @@ fun permutations(project: Project, vararg files: File): Map<String, FileTree> {
         .toList()
         .toMap()
 }
+
+fun permutations(project: Project, tree: FileTree): Map<String, FileTree> {
+    return permutations(project, *tree.files.toTypedArray())
+}

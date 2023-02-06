@@ -17,18 +17,13 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.DynamicTest
-import org.junit.jupiter.api.Named.named
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.io.TempDir
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import java.io.File
 import java.util.*
-import java.util.stream.Stream
 
 @DisplayName("SchemaParser Unit tests")
 @Extensions(ExtendWith(FileTreeParameterResolver::class))
@@ -49,26 +44,6 @@ class SchemaParserTest {
             .build()
 
         subject = DefaultSchemaParser(project.logger)
-    }
-
-    @DisplayName("Simple parsings.")
-    @ParameterizedTest(
-        name = """
- {index}: Given a {1},
- when parsing,
- then should resolve into a valid Schema.
-"""
-    )
-    @MethodSource("simpleParsingMethodFactory")
-    fun cabacc37b86b4baea31aaa461e8b7cdb(expected: Array<String>, source: FileTree) {
-        /* When */
-        val resolution = subject.parse(source)
-
-        /* Then */
-        assertThat(resolution)
-            .extracting("schemas")
-            .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
-            .containsOnlyKeys(*expected)
     }
 
     @Test
@@ -136,28 +111,86 @@ class SchemaParserTest {
             }.toList()
     }
 
-    companion object {
+    @TestFactory
+    @DisplayName(
+        """
+        Given a Schema with missing leaf dependency,
+ when parsing,
+ then should not resolve into any valid Schemas.
+        """
+    )
+    fun cabacc37b86b4baea31aaa461e8b7cdb(@SchemaParameter(location = "parser/scenarios/missing/leaf") graph: FileTree): List<DynamicTest> {
+        return permutations(project, graph)
+            .map { permutation ->
 
-        @JvmStatic
-        fun simpleParsingMethodFactory(
-            @SchemaParameter(location = "parser/scenarios/common/Record.avsc") record: FileTree,
-            @SchemaParameter(location = "parser/scenarios/common/Enum.avsc") enum: FileTree,
-            @SchemaParameter(location = "parser/scenarios/common/Fixed.avsc") fixed: FileTree,
-            @SchemaParameter(location = "parser/scenarios/common") array: FileTree
-        ): Stream<Arguments> {
-            return Stream.of(
-                Arguments.of(arrayOf("io.github.leofuso.argo.plugin.parser.Record"), named("Record.avsc", record)),
-                Arguments.of(arrayOf("io.github.leofuso.argo.plugin.parser.Fixed"), named("Fixed.avsc", fixed)),
-                Arguments.of(arrayOf("io.github.leofuso.argo.plugin.parser.Enum"), named("Enum.avsc", enum)),
-                Arguments.of(
-                    arrayOf(
-                        "io.github.leofuso.argo.plugin.parser.Enum",
-                        "io.github.leofuso.argo.plugin.parser.Fixed",
-                        "io.github.leofuso.argo.plugin.parser.Record",
-                        "io.github.leofuso.argo.plugin.parser.RecordWithArray"
-                    ), named("UseRecordWithArray.avsc", array)
-                )
-            )
-        }
+                DynamicTest.dynamicTest("Scenario ${permutation.key}") {
+
+                    /* When */
+                    val resolution = subject.parse(permutation.value)
+
+                    /* Then */
+                    assertThat(resolution)
+                        .extracting("schemas")
+                        .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
+                        .isEmpty()
+                }
+            }.toList()
+    }
+
+    @TestFactory
+    @DisplayName(
+        """
+        Given a Schema with missing root dependency,
+ when parsing,
+ then should resolve only leaf dependencies into a valid Schema.
+        """
+    )
+    fun cabacc37b86b4baea31aaa461e8b7cdr(@SchemaParameter(location = "parser/scenarios/missing/root") graph: FileTree): List<DynamicTest> {
+        return permutations(project, graph)
+            .map { permutation ->
+
+                DynamicTest.dynamicTest("Scenario ${permutation.key}") {
+
+                    /* When */
+                    val resolution = subject.parse(permutation.value)
+
+                    /* Then */
+                    assertThat(resolution)
+                        .extracting("schemas")
+                        .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
+                        .containsOnlyKeys(
+                            "io.github.leofuso.obs.demo.events.StatementLine",
+                            "io.github.leofuso.obs.demo.events.ReceiptLine"
+                        )
+                }
+            }.toList()
+    }
+
+    @TestFactory
+    @DisplayName(
+        """
+        Given a Schema with missing middle dependency,
+ when parsing,
+ then should resolve only available leaf dependency into a valid Schema.
+        """
+    )
+    fun cabacc37b86b4baea31aaa461e8b7cdf(@SchemaParameter(location = "parser/scenarios/missing/middle") graph: FileTree): List<DynamicTest> {
+        return permutations(project, graph)
+            .map { permutation ->
+
+                DynamicTest.dynamicTest("Scenario ${permutation.key}") {
+
+                    /* When */
+                    val resolution = subject.parse(permutation.value)
+
+                    /* Then */
+                    assertThat(resolution)
+                        .extracting("schemas")
+                        .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
+                        .containsOnlyKeys(
+                            "io.github.leofuso.obs.demo.events.StatementLine"
+                        )
+                }
+            }.toList()
     }
 }
