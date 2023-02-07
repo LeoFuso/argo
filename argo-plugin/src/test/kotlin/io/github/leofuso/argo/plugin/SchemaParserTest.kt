@@ -10,6 +10,7 @@ import io.github.leofuso.argo.plugin.fixtures.loadResource
 import io.github.leofuso.argo.plugin.fixtures.permutations
 import org.apache.avro.Schema
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.api.InstanceOfAssertFactories
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
@@ -160,6 +161,11 @@ class SchemaParserTest {
                         .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
                         .containsOnlyKeys(
                             "io.github.leofuso.obs.demo.events.StatementLine",
+                            "io.github.leofuso.obs.demo.events.Source",
+                            "io.github.leofuso.obs.demo.events.Details",
+                            "io.github.leofuso.obs.demo.events.Department",
+                            "io.github.leofuso.obs.demo.events.Operation",
+                            "io.github.leofuso.obs.demo.events.Ratio",
                             "io.github.leofuso.obs.demo.events.ReceiptLine"
                         )
                 }
@@ -171,7 +177,7 @@ class SchemaParserTest {
         """
         Given a Schema with missing middle dependency,
  when parsing,
- then should resolve only available leaf dependency into a valid Schema.
+ then should resolve only available leaf dependencies into a valid Schema.
         """
     )
     fun cabacc37b86b4baea31aaa461e8b7cdf(@SchemaParameter(location = "parser/scenarios/missing/middle") graph: FileTree): List<DynamicTest> {
@@ -188,7 +194,11 @@ class SchemaParserTest {
                         .extracting("schemas")
                         .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
                         .containsOnlyKeys(
-                            "io.github.leofuso.obs.demo.events.StatementLine"
+                            "io.github.leofuso.obs.demo.events.StatementLine",
+                            "io.github.leofuso.obs.demo.events.Source",
+                            "io.github.leofuso.obs.demo.events.Details",
+                            "io.github.leofuso.obs.demo.events.Department",
+                            "io.github.leofuso.obs.demo.events.Operation",
                         )
                 }
             }.toList()
@@ -212,7 +222,253 @@ class SchemaParserTest {
             .extracting("schemas")
             .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
             .containsOnlyKeys(
-                "io.github.leofuso.obs.demo.events.Receipt"
+                "io.github.leofuso.obs.demo.events.StatementLine",
+                "io.github.leofuso.obs.demo.events.Source",
+                "io.github.leofuso.obs.demo.events.Details",
+                "io.github.leofuso.obs.demo.events.Department",
+                "io.github.leofuso.obs.demo.events.Operation",
+                "io.github.leofuso.obs.demo.events.Ratio",
+                "io.github.leofuso.obs.demo.events.Receipt",
+                "io.github.leofuso.obs.demo.events.ReceiptLine"
             )
     }
+
+    @TestFactory
+    @DisplayName(
+        """
+        Given a Schema with a more-than-one dependency down the chain,
+ when parsing,
+ then should resolve all three available Schemas.
+        """
+    )
+    fun cabacc37b86b4baea31aaa461e8b7cdt(@SchemaParameter(location = "parser/scenarios/reference/chain") graph: FileTree): List<DynamicTest> {
+        return permutations(project, graph)
+            .map { permutation ->
+
+                DynamicTest.dynamicTest("Scenario ${permutation.key}") {
+
+                    /* When */
+                    val resolution = subject.parse(permutation.value)
+
+                    /* Then */
+                    assertThat(resolution)
+                        .extracting("schemas")
+                        .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
+                        .containsOnlyKeys(
+                            "io.github.leofuso.obs.demo.events.StatementLine",
+                            "io.github.leofuso.obs.demo.events.Source",
+                            "io.github.leofuso.obs.demo.events.Details",
+                            "io.github.leofuso.obs.demo.events.Department",
+                            "io.github.leofuso.obs.demo.events.Operation",
+                            "io.github.leofuso.obs.demo.events.Ratio",
+                            "io.github.leofuso.obs.demo.events.Receipt",
+                            "io.github.leofuso.obs.demo.events.ReceiptLine"
+                        )
+                }
+            }.toList()
+    }
+
+    @Test
+    @DisplayName(
+        """
+        Given repeated Schema definitions within a single file,
+ when parsing,
+ then resolve all Schemas.
+        """
+    )
+    fun cabacc37b86b4baea31aaa461e8b7cd1(@SchemaParameter(location = "parser/scenarios/repeated/SingleFile.avsc") graph: FileTree) {
+
+        /* When */
+        val resolution = subject.parse(graph)
+
+        /* Then */
+        assertThat(resolution)
+            .extracting("schemas")
+            .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
+            .containsOnlyKeys(
+                "io.github.leofuso.argo.plugin.parser.Duplicated",
+                "io.github.leofuso.argo.plugin.parser.Date",
+            )
+    }
+
+    @Test
+    @DisplayName(
+        """
+        Given repeated Schema definitions within a single file, with different contents,
+ when parsing,
+ then should resolve first Schema only.
+        """
+    )
+    fun cabacc37b86b4baea31aaa461t8b7cd1(@SchemaParameter(location = "parser/scenarios/repeated/SingleFileDifferent.avsc") graph: FileTree) {
+
+        /* When */
+        val resolution = subject.parse(graph)
+
+        /* Then */
+        assertThat(resolution)
+            .extracting("schemas")
+            .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
+            .containsOnlyKeys(
+                "io.github.leofuso.argo.plugin.parser.Duplicated",
+                "io.github.leofuso.argo.plugin.parser.Date",
+            )
+    }
+
+    @TestFactory
+    @DisplayName(
+        """
+        Given repeated Schema definitions, with equal content,
+ when parsing,
+ then should resolve only the first found Schema definition.
+        """
+    )
+    fun babacc37b86b4baea31aaa461e8b7cd2(@SchemaParameter(location = "parser/scenarios/repeated/equal") graph: FileTree): List<DynamicTest> {
+        return permutations(project, graph)
+            .map { permutation ->
+
+                DynamicTest.dynamicTest("Scenario ${permutation.key}") {
+
+                    /* When */
+                    val resolution = subject.parse(permutation.value)
+
+                    /* Then */
+                    assertThat(resolution)
+                        .extracting("schemas")
+                        .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
+                        .containsOnlyKeys(
+                            "io.github.leofuso.argo.plugin.parser.Breed",
+                            "io.github.leofuso.argo.plugin.parser.Cat"
+                        )
+                }
+            }.toList()
+    }
+
+    @TestFactory
+    @DisplayName(
+        """
+        Given repeated Schema definitions, with different content,
+ when parsing,
+ then should fail.
+        """
+    )
+    fun babacc37b86b4caea31aaa461e8b7cd2(@SchemaParameter(location = "parser/scenarios/repeated/different") graph: FileTree): List<DynamicTest> {
+        return permutations(project, graph)
+            .map { permutation ->
+
+                DynamicTest.dynamicTest("Scenario ${permutation.key}") {
+
+                    /* When then */
+                    assertThatThrownBy {  subject.parse(graph) }
+                        .isInstanceOf(IllegalStateException::class.java)
+                        .hasMessageContaining("[io.github.leofuso.argo.plugin.parser.Breed]")
+                }
+
+            }.toList()
+    }
+
+    @Test
+    @DisplayName(
+        """
+        Given multiple repeated and nested Schema definitions, with equal contents,
+ when parsing,
+ then should resolve all compatible Schema definitions.
+        """
+    )
+    fun cabacc37b86b4caea31aaa461e8b7cd2(@SchemaParameter(location = "parser/scenarios/repeated/nested/equal") graph: FileTree) {
+
+        /* When */
+        val resolution = subject.parse(graph)
+
+        /* Then */
+        assertThat(resolution)
+            .extracting("schemas")
+            .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
+            .containsOnlyKeys(
+                "example.Person",
+                "example.Gender",
+                "example.Dog",
+                "example.Order"
+            )
+    }
+
+    @Test
+    @DisplayName(
+        """
+        Given multiple repeated and nested Schema definitions, with different contents,
+ when parsing,
+ then should fail.
+        """
+    )
+    fun dabacc37b86b4caea31aaa461e8b7cd2(@SchemaParameter(location = "parser/scenarios/repeated/nested/different") graph: FileTree) {
+        /* When Then */
+        assertThatThrownBy {  subject.parse(graph) }
+            .isInstanceOf(IllegalStateException::class.java)
+            .hasMessageContaining("[example.Gender]")
+    }
+
+    @TestFactory
+    @DisplayName(
+        """
+        Given repeated fixed definitions, with equal contents,
+ when parsing,
+ then should resolve all Schemas.
+        """
+    )
+    fun dabacc37b86b4caea31aaa41e8b7cd2() : List<DynamicTest> {
+
+        /* Given */
+        return permutations(
+            project,
+            loadResource("parser/scenarios/repeated/multiple/ContainsFixed1.avsc"),
+            loadResource("parser/scenarios/repeated/multiple/ContainsFixed2.avsc")
+        )
+            .map { permutation ->
+
+                DynamicTest.dynamicTest("Scenario ${permutation.key}") {
+
+                    /* When */
+                    val resolution = subject.parse(permutation.value)
+
+                    /* Then */
+                    assertThat(resolution)
+                        .extracting("schemas")
+                        .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
+                        .containsOnlyKeys(
+                            "example.ContainsFixed1",
+                            "example.ContainsFixed2",
+                            "example.Picture"
+                        )
+                }
+            }.toList()
+    }
+
+    @TestFactory
+    @DisplayName(
+        """
+        Given repeated fixed definitions, with different contents,
+ when parsing,
+ then should fail.
+        """
+    )
+    fun dabacc97b86b4caea31aaa41e8b7cd2() : List<DynamicTest> {
+
+        /* Given */
+        return permutations(
+            project,
+            loadResource("parser/scenarios/repeated/multiple/ContainsFixed1.avsc"),
+            loadResource("parser/scenarios/repeated/multiple/ContainsFixed3.avsc")
+        )
+            .map { permutation ->
+
+                DynamicTest.dynamicTest("Scenario ${permutation.key}") {
+
+                    /* When then */
+                    assertThatThrownBy {  subject.parse(permutation.value) }
+                        .isInstanceOf(IllegalStateException::class.java)
+                        .hasMessageContaining("[example.Picture]")
+                }
+
+            }.toList()
+    }
+
 }

@@ -59,6 +59,13 @@
                             "null",
                             "int"
                         ]
+                    },
+                    {
+                        "name": "century",
+                        "type": [
+                            "null",
+                            "int"
+                        ]
                     }
                 ]
             }
