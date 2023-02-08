@@ -14,7 +14,6 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
     private val duplicatedPattern = Pattern.compile("Can't redefine: (.*)")
 
     override fun doParse(schemas: Schemas): Map<String, Schema> {
-
         /* Holding all unresolved resolutions between iterations */
         val unresolved = ArrayDeque<File>(schemas.elements.size)
 
@@ -24,7 +23,6 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
         val definitions = mutableMapOf<String, Schema>()
 
         do {
-
             val initialDefinitions = definitions.size
 
             queue.addAll(unresolved)
@@ -44,9 +42,9 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
             }
 
             /*
-            * Either finished or there are non-resolvable types remaining.
-            * If definition number doesn't change between iterations, there's nothing more to be done.
-            */
+             * Either finished or there are non-resolvable types remaining.
+             * If definition number doesn't change between iterations, there's nothing more to be done.
+             */
             val foundDefinitions = definitions.size
         } while (unresolved.isNotEmpty() && initialDefinitions != foundDefinitions)
 
@@ -64,25 +62,20 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
     }
 
     private fun findSchema(parser: Schema.Parser, source: File, queue: ArrayDeque<File>): Map<String, Schema>? {
-
-        val discoveredTypes = mutableMapOf<String, Schema>() + parser.types
+        val conflictResolution = SchemaConflictResolution(logger, duplicatedPattern, parser.types)
 
         try {
-
             parser.parse(source)
             return parser.types
-
         } catch (ex: SchemaParseException) {
-
             val errorMessage = ex.message ?: "unknown"
             val undefinedMatcher = undefinedPattern.matcher(errorMessage)
             val duplicatedMatcher = duplicatedPattern.matcher(errorMessage)
 
             val path = source.path
-            when {
-
+            return when {
+                duplicatedMatcher.matches() -> conflictResolution.resolve(duplicatedMatcher.group(1), source)
                 undefinedMatcher.matches() -> {
-
                     if (logger.isDebugEnabled) {
                         logger.debug("Found undefined name at [{}] ({}); will try again.", path, errorMessage)
                     }
@@ -90,61 +83,16 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
                     if (notEnqueued) {
                         queue.addLast(source)
                     }
-
-                }
-
-                duplicatedMatcher.matches() -> {
-                    val namespace = duplicatedMatcher.group(1)
-                    val deduplication = typeDeduplication(source, namespace, discoveredTypes)
-                    discoveredTypes
-                        .forEach { (n, schema) ->
-                            if(deduplication[n] == schema) {
-                                if (logger.isDebugEnabled) {
-                                    logger.debug(
-                                        "Ignoring duplicated Schema definition [{}] at [{}].",
-                                        n,
-                                        source.path
-                                    )
-                                }
-                            } else {
-                                throw IllegalStateException("Found conflicting Schema definitions [$n] at [${source.path}].")
-                            }
-                        }
-                    return discoveredTypes + deduplication
+                    null
                 }
 
                 else -> {
                     val unknownErrorMessage =
                         "Unexpected error while parsing Schema(.{}) definition at [{}]."
                     logger.error(unknownErrorMessage, SCHEMA_EXTENSION, path, ex)
+                    null
                 }
             }
-            return null
-        }
-    }
-
-    private fun typeDeduplication(source: File, namespace: String, originalTypes: Map<String, Schema>): Map<String, Schema> {
-
-        val discoveredTypes = mutableMapOf<String, Schema>() + originalTypes - namespace
-        val auxiliarParser = Schema.Parser()
-            .addTypes(discoveredTypes)
-
-        try {
-            auxiliarParser.parse(source)
-            return auxiliarParser.types
-        } catch (ex: SchemaParseException) {
-            val duplicatedMatcher = duplicatedPattern.matcher(ex.message ?: "unknown")
-            if(duplicatedMatcher.matches()) {
-                val otherNamespace = duplicatedMatcher.group(1)
-                if(namespace == otherNamespace) {
-                    return auxiliarParser.types
-                }
-                return typeDeduplication(source, otherNamespace, discoveredTypes)
-            }
-            val unknownErrorMessage =
-                "Unexpected error while parsing Schema(.{}) definition at [{}]."
-            logger.error(unknownErrorMessage, SCHEMA_EXTENSION, source.path, ex)
-            return mapOf()
         }
     }
 
