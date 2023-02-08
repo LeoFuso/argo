@@ -1,0 +1,11 @@
+pluginManagement {
+    includeBuild '../argo-plugin'
+}
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+rootProject.name = ('use-cases')
+include(':simple-java')

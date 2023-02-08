@@ -1,0 +1,13 @@
+{
+    "name": "UseRecordWithType",
+    "namespace": "io.github.leofuso.argo.plugin.parser",
+    "type": "record",
+    "fields": [
+        {
+            "name": "record",
+            "type": {
+                "type": "Record"
+            }
+        }
+    ]
+}

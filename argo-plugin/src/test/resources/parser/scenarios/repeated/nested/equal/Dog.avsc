@@ -1,0 +1,25 @@
+{
+    "name": "Dog",
+    "namespace": "example",
+    "type": "record",
+    "fields": [
+        { "name": "name", "type": "string" },
+        {
+            "name": "gender",
+            "type": {
+                "name": "Gender",
+                "type": "enum",
+                "symbols": [ "MALE", "FEMALE" ]
+            }
+        },
+        {
+            "name": "ownerOrder",
+            "type": {
+                "name": "Order",
+                "type": "enum",
+                "symbols": [ "FIRST", "SECOND" ]
+            }
+        },
+        { "name": "owner", "type": "example.Person" }
+    ]
+}

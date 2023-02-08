@@ -1,63 +1,24 @@
-@file:Suppress("DSL_SCOPE_VIOLATION")
-
-import io.gitlab.arturbosch.detekt.Detekt
-
 plugins {
-    alias(libs.plugins.kotlin) apply false
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.ktlint)
+    idea
 }
 
-subprojects {
+tasks {
 
-    apply {
-        plugin(rootProject.libs.plugins.detekt.get().pluginId)
-        plugin(rootProject.libs.plugins.ktlint.get().pluginId)
+    register("clean") {
+        group = "build"
+        description = "Delegates task-action to all included builds."
+
+        val cleanTasks = gradle.includedBuilds.map { it.task(":clean") }.toTypedArray()
+        dependsOn(cleanTasks)
     }
 
-    ktlint {
-        debug.set(false)
-        verbose.set(true)
-        android.set(false)
-        outputToConsole.set(true)
-        ignoreFailures.set(false)
-        enableExperimentalRules.set(true)
-        filter {
-            exclude("**/generated/**")
-            include("**/kotlin/**")
-        }
+    register("test") {
+        group = "verification"
+        description = "Delegates task-action to argo-plugin build."
+        dependsOn(gradle.includedBuild("argo-plugin").task(":test"))
     }
 
-    detekt {
-        config = rootProject.files("config/detekt/detekt.yml")
+    wrapper {
+        distributionType = Wrapper.DistributionType.ALL
     }
-}
-
-tasks.withType<Detekt>().configureEach {
-    reports {
-        html.required.set(true)
-        html.outputLocation.set(file("build/reports/detekt.html"))
-    }
-}
-
-tasks.register("clean", Delete::class.java) {
-    delete(rootProject.buildDir)
-}
-
-tasks.register("format") {
-    group = "formatting"
-    description = "Reformat all the Kotlin Code"
-    dependsOn("ktlintFormat")
-    dependsOn(gradle.includedBuild("plugin-build").task(":plugin:ktlintFormat"))
-}
-
-tasks.register("preMerge") {
-    description = "Runs all the tests/verification tasks on all levels and included builds."
-    dependsOn(":example:check")
-    dependsOn(gradle.includedBuild("plugin-build").task(":plugin:check"))
-    dependsOn(gradle.includedBuild("plugin-build").task(":plugin:validatePlugins"))
-}
-
-tasks.wrapper {
-    distributionType = Wrapper.DistributionType.ALL
 }
