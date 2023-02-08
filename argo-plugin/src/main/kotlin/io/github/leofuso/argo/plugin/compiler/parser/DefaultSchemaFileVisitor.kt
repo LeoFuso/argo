@@ -1,5 +1,6 @@
 package io.github.leofuso.argo.plugin.compiler.parser
 
+import io.github.leofuso.argo.plugin.IDL_EXTENSION
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
 import io.github.leofuso.argo.plugin.compiler.parser.SchemaFileVisitor.FileClassification
@@ -11,6 +12,7 @@ class DefaultSchemaFileVisitor(private val logger: Logger) : SchemaFileVisitor {
 
     private val schemaQueue = mutableListOf<File>()
     private val protocolQueue = mutableListOf<File>()
+    private val idlQueue = mutableListOf<File>()
 
     override fun dequeue(): Map<FileClassification, Collection<File>> {
         val queue = mapOf(
@@ -19,6 +21,8 @@ class DefaultSchemaFileVisitor(private val logger: Logger) : SchemaFileVisitor {
         )
         schemaQueue.clear()
         protocolQueue.clear()
+        idlQueue.clear()
+
         return queue
     }
 
@@ -40,7 +44,7 @@ class DefaultSchemaFileVisitor(private val logger: Logger) : SchemaFileVisitor {
 
         val doesntExists = source.exists().not()
         if (doesntExists) {
-            logger.warn("Ignoring inexistent definition file at [${source.path}].")
+            logger.warn("Ignoring non-existent definition file at [${source.path}].")
             return
         }
 
@@ -65,8 +69,16 @@ class DefaultSchemaFileVisitor(private val logger: Logger) : SchemaFileVisitor {
                 protocolQueue.add(source)
             }
 
+            IDL_EXTENSION -> {
+                if (logger.isDebugEnabled) {
+                    logger.debug("Adding ${source.name} to IDL queue. Path[${source.path}]")
+                }
+                logger.warn("Unsupported IDL files.")
+                idlQueue.add(source)
+            }
+
             else -> logger.quiet(
-                "Ignoring a potential defitinion file having an unknown extension at [${source.path}]."
+                "Ignoring a potential definition file having an unknown extension at [${source.path}]."
             )
         }
     }

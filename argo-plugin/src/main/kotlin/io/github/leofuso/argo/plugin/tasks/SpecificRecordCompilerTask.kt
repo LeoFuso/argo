@@ -98,12 +98,14 @@ abstract class SpecificRecordCompilerTask : OutputTask() {
 
         resolution.schemas
             .forEach { (_, schema) ->
-                fromSchema(schema, configure()) { cause -> TaskExecutionException(this, cause) }
+                val compiler = fromSchema(schema, configure()) { cause -> TaskExecutionException(this, cause) }
+                compiler.compileToDestination(null, getOutputDir().asFile.get())
             }
 
         resolution.protocol
             .forEach { (_, protocol) ->
-                fromProtocol(protocol, configure()) { cause -> TaskExecutionException(this, cause) }
+                val compiler = fromProtocol(protocol, configure()) { cause -> TaskExecutionException(this, cause) }
+                compiler.compileToDestination(null, getOutputDir().asFile.get())
             }
 
         didWork = true

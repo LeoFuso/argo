@@ -10,7 +10,7 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.execution.commandline.TaskConfigurationException
 import java.io.File
 
-fun SpecificRecordCompilerTask.configure(): (SpecificCompiler) -> Unit = { compiler: SpecificCompiler ->
+fun SpecificRecordCompilerTask.configure(): (SpecificCompiler) -> SpecificCompiler = { compiler: SpecificCompiler ->
 
     /* Introduces side effect */
     getAdditionalLogicalTypeFactories().orNull?.forEach {
@@ -48,6 +48,8 @@ fun SpecificRecordCompilerTask.configure(): (SpecificCompiler) -> Unit = { compi
     useDecimalType.orNull?.let { compiler.setEnableDecimalLogicalType(it) }
     getEncoding().orNull?.let { compiler.setOutputCharacterEncoding(it) }
     getFieldVisibility().orNull?.let { compiler.setFieldVisibility(it) }
+    
+    compiler
 }
 
 fun fromSchema(
@@ -66,15 +68,15 @@ fun fromSchema(
             })
 }
 
-inline fun fromSchema(schema: Schema, config: (SpecificCompiler) -> Unit, errSupplier: (Throwable) -> (TaskExecutionException)) =
+inline fun fromSchema(schema: Schema, config: (SpecificCompiler) -> SpecificCompiler, errSupplier: (Throwable) -> (TaskExecutionException)) =
     runCatching { SpecificCompiler(schema) }
         .mapCatching { config.invoke(it) }
-        .fold(onSuccess = {}, onFailure = { cause -> throw errSupplier.invoke(cause) })
+        .fold(onSuccess = { it }, onFailure = { cause -> throw errSupplier.invoke(cause) })
 
-inline fun fromProtocol(protocol: Protocol, config: (SpecificCompiler) -> Unit, errSupplier: (Throwable) -> (TaskExecutionException)) =
+inline fun fromProtocol(protocol: Protocol, config: (SpecificCompiler) -> SpecificCompiler, errSupplier: (Throwable) -> (TaskExecutionException)) =
     runCatching { SpecificCompiler(protocol) }
         .mapCatching { config.invoke(it) }
-        .fold(onSuccess = {}, onFailure = { cause -> throw errSupplier.invoke(cause) })
+        .fold(onSuccess = { it }, onFailure = { cause -> throw errSupplier.invoke(cause) })
 
 fun fromProtocol(config: (SpecificCompiler) -> SpecificCompiler, errSupplier: (File, Throwable) -> (TaskConfigurationException)) =
     { source: File ->
