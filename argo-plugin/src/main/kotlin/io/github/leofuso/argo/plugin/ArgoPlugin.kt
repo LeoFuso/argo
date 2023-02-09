@@ -44,6 +44,7 @@ abstract class ArgoPlugin : Plugin<Project> {
 
             it.defaultDependencies { dependencies ->
                 val compilerDependency = project.dependencies.create(extension.getCompiler().get())
+                project.logger.lifecycle("Using 'org.apache.avro-compiler' version: '{}'.", compilerDependency.version)
                 val jacksonDependency = project.dependencies.create(DEFAULT_JACKSON_DATABIND_DEPENDENCY)
                 dependencies.add(compilerDependency)
                 dependencies.add(jacksonDependency)

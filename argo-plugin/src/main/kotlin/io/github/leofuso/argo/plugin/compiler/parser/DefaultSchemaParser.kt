@@ -14,6 +14,7 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
     private val duplicatedPattern = Pattern.compile("Can't redefine: (.*)")
 
     override fun doParse(schemas: Schemas): Map<String, Schema> {
+
         /* Holding all unresolved resolutions between iterations */
         val unresolved = ArrayDeque<File>(schemas.elements.size)
 
@@ -46,6 +47,7 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
              * If definition number doesn't change between iterations, there's nothing more to be done.
              */
             val foundDefinitions = definitions.size
+
         } while (unresolved.isNotEmpty() && initialDefinitions != foundDefinitions)
 
         if (unresolved.isNotEmpty()) {
@@ -56,7 +58,7 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
                 SCHEMA_EXTENSION,
                 files
             )
-            logger.lifecycle("Run in debug mode (-d or --debug) to more details.")
+            logger.lifecycle("Run in debug mode (-d or --debug) to get more details.")
         }
         return definitions.toMap()
     }
@@ -97,4 +99,5 @@ class DefaultSchemaParser(private val logger: Logger) : DependencyGraphAwareSche
     }
 
     override fun getVisitor() = DefaultSchemaFileVisitor(logger)
+    override fun logger() = logger
 }

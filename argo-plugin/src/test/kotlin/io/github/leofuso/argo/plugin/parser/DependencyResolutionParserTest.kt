@@ -106,7 +106,8 @@ class DependencyResolutionParserTest {
                             "io.github.leofuso.argo.plugin.parser.UseRecordWithType"
                         )
                 }
-            }.toList()
+            }
+            .toList()
     }
 
     @TestFactory

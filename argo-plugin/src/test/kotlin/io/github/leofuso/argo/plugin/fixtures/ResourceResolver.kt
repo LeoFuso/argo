@@ -51,4 +51,5 @@ fun scenarios(project: Project, tree: FileTree, executable: (FileTree) -> Unit) 
         DynamicTest.dynamicTest("Scenario ${it.key}") {
             executable.invoke(it.value)
         }
-    }.toList()
+    }
+    .toList()

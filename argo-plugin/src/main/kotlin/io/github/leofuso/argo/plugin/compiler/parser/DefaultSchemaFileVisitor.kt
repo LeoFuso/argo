@@ -41,7 +41,6 @@ class DefaultSchemaFileVisitor(private val logger: Logger) : SchemaFileVisitor {
      */
     override fun visitFile(details: FileVisitDetails) {
         val source = details.file
-
         val doesntExists = source.exists().not()
         if (doesntExists) {
             logger.warn("Ignoring non-existent definition file at [${source.path}].")
@@ -77,7 +76,7 @@ class DefaultSchemaFileVisitor(private val logger: Logger) : SchemaFileVisitor {
                 idlQueue.add(source)
             }
 
-            else -> logger.quiet(
+            else -> logger.warn(
                 "Ignoring a potential definition file having an unknown extension at [${source.path}]."
             )
         }

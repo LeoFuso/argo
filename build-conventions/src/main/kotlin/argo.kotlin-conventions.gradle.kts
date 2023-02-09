@@ -60,7 +60,10 @@ kotlinter {
     ignoreFailures = false
     reporters = arrayOf("plain")
     experimentalRules = true
-    disabledRules = emptyArray()
+    disabledRules = arrayOf(
+        "no-empty-first-line-in-method-block",
+        "no-blank-line-before-rbrace"
+    )
 }
 
 detekt {
