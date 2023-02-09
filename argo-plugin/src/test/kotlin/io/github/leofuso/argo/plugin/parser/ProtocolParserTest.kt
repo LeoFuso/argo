@@ -5,7 +5,7 @@ import io.github.leofuso.argo.plugin.compiler.parser.DependencyGraphAwareSchemaP
 import io.github.leofuso.argo.plugin.fixtures.FileTreeParameterResolver
 import io.github.leofuso.argo.plugin.fixtures.loadResource
 import org.apache.avro.Protocol
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.InstanceOfAssertFactories
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
@@ -54,7 +54,7 @@ class ProtocolParserTest {
         val resolution = subject.parse(source)
 
         /* Then */
-        Assertions.assertThat(resolution)
+        assertThat(resolution)
             .extracting("protocol")
             .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Protocol::class.java))
             .containsOnlyKeys("Mail")

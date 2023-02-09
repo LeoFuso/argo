@@ -15,7 +15,9 @@ plugins {
     id 'io.github.leofuso.argo'
 }
 
-dependencies {}
+dependencies {
+    implementation 'org.apache.avro:avro:1.11.0'
+}
 
 java {
     toolchain {
@@ -28,7 +30,7 @@ argo {
         compiler = 'org.apache.avro:avro-compiler:1.11.0'
         outputEncoding = 'UTF-8'
         fields {
-            stringType = GenericData.StringType.String
+            stringType = GenericData.StringType.CharSequence
         }
     }
 }

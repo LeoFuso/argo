@@ -4,6 +4,7 @@ import org.apache.avro.Protocol
 import org.apache.avro.Schema
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.logging.Logger
 import java.io.File
 
 /**
@@ -26,6 +27,9 @@ interface DependencyGraphAwareSchemaParser {
      * Parse all definition schemas from the provided [graph], returning all successful resolutions.
      */
     fun parse(graph: FileTree): Resolution {
+
+        logger().lifecycle("Commencing Source file parsing.")
+
         val visitor = getVisitor()
         graph.visit(visitor)
 
@@ -35,12 +39,14 @@ interface DependencyGraphAwareSchemaParser {
         return queue.map { entry ->
             when (entry.key) {
                 SchemaFileVisitor.FileClassification.Schema -> {
+                    logger().lifecycle("Found {} Schema's definition files to be resolved.", entry.value.size)
                     val schemas = Schemas(entry.value)
                     val resolution = doParse(schemas)
                     SchemaResolution(resolution)
                 }
 
                 SchemaFileVisitor.FileClassification.Protocol -> {
+                    logger().lifecycle("Found {} Protocol's definition files to be resolved.", entry.value.size)
                     val protocols = Protocols(entry.value)
                     val resolution = doParse(protocols)
                     ProtocolResolution(resolution)
@@ -65,6 +71,11 @@ interface DependencyGraphAwareSchemaParser {
      * @return A [SchemaFileVisitor].
      */
     fun getVisitor(): SchemaFileVisitor
+
+    /**
+     * Accessor to underlying [logger] implementation.
+     */
+    fun logger(): Logger
 
     /**
      * A wrapper Schema(.avsc) files.

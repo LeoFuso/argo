@@ -9,7 +9,8 @@ import io.github.leofuso.argo.plugin.fixtures.loadResource
 import io.github.leofuso.argo.plugin.fixtures.permutations
 import io.github.leofuso.argo.plugin.fixtures.scenarios
 import org.apache.avro.Schema
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.api.InstanceOfAssertFactories
 import org.gradle.api.Project
 import org.gradle.api.file.FileTree
@@ -58,7 +59,7 @@ class DuplicatedSchemaParserTest {
     )
     fun t0(@SchemaParameter(location = "parser/scenarios/repeated/SingleFile.avsc") graph: FileTree) {
         /* When then */
-        Assertions.assertThatThrownBy { subject.parse(graph) }
+        assertThatThrownBy { subject.parse(graph) }
             .isInstanceOf(NonDeterministicSchemaResolutionException::class.java)
             .hasMessageContaining("[io.github.leofuso.argo.plugin.parser.Date]")
     }
@@ -73,7 +74,7 @@ class DuplicatedSchemaParserTest {
     )
     fun t1(@SchemaParameter(location = "parser/scenarios/repeated/SingleFileDifferent.avsc") graph: FileTree) {
         /* When then */
-        Assertions.assertThatThrownBy { subject.parse(graph) }
+        assertThatThrownBy { subject.parse(graph) }
             .isInstanceOf(NonDeterministicSchemaResolutionException::class.java)
             .hasMessageContaining("[io.github.leofuso.argo.plugin.parser.Date]")
     }
@@ -91,7 +92,7 @@ class DuplicatedSchemaParserTest {
         val resolution = subject.parse(it)
 
         /* Then */
-        Assertions.assertThat(resolution)
+        assertThat(resolution)
             .extracting("schemas")
             .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
             .containsOnlyKeys(
@@ -110,7 +111,7 @@ class DuplicatedSchemaParserTest {
     )
     fun t3(@SchemaParameter(location = "parser/scenarios/repeated/different") graph: FileTree) = scenarios(project, graph) {
         /* When then */
-        Assertions.assertThatThrownBy { subject.parse(it) }
+        assertThatThrownBy { subject.parse(it) }
             .isInstanceOf(NonDeterministicSchemaResolutionException::class.java)
             .hasMessageContaining("[io.github.leofuso.argo.plugin.parser.Breed]")
     }
@@ -128,7 +129,7 @@ class DuplicatedSchemaParserTest {
         val resolution = subject.parse(it)
 
         /* Then */
-        Assertions.assertThat(resolution)
+        assertThat(resolution)
             .extracting("schemas")
             .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
             .containsOnlyKeys(
@@ -149,7 +150,7 @@ class DuplicatedSchemaParserTest {
     )
     fun t5(@SchemaParameter(location = "parser/scenarios/repeated/nested/different") graph: FileTree) = scenarios(project, graph) {
         /* When Then */
-        Assertions.assertThatThrownBy { subject.parse(it) }
+        assertThatThrownBy { subject.parse(it) }
             .isInstanceOf(NonDeterministicSchemaResolutionException::class.java)
             .hasMessageContaining("[example.Gender]")
     }
@@ -176,7 +177,7 @@ class DuplicatedSchemaParserTest {
                     val resolution = subject.parse(permutation.value)
 
                     /* Then */
-                    Assertions.assertThat(resolution)
+                    assertThat(resolution)
                         .extracting("schemas")
                         .asInstanceOf(InstanceOfAssertFactories.map(String::class.java, Schema::class.java))
                         .containsOnlyKeys(
@@ -185,7 +186,8 @@ class DuplicatedSchemaParserTest {
                             "example.Picture"
                         )
                 }
-            }.toList()
+            }
+            .toList()
     }
 
     @TestFactory
@@ -207,10 +209,11 @@ class DuplicatedSchemaParserTest {
 
                 DynamicTest.dynamicTest("Scenario ${permutation.key}") {
                     /* When then */
-                    Assertions.assertThatThrownBy { subject.parse(permutation.value) }
+                    assertThatThrownBy { subject.parse(permutation.value) }
                         .isInstanceOf(NonDeterministicSchemaResolutionException::class.java)
                         .hasMessageContaining("[example.Picture]")
                 }
-            }.toList()
+            }
+            .toList()
     }
 }

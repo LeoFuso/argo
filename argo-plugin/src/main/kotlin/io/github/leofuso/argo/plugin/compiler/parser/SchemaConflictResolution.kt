@@ -24,8 +24,8 @@ class SchemaConflictResolution(private val logger: Logger, private val pattern: 
                 val conflictingMessage = "Found conflicting Schema definitions [$name] at [${source.path}]."
                 throw NonDeterministicSchemaResolutionException(conflictingMessage)
             }
-            if (logger.isDebugEnabled) {
-                logger.debug(
+            if (logger.isInfoEnabled) {
+                logger.info(
                     "Ignoring duplicated Schema definition [{}] at [{}].",
                     name,
                     source.path
