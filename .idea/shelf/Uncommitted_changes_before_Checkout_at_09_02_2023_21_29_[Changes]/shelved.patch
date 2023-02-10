@@ -1,0 +1,57 @@
+Index: argo-plugin/src/main/kotlin/io/github/leofuso/argo/plugin/Constants.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package io.github.leofuso.argo.plugin\n\nconst val KOTLIN_PLUGIN_ID = \"org.jetbrains.kotlin.jvm\"\nconst val KOTLIN_LANGUAGE_NAME = \"kotlin\"\n\nconst val ARGO_EXTENSION = \"argo\"\n\nconst val GROUP_SOURCE_GENERATION = \"Source Generation\"\n\n/**\n * Extensions\n */\nconst val SCHEMA_EXTENSION = \"avsc\"\nconst val PROTOCOL_EXTENSION = \"avpr\"\nconst val VELOCITY_TEMPLATE_EXTENSION = \"vm\"\nconst val IDL_EXTENSION = \"avdl\"\nconst val JAVA_EXTENSION = \"java\"\nconst val AVRO_EXTENSION_NAME = \"avro\"\n\n/**\n* Default dependencies\n*/\nconst val DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY = \"org.apache.avro:avro-compiler:1.11.1\"\nconst val DEFAULT_JACKSON_DATABIND_DEPENDENCY = \"com.fasterxml.jackson.core:jackson-databind:2.14.1\"\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/argo-plugin/src/main/kotlin/io/github/leofuso/argo/plugin/Constants.kt b/argo-plugin/src/main/kotlin/io/github/leofuso/argo/plugin/Constants.kt
+--- a/argo-plugin/src/main/kotlin/io/github/leofuso/argo/plugin/Constants.kt	(revision 20b2fbc1e2819f75ae4d8f05ffcc6b7347ac17e4)
++++ b/argo-plugin/src/main/kotlin/io/github/leofuso/argo/plugin/Constants.kt	(date 1675987099795)
+@@ -22,3 +22,18 @@
+ */
+ const val DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY = "org.apache.avro:avro-compiler:1.11.1"
+ const val DEFAULT_JACKSON_DATABIND_DEPENDENCY = "com.fasterxml.jackson.core:jackson-databind:2.14.1"
++
++/**
++ * The namespace separator.
++ */
++const val NAMESPACE_SEPARATOR = "."
++
++/**
++ * The extension separator.
++ */
++const val EXTENSION_SEPARATOR = "."
++
++/**
++ * The Unix separator.
++ */
++const val UNIX_SEPARATOR = "/"
+Index: argo-plugin/src/main/kotlin/io/github/leofuso/argo/plugin/Extensions.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package io.github.leofuso.argo.plugin\n\nimport org.apache.avro.compiler.specific.SpecificCompiler\nimport org.apache.avro.generic.GenericData.StringType\nimport org.apache.avro.specific.SpecificData\n\n/**\n * Throws an [AssertionError] calculated by [lazyMessage] if the [value] is false.\n */\ninline fun assertTrue(value: Boolean, lazyMessage: () -> Any = { \"Failed Assertion.\" }) {\n    if (!value) {\n        val message = lazyMessage()\n        throw AssertionError(message)\n    }\n}\n\nfun SpecificCompiler.getCharacterEncoding(): String {\n    val field = SpecificCompiler::class.java.getDeclaredField(\"outputCharacterEncoding\")\n    field.isAccessible = true\n    return field.get(this) as String\n}\n\nfun SpecificCompiler.getStringType(): String {\n    val field = SpecificCompiler::class.java.getDeclaredField(\"stringType\")\n    field.isAccessible = true\n    return (field.get(this) as StringType).name\n}\n\nfun SpecificCompiler.enableDecimalLogicalType(): Boolean {\n    val field = SpecificCompiler::class.java.getDeclaredField(\"enableDecimalLogicalType\")\n    field.isAccessible = true\n    return field.getBoolean(this)\n}\n\nfun SpecificCompiler.getAdditionalVelocityTools(): List<Any?> {\n    val field = SpecificCompiler::class.java.getDeclaredField(\"additionalVelocityTools\")\n    field.isAccessible = true\n    return field.get(this) as List<Any?>\n}\n\nfun SpecificCompiler.getTemplateDirectory(): String {\n    val field = SpecificCompiler::class.java.getDeclaredField(\"templateDir\")\n    field.isAccessible = true\n    return field.get(this) as String\n}\n\nfun SpecificCompiler.getConverters(): List<String> {\n    val field = SpecificCompiler::class.java.getDeclaredField(\"specificData\")\n    field.isAccessible = true\n    val data = field.get(this) as SpecificData\n    return data.conversions.map { it.javaClass.simpleName }\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/argo-plugin/src/main/kotlin/io/github/leofuso/argo/plugin/Extensions.kt b/argo-plugin/src/main/kotlin/io/github/leofuso/argo/plugin/Extensions.kt
+--- a/argo-plugin/src/main/kotlin/io/github/leofuso/argo/plugin/Extensions.kt	(revision 20b2fbc1e2819f75ae4d8f05ffcc6b7347ac17e4)
++++ b/argo-plugin/src/main/kotlin/io/github/leofuso/argo/plugin/Extensions.kt	(date 1675987105359)
+@@ -1,8 +1,10 @@
+ package io.github.leofuso.argo.plugin
+ 
++import org.apache.avro.Protocol
+ import org.apache.avro.compiler.specific.SpecificCompiler
+ import org.apache.avro.generic.GenericData.StringType
+ import org.apache.avro.specific.SpecificData
++import java.util.regex.Pattern
+ 
+ /**
+  * Throws an [AssertionError] calculated by [lazyMessage] if the [value] is false.
+@@ -50,3 +52,6 @@
+     val data = field.get(this) as SpecificData
+     return data.conversions.map { it.javaClass.simpleName }
+ }
++
++fun Protocol.path(): String =
++    namespace.replace(Pattern.quote(NAMESPACE_SEPARATOR), UNIX_SEPARATOR) + UNIX_SEPARATOR + name + EXTENSION_SEPARATOR + PROTOCOL_EXTENSION

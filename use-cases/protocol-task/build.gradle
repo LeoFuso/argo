@@ -1,0 +1,28 @@
+import io.github.leofuso.argo.plugin.tasks.IDLProtocolTask
+
+plugins {
+    id 'java'
+    id 'io.github.leofuso.argo' apply false
+}
+
+
+configurations {
+    shared {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+}
+
+def sharedIDLJar = tasks.register('sharedIDLJar', Jar) {
+    from 'src/shared'
+}.get()
+
+artifacts {
+    shared(sharedIDLJar)
+}
+
+tasks.register("generateProtocol", IDLProtocolTask) {
+    sources.from file('src/dependent')
+    classpath.from('src/shared')
+    outputDir = file('build/protocol')
+}

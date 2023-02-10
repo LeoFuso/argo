@@ -9,6 +9,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileType
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
@@ -21,6 +22,7 @@ import org.gradle.work.InputChanges
 import java.io.File
 import java.net.MalformedURLException
 import java.net.URLClassLoader
+import java.nio.file.Files
 import java.util.*
 
 abstract class IDLProtocolTask : DefaultTask() {
@@ -42,6 +44,14 @@ abstract class IDLProtocolTask : DefaultTask() {
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     abstract fun getSources(): ConfigurableFileTree
+
+    @Classpath
+    @InputFiles
+    abstract fun getClasspath(): ConfigurableFileTree
+
+//    open fun classpath(vararg paths: Any) {
+//        getClasspath() + project.files(paths)
+//    }
 
     @TaskAction
     fun process(inputChanges: InputChanges) {
@@ -68,7 +78,7 @@ abstract class IDLProtocolTask : DefaultTask() {
         }
 
         val parsed = mutableSetOf<String>()
-        val classLoader = assembleClassLoader(sources.files)
+        val classLoader = assembleClassLoader()
         val outputDir = getOutputDir().asFile.get()
         sources.files.forEach {
 
@@ -82,13 +92,16 @@ abstract class IDLProtocolTask : DefaultTask() {
             }
 
             logger.lifecycle("Writing Protocol($PROTOCOL_EXTENSION) to ['$path'].")
-            File(outputDir, path).writeText(content, Charsets.UTF_8)
+            val output = File(outputDir, path)
+            Files.createDirectories(output.parentFile.toPath())
+            Files.createFile(output.toPath())
+            output.writeText(content)
             parsed.add(path)
         }
         didWork = true
     }
 
-    private fun assembleClassLoader(sources: Set<File>) = sources.mapNotNull {
+    private fun assembleClassLoader() = getClasspath().files.mapNotNull {
         try {
             val uri = it.toURI()
             uri.toURL()
