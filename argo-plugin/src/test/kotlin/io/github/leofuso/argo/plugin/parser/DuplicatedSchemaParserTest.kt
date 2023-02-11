@@ -29,7 +29,7 @@ import java.io.File
  * This situation is generally encountered when schema files define records with inline record/enum definitions, and those inline types
  * are used in more than one file.
  */
-@DisplayName("Unit tests related to handling of duplicate type definitions.")
+@DisplayName("SchemaParser: Unit tests related to handling of duplicate type definitions.")
 @Extensions(ExtendWith(FileTreeParameterResolver::class))
 class DuplicatedSchemaParserTest {
 

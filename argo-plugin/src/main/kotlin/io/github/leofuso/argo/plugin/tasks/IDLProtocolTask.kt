@@ -49,10 +49,6 @@ abstract class IDLProtocolTask : DefaultTask() {
     @InputFiles
     abstract fun getClasspath(): ConfigurableFileTree
 
-//    open fun classpath(vararg paths: Any) {
-//        getClasspath() + project.files(paths)
-//    }
-
     @TaskAction
     fun process(inputChanges: InputChanges) {
 

@@ -26,7 +26,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.util.*
 
-@DisplayName("Unit tests related to dependency resolution of type definitions.")
+@DisplayName("SchemaParser: Unit tests related to dependency resolution of type definitions.")
 @Extensions(ExtendWith(FileTreeParameterResolver::class))
 class DependencyResolutionParserTest {
 
