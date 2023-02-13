@@ -5,24 +5,12 @@ plugins {
     id 'io.github.leofuso.argo' apply false
 }
 
+dependencies {
 
-configurations {
-    shared {
-        canBeConsumed = false
-        canBeResolved = true
-    }
-}
-
-def sharedIDLJar = tasks.register('sharedIDLJar', Jar) {
-    from 'src/shared'
-}.get()
-
-artifacts {
-    shared(sharedIDLJar)
 }
 
 tasks.register("generateProtocol", IDLProtocolTask) {
-    sources.from file('src/dependent')
-    classpath.from('src/shared')
+    sources.from file('src/main/avro')
+    classpath = configurations.runtimeClasspath
     outputDir = file('build/protocol')
 }

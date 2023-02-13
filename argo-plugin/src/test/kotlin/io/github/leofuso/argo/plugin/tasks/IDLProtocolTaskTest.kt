@@ -64,7 +64,7 @@ class IDLProtocolTaskTest {
             
             tasks.register('generateProtocol', IDLProtocolTask) {
                 sources.from file('src/dependent')
-                classpath.from(configurations.shared.asPath)
+                classpath = configurations.shared
                 outputDir = file('build/protocol')
             }
             
@@ -125,7 +125,7 @@ class IDLProtocolTaskTest {
             
             tasks.register('generateProtocol', IDLProtocolTask) {
                 sources.from file('src/main/avro')
-                classpath.from(configurations.runtimeClasspath.asPath)
+                classpath = configurations.runtimeClasspath
                 outputDir = file('build/protocol')
             }
             
@@ -159,7 +159,7 @@ class IDLProtocolTaskTest {
     @Test
     @DisplayName(
 """
- Given a build with IDLs with runtime classpath input,
+ Given a build with IDLs with runtime classpath input having the same type, in different namespaces,
  when building,
  then should produce the necessary Protocol files.
 """
@@ -182,7 +182,7 @@ class IDLProtocolTaskTest {
             
             tasks.register('generateProtocol', IDLProtocolTask) {
                 sources.from file('src/main/avro')
-                classpath.from(configurations.getByName('runtimeOnly').asPath)
+                classpath = configurations.runtimeClasspath
                 outputDir = file('build/protocol')
             }
             
@@ -209,8 +209,8 @@ class IDLProtocolTaskTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path(rootDir.absolutePath + "build/protocol/org/example/v1/TestProtocol.avpr")).exists()
-        assertThat(Path(rootDir.absolutePath + "build/protocol/org/example/v2/TestProtocol.avpr")).exists()
+        assertThat(Path(rootDir.absolutePath + "/build/protocol/org/example/v1/TestProtocol.avpr")).exists()
+        assertThat(Path(rootDir.absolutePath + "/build/protocol/org/example/v2/TestProtocol.avpr")).exists()
 
     }
 

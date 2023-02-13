@@ -6,8 +6,10 @@ import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.path
 import org.apache.avro.compiler.idl.Idl
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileType
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.IgnoreEmptyDirectories
@@ -15,6 +17,7 @@ import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.work.Incremental
@@ -24,6 +27,7 @@ import java.net.MalformedURLException
 import java.net.URLClassLoader
 import java.nio.file.Files
 import java.util.*
+import kotlin.io.path.Path
 
 abstract class IDLProtocolTask : DefaultTask() {
 
@@ -36,6 +40,14 @@ abstract class IDLProtocolTask : DefaultTask() {
         group = GROUP_SOURCE_GENERATION
     }
 
+    private val _classpath: ConfigurableFileCollection = project.objects.fileCollection()
+
+    @get:Classpath
+    @get:InputFiles
+    var classpath: FileCollection
+        get() = _classpath
+        set(value) = _classpath.setFrom(value)
+
     @OutputDirectory
     abstract fun getOutputDir(): DirectoryProperty
 
@@ -44,10 +56,6 @@ abstract class IDLProtocolTask : DefaultTask() {
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     abstract fun getSources(): ConfigurableFileTree
-
-    @Classpath
-    @InputFiles
-    abstract fun getClasspath(): ConfigurableFileTree
 
     @TaskAction
     fun process(inputChanges: InputChanges) {
@@ -84,7 +92,9 @@ abstract class IDLProtocolTask : DefaultTask() {
             val path = protocol.path()
 
             if (parsed.contains(path)) {
-                throw TaskExecutionException(this, IllegalStateException("Invalid namespace [$path]. Protocol already exists."))
+                val exception =
+                    IllegalStateException("Invalid classpath [$path]. There's already another Protocol defined in the classpath.")
+                throw TaskExecutionException(this, exception)
             }
 
             logger.lifecycle("Writing Protocol($PROTOCOL_EXTENSION) to ['$path'].")
@@ -97,7 +107,7 @@ abstract class IDLProtocolTask : DefaultTask() {
         didWork = true
     }
 
-    private fun assembleClassLoader() = getClasspath().files.mapNotNull {
+    private fun assembleClassLoader() = _classpath.files.mapNotNull {
         try {
             val uri = it.toURI()
             uri.toURL()
@@ -106,4 +116,19 @@ abstract class IDLProtocolTask : DefaultTask() {
             null
         }
     }.toTypedArray().let { URLClassLoader(it, null) }
+
+    fun configureSourceSet(source: SourceSet) {
+        val buildDirectory = run {
+            project.layout.buildDirectory.dir("generated-${source.name}-avro-protocol")
+        }
+        getOutputDir().set(buildDirectory)
+        val sourceDirectory = run {
+            val classpath = "src/${source.name}/avro"
+            val path = Path(classpath)
+            project.files(path).asPath
+        }
+        getSources().from(sourceDirectory)
+        getSources().patterns.include("**/*.$IDL_EXTENSION")
+    }
+
 }

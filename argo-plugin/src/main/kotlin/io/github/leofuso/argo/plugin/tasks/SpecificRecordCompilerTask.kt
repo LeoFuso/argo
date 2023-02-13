@@ -169,20 +169,17 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
         getOptionalGettersStrategy().set(accessors.getOptionalGettersStrategy())
     }
 
-    private fun getSourceDirectory(source: SourceSet): String {
-        val classpath = "src/${source.name}/avro"
-        val path = Path(classpath)
-        return project.files(path).asPath
-    }
-
-    private fun getBuildDirectory(source: SourceSet) = getSpecificRecordCompileBuildDirectory(project, source)
-
     fun configureSourceSet(source: SourceSet) {
-        val buildDirectory = getBuildDirectory(source)
+        val buildDirectory = getSpecificRecordCompileBuildDirectory(project, source)
         getOutputDir().set(buildDirectory)
         source.java { it.srcDir(buildDirectory) }
 
-        val sourceDirectory = getSourceDirectory(source)
+        val sourceDirectory = run {
+            val classpath = "src/${source.name}/avro"
+            val path = Path(classpath)
+            project.files(path).asPath
+        }
+
         getSources().from(sourceDirectory)
     }
 }
