@@ -214,4 +214,61 @@ class IDLProtocolTaskTest {
 
     }
 
+    @Test
+    @DisplayName(
+        """
+ Given a build with IDLs with runtime classpath input having the same type, in the same namespace,
+ when building,
+ then should fail with correct output.
+"""
+    )
+    fun t3() {
+
+        /* Given */
+        build append """
+            
+            import io.github.leofuso.argo.plugin.tasks.IDLProtocolTask
+
+            plugins {
+                id 'java'
+                id 'io.github.leofuso.argo' apply false
+            }
+            
+            dependencies {
+            
+            }
+            
+            tasks.register('generateProtocol', IDLProtocolTask) {
+                sources.from file('src/main/avro')
+                classpath = configurations.runtimeClasspath
+                outputDir = file('build/protocol')
+            }
+            
+        """
+            .trimIndent()
+
+        val v1 = rootDir tmkdirs "src/main/avro/v1/test.avdl"
+        v1 append loadResource("tasks/protocol/namespace/v1.avdl").readText()
+
+        val v2 = rootDir tmkdirs "src/main/avro/v1/test_same_protocol.avdl"
+        v2 append loadResource("tasks/protocol/namespace/v1.avdl").readText()
+
+        /* When */
+        val result = GradleRunner.create()
+            .withProjectDir(rootDir)
+            .withPluginClasspath()
+            .withArguments("build", "generateProtocol", "--stacktrace")
+            .buildAndFail()
+
+        /* Then */
+        val generateProtocol = result.task(":generateProtocol")
+        assertThat(generateProtocol)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.FAILED)
+
+        assertThat(result.output)
+            .contains("There's already another Protocol defined in the classpath with the same name.")
+    }
+
 }

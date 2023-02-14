@@ -93,7 +93,9 @@ abstract class IDLProtocolTask : DefaultTask() {
 
             if (parsed.contains(path)) {
                 val exception =
-                    IllegalStateException("Invalid classpath [$path]. There's already another Protocol defined in the classpath.")
+                    IllegalStateException(
+                        "Invalid Protocol [$path]. There's already another Protocol defined in the classpath with the same name."
+                    )
                 throw TaskExecutionException(this, exception)
             }
 
