@@ -2,7 +2,6 @@ package io.github.leofuso.argo.plugin.tasks
 
 import io.github.leofuso.argo.plugin.ColumbaOptions
 import io.github.leofuso.argo.plugin.GROUP_SOURCE_GENERATION
-import io.github.leofuso.argo.plugin.OptionalGettersStrategy
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
 import io.github.leofuso.argo.plugin.compiler.SpecificCompilerTaskDelegate
@@ -67,6 +66,9 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     @get:Input
     abstract val useOptionalGetters: Property<Boolean>
 
+    @get:Input
+    abstract val optionalGettersForNullableFieldsOnly: Property<Boolean>
+
     @OutputDirectory
     abstract fun getOutputDir(): DirectoryProperty
 
@@ -96,10 +98,6 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     @Input
     @Optional
     abstract fun getFieldVisibility(): Property<FieldVisibility>
-
-    @Input
-    @Optional
-    abstract fun getOptionalGettersStrategy(): Property<OptionalGettersStrategy>
 
     @Input
     @Optional
@@ -166,7 +164,7 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
         noSetters.set(accessors.noSetterProperty)
         addExtraOptionalGetters.set(accessors.addExtraOptionalGettersProperty)
         useOptionalGetters.set(accessors.useOptionalGettersProperty)
-        getOptionalGettersStrategy().set(accessors.getOptionalGettersStrategy())
+        optionalGettersForNullableFieldsOnly.set(accessors.optionalGettersForNullableFieldsOnlyProperty)
     }
 
     fun configureSourceSet(source: SourceSet) {
@@ -179,7 +177,6 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
             val path = Path(classpath)
             project.files(path).asPath
         }
-
         getSources().from(sourceDirectory)
     }
 }

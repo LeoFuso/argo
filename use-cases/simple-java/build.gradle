@@ -1,3 +1,4 @@
+import org.apache.avro.compiler.specific.SpecificCompiler
 import org.apache.avro.generic.GenericData
 
 buildscript {
@@ -16,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    implementation 'org.apache.avro:avro:1.11.0'
+    implementation 'org.apache.avro:avro:1.11.1'
 }
 
 java {
@@ -30,7 +31,15 @@ argo {
         compiler = 'org.apache.avro:avro-compiler:1.11.0'
         outputEncoding = 'UTF-8'
         fields {
+            visibility = SpecificCompiler.FieldVisibility.PRIVATE
+            useDecimalType = true
             stringType = GenericData.StringType.CharSequence
+        }
+        accessors {
+            noSetters = false
+            addExtraOptionalGetters = false
+            useOptionalGetters = true
+            optionalGettersForNullableFieldsOnly = true
         }
     }
 }

@@ -62,7 +62,7 @@ abstract class ArgoPlugin : Plugin<Project> {
         val taskContainer: TaskContainer = project.tasks
 
         val protocolTaskName = sourceSet.getTaskName("generate", "apacheAvroProtocol")
-        taskContainer.register<IDLProtocolTask>(protocolTaskName) {
+        val protocolTaskProvider = taskContainer.register<IDLProtocolTask>(protocolTaskName) {
             configureSourceSet(sourceSet)
             classpath = project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME)
         }
@@ -72,8 +72,8 @@ abstract class ArgoPlugin : Plugin<Project> {
             taskContainer.register<SpecificRecordCompilerTask>(javaTaskName) {
                 withExtension(extension)
                 configureSourceSet(sourceSet)
-                val protocolTask = project.tasks.findByName(protocolTaskName)
-                getSources().builtBy(protocolTask)
+                //getSources().from(getAvroProtocolBuildDirectory(project, sourceSet))
+                dependsOn(protocolTaskProvider)
             }
 
         /* Adding task dependency to JavaCompile task */
