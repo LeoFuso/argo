@@ -86,7 +86,7 @@ abstract class ColumbaOptions {
             it.noSetterProperty.convention(true)
             it.addExtraOptionalGettersProperty.convention(false)
             it.useOptionalGettersProperty.convention(true)
-            it.getOptionalGettersStrategy().convention(OptionalGettersStrategy.ONLY_NULLABLE_FIELDS)
+            it.optionalGettersForNullableFieldsOnlyProperty.convention(true)
         }
 
         return this
@@ -115,6 +115,7 @@ abstract class ColumbaAccessorOptions(@Inject val project: Project) {
     private val _noSetterProperty = project.objects.property<Boolean>()
     private val _addExtraOptionalGettersProperty = project.objects.property<Boolean>()
     private val _useOptionalGettersProperty = project.objects.property<Boolean>()
+    private val _optionalGettersForNullableFieldsOnlyProperty = project.objects.property<Boolean>()
 
     val noSetterProperty: Property<Boolean>
         get() = _noSetterProperty
@@ -124,6 +125,9 @@ abstract class ColumbaAccessorOptions(@Inject val project: Project) {
 
     val useOptionalGettersProperty: Property<Boolean>
         get() = _useOptionalGettersProperty
+
+    val optionalGettersForNullableFieldsOnlyProperty: Property<Boolean>
+        get() = _optionalGettersForNullableFieldsOnlyProperty
 
     @get:Internal
     var noSetters: Boolean
@@ -140,12 +144,9 @@ abstract class ColumbaAccessorOptions(@Inject val project: Project) {
         get() = _useOptionalGettersProperty.get()
         set(value) = _useOptionalGettersProperty.set(value)
 
-    abstract fun getOptionalGettersStrategy(): Property<OptionalGettersStrategy>
-}
+    @get:Internal
+    var optionalGettersForNullableFieldsOnly: Boolean
+        get() = _optionalGettersForNullableFieldsOnlyProperty.get()
+        set(value) = _optionalGettersForNullableFieldsOnlyProperty.set(value)
 
-/**
- * Used to specify the strategy for nullable fields for generated code.
- */
-enum class OptionalGettersStrategy {
-    ALL_FIELDS, ONLY_NULLABLE_FIELDS
 }

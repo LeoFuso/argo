@@ -9,3 +9,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = ('use-cases')
 include(':simple-java')
+include(':classpath-protocol-task')
+include(':protocol-task')

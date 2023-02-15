@@ -2,7 +2,6 @@ package io.github.leofuso.argo.plugin.tasks
 
 import io.github.leofuso.argo.plugin.ColumbaOptions
 import io.github.leofuso.argo.plugin.GROUP_SOURCE_GENERATION
-import io.github.leofuso.argo.plugin.OptionalGettersStrategy
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
 import io.github.leofuso.argo.plugin.compiler.SpecificCompilerTaskDelegate
@@ -13,7 +12,7 @@ import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
 import org.apache.avro.generic.GenericData.StringType
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileTree
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileType
@@ -26,6 +25,7 @@ import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
@@ -33,6 +33,9 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.util.PatternFilterable
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.kotlin.dsl.property
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
@@ -55,6 +58,9 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
         group = GROUP_SOURCE_GENERATION
     }
 
+    private val _sources: ConfigurableFileCollection = project.objects.fileCollection()
+    private val _pattern: PatternFilterable = PatternSet()
+
     @get:Input
     val useDecimalType = project.objects.property<Boolean>()
 
@@ -67,6 +73,9 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     @get:Input
     abstract val useOptionalGetters: Property<Boolean>
 
+    @get:Input
+    abstract val optionalGettersForNullableFieldsOnly: Property<Boolean>
+
     @OutputDirectory
     abstract fun getOutputDir(): DirectoryProperty
 
@@ -74,7 +83,17 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     @Incremental
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
-    abstract fun getSources(): ConfigurableFileTree
+    fun getSources() = _sources.asFileTree.matching(_pattern)
+
+    @Internal
+    fun getSourcePattern() = _pattern
+
+    /**
+     * Adds some source to this task. The given source objects will be evaluated as per [org.gradle.api.Project.files].
+     *
+     * @param sources The source to add
+     */
+    open fun source(vararg sources: Any) = _sources.from(*sources)
 
     @Input
     @Optional
@@ -96,10 +115,6 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     @Input
     @Optional
     abstract fun getFieldVisibility(): Property<FieldVisibility>
-
-    @Input
-    @Optional
-    abstract fun getOptionalGettersStrategy(): Property<OptionalGettersStrategy>
 
     @Input
     @Optional
@@ -127,7 +142,7 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
             changes.forEach { change -> logger.lifecycle("\t{}", change.normalizedPath) }
         }
 
-        val exclusion = getSources().patterns.excludes
+        val exclusion = getSourcePattern().excludes
         if (exclusion.isNotEmpty()) {
             logger.lifecycle("Excluding sources from {}", exclusion)
         }
@@ -149,8 +164,8 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     }
 
     fun withExtension(options: ColumbaOptions) {
-        getSources().patterns.include("**/*.$SCHEMA_EXTENSION", "**/*.$PROTOCOL_EXTENSION")
-        getSources().patterns.exclude(options.getExcluded().get())
+        getSourcePattern().include("**/*.$SCHEMA_EXTENSION", "**/*.$PROTOCOL_EXTENSION")
+        getSourcePattern().exclude(options.getExcluded().get())
         getEncoding().set(options.getOutputEncoding())
         getAdditionalVelocityTools().set(options.getAdditionalVelocityTools())
         getAdditionalLogicalTypeFactories().set(options.getAdditionalLogicalTypeFactories())
@@ -166,23 +181,24 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
         noSetters.set(accessors.noSetterProperty)
         addExtraOptionalGetters.set(accessors.addExtraOptionalGettersProperty)
         useOptionalGetters.set(accessors.useOptionalGettersProperty)
-        getOptionalGettersStrategy().set(accessors.getOptionalGettersStrategy())
+        optionalGettersForNullableFieldsOnly.set(accessors.optionalGettersForNullableFieldsOnlyProperty)
     }
-
-    private fun getSourceDirectory(source: SourceSet): String {
-        val classpath = "src/${source.name}/avro"
-        val path = Path(classpath)
-        return project.files(path).asPath
-    }
-
-    private fun getBuildDirectory(source: SourceSet) = getSpecificRecordCompileBuildDirectory(project, source)
 
     fun configureSourceSet(source: SourceSet) {
-        val buildDirectory = getBuildDirectory(source)
+        val buildDirectory = getSpecificRecordCompileBuildDirectory(project, source)
         getOutputDir().set(buildDirectory)
         source.java { it.srcDir(buildDirectory) }
 
-        val sourceDirectory = getSourceDirectory(source)
-        getSources().from(sourceDirectory)
+        val sourceDirectory = run {
+            val classpath = "src/${source.name}/avro"
+            val path = Path(classpath)
+            project.files(path).asPath
+        }
+        _sources.from(sourceDirectory)
+    }
+
+    fun dependsOn(task: TaskProvider<IDLProtocolTask>) {
+        _sources.from(task)
+        super.dependsOn(task)
     }
 }

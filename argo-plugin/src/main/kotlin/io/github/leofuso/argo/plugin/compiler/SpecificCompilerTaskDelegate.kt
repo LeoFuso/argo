@@ -1,6 +1,5 @@
 package io.github.leofuso.argo.plugin.compiler
 
-import io.github.leofuso.argo.plugin.OptionalGettersStrategy
 import io.github.leofuso.argo.plugin.compiler.parser.Resolution
 import io.github.leofuso.argo.plugin.enableDecimalLogicalType
 import io.github.leofuso.argo.plugin.getAdditionalVelocityTools
@@ -67,10 +66,9 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
         task.noSetters.orNull?.let { compiler.isCreateSetters = it.not() }
         task.useOptionalGetters.orNull?.let { compiler.isGettersReturnOptional = it }
 
-        val optionalGettersStrategy = task.getOptionalGettersStrategy()
+        val optionalGettersStrategy = task.optionalGettersForNullableFieldsOnly
         if (compiler.isGettersReturnOptional && optionalGettersStrategy.isPresent) {
-            compiler.isOptionalGettersForNullableFieldsOnly =
-                optionalGettersStrategy.get() == OptionalGettersStrategy.ONLY_NULLABLE_FIELDS
+            compiler.isOptionalGettersForNullableFieldsOnly = optionalGettersStrategy.get()
         }
 
         task.addExtraOptionalGetters.orNull?.let { compiler.isCreateOptionalGetters = it }

@@ -1,5 +1,6 @@
 package io.github.leofuso.argo.plugin
 
+import org.apache.avro.Protocol
 import org.apache.avro.compiler.specific.SpecificCompiler
 import org.apache.avro.generic.GenericData.StringType
 import org.apache.avro.specific.SpecificData
@@ -50,3 +51,6 @@ fun SpecificCompiler.getConverters(): List<String> {
     val data = field.get(this) as SpecificData
     return data.conversions.map { it.javaClass.simpleName }
 }
+
+fun Protocol.path(): String =
+    namespace.replace(NAMESPACE_SEPARATOR, UNIX_SEPARATOR) + UNIX_SEPARATOR + name + EXTENSION_SEPARATOR + PROTOCOL_EXTENSION

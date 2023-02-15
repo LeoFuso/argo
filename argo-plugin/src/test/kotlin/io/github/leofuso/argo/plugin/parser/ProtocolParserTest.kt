@@ -17,7 +17,7 @@ import org.junit.jupiter.api.extension.Extensions
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
-@DisplayName("Unit tests related to handling Protocol type definitions.")
+@DisplayName("ProtocolParser: Unit tests related to handling Protocol type definitions.")
 @Extensions(ExtendWith(FileTreeParameterResolver::class))
 class ProtocolParserTest {
 
