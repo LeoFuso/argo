@@ -72,7 +72,6 @@ abstract class ArgoPlugin : Plugin<Project> {
             taskContainer.register<SpecificRecordCompilerTask>(javaTaskName) {
                 withExtension(extension)
                 configureSourceSet(sourceSet)
-                //getSources().from(getAvroProtocolBuildDirectory(project, sourceSet))
                 dependsOn(protocolTaskProvider)
             }
 

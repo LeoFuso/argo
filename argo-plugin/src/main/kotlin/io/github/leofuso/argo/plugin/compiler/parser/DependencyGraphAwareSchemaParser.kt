@@ -63,7 +63,6 @@ interface DependencyGraphAwareSchemaParser {
     fun doParse(schemas: Schemas): Map<String, Schema>
 
     fun doParse(protocols: Protocols): Map<String, Protocol> = protocols.elements.associate {
-        logger().lifecycle(it.readText())
         val protocol = Protocol.parse(it)
         protocol.name to protocol
     }

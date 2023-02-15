@@ -8,21 +8,24 @@ import org.apache.avro.compiler.idl.Idl
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileType
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.api.tasks.util.PatternFilterable
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
 import java.io.File
@@ -35,6 +38,7 @@ import kotlin.io.path.Path
 fun getAvroProtocolBuildDirectory(project: Project, source: SourceSet): Provider<Directory> =
     project.layout.buildDirectory.dir("generated-${source.name}-avro-protocol")
 
+@CacheableTask
 abstract class IDLProtocolTask : DefaultTask() {
 
     init {
@@ -46,6 +50,8 @@ abstract class IDLProtocolTask : DefaultTask() {
         group = GROUP_SOURCE_GENERATION
     }
 
+    private val _sources: ConfigurableFileCollection = project.objects.fileCollection()
+    private val _pattern: PatternFilterable = PatternSet()
     private val _classpath: ConfigurableFileCollection = project.objects.fileCollection()
 
     @get:Classpath
@@ -61,7 +67,17 @@ abstract class IDLProtocolTask : DefaultTask() {
     @Incremental
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
-    abstract fun getSources(): ConfigurableFileTree
+    fun getSources() = _sources.asFileTree.matching(_pattern)
+
+    @Internal
+    fun getSourcePattern() = _pattern
+
+    /**
+     * Adds some source to this task. The given source objects will be evaluated as per [org.gradle.api.Project.files].
+     *
+     * @param sources The source to add
+     */
+    open fun source(vararg sources: Any) = _sources.from(*sources)
 
     @TaskAction
     fun process(inputChanges: InputChanges) {
@@ -82,7 +98,7 @@ abstract class IDLProtocolTask : DefaultTask() {
             changes.forEach { change -> logger.lifecycle("\t{}", change.normalizedPath) }
         }
 
-        val exclusion = getSources().patterns.excludes
+        val exclusion = getSourcePattern().excludes
         if (exclusion.isNotEmpty()) {
             logger.lifecycle("Excluding sources from {}", exclusion)
         }
@@ -133,8 +149,8 @@ abstract class IDLProtocolTask : DefaultTask() {
             val path = Path(classpath)
             project.files(path).asPath
         }
-        getSources().from(sourceDirectory)
-        getSources().patterns.include("**/*.$IDL_EXTENSION")
+        _sources.from(sourceDirectory)
+        getSourcePattern().include("**/*.$IDL_EXTENSION")
     }
 
 }

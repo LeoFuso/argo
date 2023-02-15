@@ -63,7 +63,7 @@ class IDLProtocolTaskTest {
             }
             
             tasks.register('generateProtocol', IDLProtocolTask) {
-                sources.from file('src/dependent')
+                source(file('src/dependent'))
                 classpath = configurations.shared
                 outputDir = file('build/protocol')
             }
@@ -124,7 +124,7 @@ class IDLProtocolTaskTest {
             }
             
             tasks.register('generateProtocol', IDLProtocolTask) {
-                sources.from file('src/main/avro')
+                source(file('src/main/avro'))
                 classpath = configurations.runtimeClasspath
                 outputDir = file('build/protocol')
             }
@@ -181,7 +181,7 @@ class IDLProtocolTaskTest {
             }
             
             tasks.register('generateProtocol', IDLProtocolTask) {
-                sources.from file('src/main/avro')
+                source(file('src/main/avro'))
                 classpath = configurations.runtimeClasspath
                 outputDir = file('build/protocol')
             }
@@ -239,7 +239,7 @@ class IDLProtocolTaskTest {
             }
             
             tasks.register('generateProtocol', IDLProtocolTask) {
-                sources.from file('src/main/avro')
+                source(file('src/main/avro'))
                 classpath = configurations.runtimeClasspath
                 outputDir = file('build/protocol')
             }

@@ -2,8 +2,8 @@ package io.github.leofuso.argo.plugin
 
 import io.github.leofuso.argo.plugin.fixtures.loadResource
 import org.assertj.core.api.Assertions.assertThat
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -61,7 +61,7 @@ class ColumbaFunctionalTest {
             }
             
             dependencies {
-                implementation 'org.apache.avro:avro:1.11.1'
+                
             }
             
             java {
@@ -104,10 +104,18 @@ class ColumbaFunctionalTest {
             loadResource("parser/scenarios/reference/chain/obs.statement-line.avsc").readText()
 
         /* When */
-        val result = GradleRunner.create()
+        val result = DefaultGradleRunner.create()
             .withProjectDir(rootDir)
             .withPluginClasspath()
-            .withArguments("build", "compileApacheAvroJava", "--stacktrace")
+            .withArguments(
+                "build",
+                "compileApacheAvroJava",
+                "--stacktrace",
+                // GradleRunner was throwing SunCertPathBuilderException... idk
+                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
+            )
+            .forwardOutput()
+            .withDebug(true)
             .build()
 
         /* Then */
@@ -123,17 +131,23 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        val rootPath = rootDir.absolutePath + "/build/generated-main-specific-record/io/github/leofuso/obs/demo/events"
+        val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record"
         assertThat(
             listOf(
-                Path("$rootPath/Details.java"),
-                Path("$rootPath/Ratio.java"),
-                Path("$rootPath/ReceiptLine.java"),
-                Path("$rootPath/Source.java"),
-                Path("$rootPath/StatementLine.java"),
-                Path("$rootPath/Department.java"),
-                Path("$rootPath/Operation.java"),
-                Path("$rootPath/Receipt.java")
+                Path("$buildPath/io/github/leofuso/obs/demo/events/Details.java"),
+                Path("$buildPath/io/github/leofuso/obs/demo/events/Ratio.java"),
+                Path("$buildPath/io/github/leofuso/obs/demo/events/ReceiptLine.java"),
+                Path("$buildPath/io/github/leofuso/obs/demo/events/Source.java"),
+                Path("$buildPath/io/github/leofuso/obs/demo/events/StatementLine.java"),
+                Path("$buildPath/io/github/leofuso/obs/demo/events/Department.java"),
+                Path("$buildPath/io/github/leofuso/obs/demo/events/Operation.java"),
+                Path("$buildPath/io/github/leofuso/obs/demo/events/Receipt.java"),
+                Path("$buildPath/org/apache/avro/Node.java"),
+                Path("$buildPath/org/apache/avro/InteropProtocol.java"),
+                Path("$buildPath/org/apache/avro/Interop.java"),
+                Path("$buildPath/org/apache/avro/Kind.java"),
+                Path("$buildPath/org/apache/avro/Foo.java"),
+                Path("$buildPath/org/apache/avro/MD5.java")
             )
         ).allSatisfy { assertThat(it).exists() }
     }
