@@ -6,13 +6,10 @@ import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.path
 import org.apache.avro.compiler.idl.Idl
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileType
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.IgnoreEmptyDirectories
@@ -34,9 +31,6 @@ import java.net.URLClassLoader
 import java.nio.file.Files
 import java.util.*
 import kotlin.io.path.Path
-
-fun getAvroProtocolBuildDirectory(project: Project, source: SourceSet): Provider<Directory> =
-    project.layout.buildDirectory.dir("generated-${source.name}-avro-protocol")
 
 @CacheableTask
 abstract class IDLProtocolTask : DefaultTask() {
@@ -142,7 +136,7 @@ abstract class IDLProtocolTask : DefaultTask() {
     }.toTypedArray().let { URLClassLoader(it, null) }
 
     fun configureSourceSet(source: SourceSet) {
-        val buildDirectory = getAvroProtocolBuildDirectory(project, source)
+        val buildDirectory = project.layout.buildDirectory.dir("generated-${source.name}-avro-protocol")
         getOutputDir().set(buildDirectory)
         val sourceDirectory = run {
             val classpath = "src/${source.name}/avro"
