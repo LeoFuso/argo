@@ -28,9 +28,9 @@ class ColumbaFunctionalTest {
     @Test
     @DisplayName(
         """
- Given a build with IDLs with runtime classpath input having the same type, in different namespaces,
+ Given a complete Argo 'gradle.build',
  when building,
- then should produce the necessary Protocol files.
+ then should produce the necessary IDL, Protocol and Java files.
 """
     )
     fun t0() {
@@ -109,7 +109,6 @@ class ColumbaFunctionalTest {
             .withPluginClasspath()
             .withArguments(
                 "build",
-                "compileApacheAvroJava",
                 "--stacktrace",
                 // GradleRunner was throwing SunCertPathBuilderException... idk
                 "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"

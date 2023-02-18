@@ -76,6 +76,14 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     @get:Input
     abstract val optionalGettersForNullableFieldsOnly: Property<Boolean>
 
+    @get:Internal
+    var pattern: PatternFilterable
+        get() = _pattern
+        set(value) = run {
+            _pattern.setIncludes(value.includes)
+            _pattern.setExcludes(value.excludes)
+        }
+
     @OutputDirectory
     abstract fun getOutputDir(): DirectoryProperty
 
@@ -84,9 +92,6 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     fun getSources() = _sources.asFileTree.matching(_pattern)
-
-    @Internal
-    fun getSourcePattern() = _pattern
 
     /**
      * Adds some source to this task. The given source objects will be evaluated as per [org.gradle.api.Project.files].
@@ -142,7 +147,7 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
             changes.forEach { change -> logger.lifecycle("\t{}", change.normalizedPath) }
         }
 
-        val exclusion = getSourcePattern().excludes
+        val exclusion = _pattern.excludes
         if (exclusion.isNotEmpty()) {
             logger.lifecycle("Excluding sources from {}", exclusion)
         }
@@ -164,8 +169,8 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     }
 
     fun withExtension(options: ColumbaOptions) {
-        getSourcePattern().include("**/*.$SCHEMA_EXTENSION", "**/*.$PROTOCOL_EXTENSION")
-        getSourcePattern().exclude(options.getExcluded().get())
+        _pattern.include("**/*.$SCHEMA_EXTENSION", "**/*.$PROTOCOL_EXTENSION")
+        _pattern.exclude(options.getExcluded().get())
         getEncoding().set(options.getOutputEncoding())
         getAdditionalVelocityTools().set(options.getAdditionalVelocityTools())
         getAdditionalLogicalTypeFactories().set(options.getAdditionalLogicalTypeFactories())

@@ -63,6 +63,7 @@ class IDLProtocolTaskTest {
             }
             
             tasks.register('generateProtocol', IDLProtocolTask) {
+                pattern.include('**/*.avdl')
                 source(file('src/dependent'))
                 classpath = configurations.shared
                 outputDir = file('build/protocol')
@@ -82,6 +83,7 @@ class IDLProtocolTaskTest {
             .withProjectDir(rootDir)
             .withPluginClasspath()
             .withArguments("build", "sharedIDLJar", "generateProtocol", "--stacktrace")
+            .withDebug(true)
             .build()
 
         /* Then */
@@ -124,6 +126,7 @@ class IDLProtocolTaskTest {
             }
             
             tasks.register('generateProtocol', IDLProtocolTask) {
+                pattern.include('**/*.avdl')
                 source(file('src/main/avro'))
                 classpath = configurations.runtimeClasspath
                 outputDir = file('build/protocol')
@@ -181,6 +184,7 @@ class IDLProtocolTaskTest {
             }
             
             tasks.register('generateProtocol', IDLProtocolTask) {
+                pattern.include('**/*.avdl')
                 source(file('src/main/avro'))
                 classpath = configurations.runtimeClasspath
                 outputDir = file('build/protocol')
@@ -239,6 +243,7 @@ class IDLProtocolTaskTest {
             }
             
             tasks.register('generateProtocol', IDLProtocolTask) {
+                pattern.include('**/*.avdl')
                 source(file('src/main/avro'))
                 classpath = configurations.runtimeClasspath
                 outputDir = file('build/protocol')
@@ -269,6 +274,96 @@ class IDLProtocolTaskTest {
 
         assertThat(result.output)
             .contains("There's already another Protocol defined in the classpath with the same name.")
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given a build containing external IDL source files ― and 'compileOnlyAvroIDL' configured,
+ when building,
+ then should produce the necessary IDL, Protocol and Java files.
+"""
+    )
+    fun t4() {
+
+        /* Given */
+        build append """
+                   
+            import org.apache.avro.compiler.specific.SpecificCompiler
+            import org.apache.avro.generic.GenericData
+            
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    classpath group: 'org.apache.avro', name: 'avro', version: '1.11.0'
+                }
+            }
+            
+            plugins {
+                id 'java'
+                id 'idea'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            def sharedIDLJar = tasks.register('sharedIDLJar', Jar) {
+                from 'src/shared'
+            }.get()
+            
+            dependencies {
+                compileOnlyAvroIDL sharedIDLJar.outputs.files
+            }
+            
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+            }
+        """
+            .trimIndent()
+
+        val shared = rootDir tmkdirs "src/shared/shared.avdl"
+        shared append loadResource("tasks/protocol/shared.avdl").readText()
+
+        val dependent = rootDir tmkdirs "src/main/avro/dependent.avdl"
+        dependent append loadResource("tasks/protocol/dependent.avdl").readText()
+
+        /* When */
+        val result = GradleRunner.create()
+            .withProjectDir(rootDir)
+            .withPluginClasspath()
+            .withArguments(
+                "build",
+                "sharedIDLJar",
+                // GradleRunner was throwing SunCertPathBuilderException... idk
+                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts",
+                "--stacktrace"
+            )
+            .withDebug(true)
+            .build()
+
+        /* Then */
+        val generateProtocol = result.task(":generateApacheAvroProtocol")
+        assertThat(generateProtocol)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record"
+        assertThat(
+            listOf(
+                Path("$buildPath/com/example/shared/SomethingShared.java"),
+                Path("$buildPath/com/example/dependent/DependentProtocol.java"),
+                Path("$buildPath/com/example/dependent/ThisDependsOnTemporal.java"),
+                Path("${rootDir.absolutePath}/build/generated-main-avro-protocol/com/example/dependent/DependentProtocol.avpr")
+            )
+        ).allSatisfy { assertThat(it).exists() }
+
     }
 
 }
