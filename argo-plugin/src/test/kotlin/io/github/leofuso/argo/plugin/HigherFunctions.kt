@@ -12,5 +12,3 @@ infix fun File.tmkdirs(child: String) = run {
     Files.createFile(file.toPath())
     file
 }
-
-fun applyPlugin(name: String, build: File) = build append "plugins { id $name } \n"

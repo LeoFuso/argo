@@ -45,14 +45,26 @@ abstract class IDLProtocolTask : DefaultTask() {
     }
 
     private val _sources: ConfigurableFileCollection = project.objects.fileCollection()
-    private val _pattern: PatternFilterable = PatternSet()
     private val _classpath: ConfigurableFileCollection = project.objects.fileCollection()
+    private val _pattern: PatternFilterable = PatternSet()
 
     @get:Classpath
     @get:InputFiles
     var classpath: FileCollection
         get() = _classpath
         set(value) = _classpath.setFrom(value)
+
+    @get:Internal
+    var pattern: PatternFilterable
+        get() = _pattern
+        set(value) = run {
+            _pattern.setIncludes(value.includes)
+            _pattern.setExcludes(value.excludes)
+        }
+
+    @get:Internal
+    val configurableClasspath: ConfigurableFileCollection
+        get() = _classpath
 
     @OutputDirectory
     abstract fun getOutputDir(): DirectoryProperty
@@ -62,9 +74,6 @@ abstract class IDLProtocolTask : DefaultTask() {
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     fun getSources() = _sources.asFileTree.matching(_pattern)
-
-    @Internal
-    fun getSourcePattern() = _pattern
 
     /**
      * Adds some source to this task. The given source objects will be evaluated as per [org.gradle.api.Project.files].
@@ -92,7 +101,7 @@ abstract class IDLProtocolTask : DefaultTask() {
             changes.forEach { change -> logger.lifecycle("\t{}", change.normalizedPath) }
         }
 
-        val exclusion = getSourcePattern().excludes
+        val exclusion = _pattern.excludes
         if (exclusion.isNotEmpty()) {
             logger.lifecycle("Excluding sources from {}", exclusion)
         }
@@ -125,7 +134,7 @@ abstract class IDLProtocolTask : DefaultTask() {
         didWork = true
     }
 
-    private fun assembleClassLoader() = _classpath.files.mapNotNull {
+    private fun assembleClassLoader() = classpath.files.mapNotNull {
         try {
             val uri = it.toURI()
             uri.toURL()
@@ -144,7 +153,7 @@ abstract class IDLProtocolTask : DefaultTask() {
             project.files(path).asPath
         }
         _sources.from(sourceDirectory)
-        getSourcePattern().include("**/*.$IDL_EXTENSION")
+        _pattern.include("**/*.$IDL_EXTENSION")
     }
 
 }
