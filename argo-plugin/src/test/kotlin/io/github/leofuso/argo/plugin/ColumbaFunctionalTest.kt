@@ -91,17 +91,25 @@ class ColumbaFunctionalTest {
         """
             .trimIndent()
 
-        rootDir tmkdirs "src/main/avro/protocol/interop.avdl" append
-            loadResource("parser/scenarios/protocol/interop.avdl").readText()
+        val slash = File.separator
 
-        rootDir tmkdirs "src/main/avro/receipt/obs.receipt.avsc" append
-            loadResource("parser/scenarios/reference/chain/obs.receipt.avsc").readText()
+        rootDir tmkdirs "src${slash}main${slash}avro${slash}protocol${slash}interop.avdl" append
+            loadResource("parser${slash}scenarios${slash}protocol${slash}interop.avdl").readText()
 
-        rootDir tmkdirs "src/main/avro/receipt/obs.receipt-line.avsc" append
-            loadResource("parser/scenarios/reference/chain/obs.receipt-line.avsc").readText()
+        rootDir tmkdirs "src${slash}main${slash}avro${slash}receipt${slash}obs.receipt.avsc" append
+            loadResource(
+                "parser${slash}scenarios${slash}reference${slash}chain${slash}obs.receipt.avsc"
+            ).readText()
 
-        rootDir tmkdirs "src/main/avro/obs.statement-line.avsc" append
-            loadResource("parser/scenarios/reference/chain/obs.statement-line.avsc").readText()
+        rootDir tmkdirs "src${slash}main${slash}avro${slash}receipt${slash}obs.receipt-line.avsc" append
+            loadResource(
+                "parser${slash}scenarios${slash}reference${slash}chain${slash}obs.receipt-line.avsc"
+            ).readText()
+
+        rootDir tmkdirs "src${slash}main${slash}avro${slash}obs.statement-line.avsc" append
+            loadResource(
+                "parser${slash}scenarios${slash}reference${slash}chain${slash}obs.statement-line.avsc"
+            ).readText()
 
         /* When */
         val result = DefaultGradleRunner.create()
@@ -111,7 +119,7 @@ class ColumbaFunctionalTest {
                 "build",
                 "--stacktrace",
                 // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
+                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}${slash}lib${slash}security${slash}cacerts"
             )
             .forwardOutput()
             .withDebug(true)
@@ -130,23 +138,25 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record"
+        val buildPath = "${rootDir.absolutePath}${slash}build${slash}generated-main-specific-record"
+        val eventsPath = "$buildPath${slash}io${slash}github${slash}leofuso${slash}obs${slash}demo${slash}events${slash}"
+        val apachePath = "$buildPath${slash}org${slash}apache${slash}avro${slash}"
         assertThat(
             listOf(
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Details.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Ratio.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/ReceiptLine.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Source.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/StatementLine.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Department.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Operation.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Receipt.java"),
-                Path("$buildPath/org/apache/avro/Node.java"),
-                Path("$buildPath/org/apache/avro/InteropProtocol.java"),
-                Path("$buildPath/org/apache/avro/Interop.java"),
-                Path("$buildPath/org/apache/avro/Kind.java"),
-                Path("$buildPath/org/apache/avro/Foo.java"),
-                Path("$buildPath/org/apache/avro/MD5.java")
+                Path("${eventsPath}Details.java"),
+                Path("${eventsPath}Ratio.java"),
+                Path("${eventsPath}ReceiptLine.java"),
+                Path("${eventsPath}Source.java"),
+                Path("${eventsPath}StatementLine.java"),
+                Path("${eventsPath}Department.java"),
+                Path("${eventsPath}Operation.java"),
+                Path("${eventsPath}Receipt.java"),
+                Path("${apachePath}Node.java"),
+                Path("${apachePath}InteropProtocol.java"),
+                Path("${apachePath}Interop.java"),
+                Path("${apachePath}Kind.java"),
+                Path("${apachePath}Foo.java"),
+                Path("${apachePath}MD5.java")
             )
         ).allSatisfy { assertThat(it).exists() }
     }
