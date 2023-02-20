@@ -1,93 +1,213 @@
-# Argo Plugin
+# Of Argo
 
 [![Pre Merge Checks](https://github.com/cortinico/kotlin-gradle-plugin-template/workflows/Pre%20Merge%20Checks/badge.svg)](https://github.com/cortinico/kotlin-gradle-plugin-template/actions?query=workflow%3A%22Pre+Merge+Checks%22)  [![License](https://img.shields.io/github/license/cortinico/kotlin-android-template.svg)](LICENSE) ![Language](https://img.shields.io/github/languages/top/cortinico/kotlin-android-template?color=blue&logo=kotlin)
 
-A GitHub template that lets you create a **Gradle Plugin** 🐘 project using **100% Kotlin** and be up and running in a **few seconds**.
+A [Gradle](http://www.gradle.org/) plugin aimed to help working with [Apache Avro](http://avro.apache.org/). 
+It supports Java code generation from JSON schema declaration files(.avsc), JSON protocol declaration files(.avpr), and Avro IDL files. 
 
-This template is focused on delivering a project with **static analysis** and **continuous integration** already in place.
+In the future, it should support Schema Registry integration, as well.
 
-## How to use 👣
+## Of Quick Facts
 
-Just click on [![Use this template](https://img.shields.io/badge/-Use%20this%20template-brightgreen)](https://github.com/cortinico/kotlin-gradle-plugin-template/generate) button to create a new repo starting from this template.
+If you're looking for examples of how to set up this plugin,
+there are a few [use-cases](https://github.com/LeoFuso/argo/tree/main/use-cases) available for you to look.  
 
-Once created don't forget to update the:
-- [gradle.properties](plugin-build/gradle.properties)
-- Plugin Usages (search for [com.ncorti.kotlin.gradle.template](https://github.com/cortinico/kotlin-gradle-plugin-template/search?q=com.ncorti.kotlin.gradle.template&unscoped_q=com.ncorti.kotlin.gradle.template) in the repo and replace it with your ID).
+There are two use-cases covered by this plugin, **Code Generation** and **Schema Registry integration**.
+Those are segregated into two separated namespaces: **Columba** and **Navis**. 
 
-## Features 🎨
+At this moment, just the **Columba** portion has some functionalities ready for use.  
 
-- **100% Kotlin-only template**.
-- Plugin build setup with **composite build**.
-- 100% Gradle Kotlin DSL setup.
-- Dependency versions managed via Gradle Versions Catalog (`libs.versions.toml`).
-- CI Setup with GitHub Actions.
-- Kotlin Static Analysis via `ktlint` and `detekt`.
-- Publishing-ready to Gradle Portal.
-- Issues Template (bug report + feature request)
-- Pull Request Template.
+### Of Columba and its customizations
 
-## Composite Build 📦
-
-This template is using a [Gradle composite build](https://docs.gradle.org/current/userguide/composite_builds.html) to build, test and publish the plugin. This means that you don't need to run Gradle twice to test the changes on your Gradle plugin (no more `publishToMavenLocal` tricks or so).
-
-The included build is inside the [plugin-build](plugin-build) folder.
-
-### `preMerge` task
-
-A `preMerge` task on the top level build is already provided in the template. This allows you to run all the `check` tasks both in the top level and in the included build.
-
-You can easily invoke it with:
-
-```
-./gradlew preMerge
+To customize the **Columba** build, one must import the necessary _avro_ dependencies as part of the _buildscript_.
+```groovy
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'org.apache.avro', name: 'avro', version: '1.11.0'
+    }
+}
 ```
 
-If you need to invoke a task inside the included build with:
+The need of this dependency is to be able to reference specific classes available to the compiler; 
+those classes offer customized behavior during the compilation, e.g., the different _String_ types supported by the _Avro Protocol_.
 
+_if this is a deal break, please create an issue reporting so, and I'll provide the necessary workaround._
+
+### Of Columba Usage
+
+Add the following to your build files. Substitute the desired version based on your needs.
+
+`settings.gradle`
+```groovy
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
 ```
-./gradlew -p plugin-build <task-name>
+
+`build.gradle`
+```groovy
+plugins {
+    id 'io.github.leofuso.argo' version 'VERSION'
+}
 ```
 
+Additionally, ensure that you have an implementation dependency on Avro, such as:
 
-### Dependency substitution
+`build.gradle`
+```groovy
+repositories {
+    mavenCentral()
+}
+dependencies {
+    implementation 'org.apache.avro:avro:1.11.0'
+}
+```
+You can, also, customize the Avro compiler dependency, as you may need different versions in runtime and
+during the source code generation:
 
-Please note that the project relies on module name/group in order for [dependency substitution](https://docs.gradle.org/current/userguide/resolution_rules.html#sec:dependency_substitution_rules) to work properly. If you change only the plugin ID everything will work as expected. If you change module name/group, things might break and you probably have to specify a [substitution rule](https://docs.gradle.org/current/userguide/resolution_rules.html#sub:project_to_module_substitution).
+`build.gradle`
+```groovy
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.avro:avro:1.11.0'
+}
+
+argo {
+    columba {
+        compiler = 'org.apache.avro:avro-compiler:1.11.1'
+    }
+}
+```
+
+## Of Columba tasks
+
+After applied, the plugin should generate as many tasks as there's SourceSets in your project. If you don't know what these are, 
+don't worry about it. In most cases, for Java and Kotlin, there are two SourceSets: **main** and **test**.
+
+This basic setup generates 4 tasks: 
+- **compileApacheAvroJava**
+- **compileTestApacheAvroJava**
+  - Both generate Java class files from JSON schema declaration files(.avsc)
+    and JSON protocol declaration files(.avpr).
+- **generateApacheAvroProtocol**
+- **generateTestApacheAvroProtocol**
+  - Both generate JSON Protocol declaration files from Avro IDL files(.avdl).
+
+By default, the tasks infer the location of the source files to be `src/avro`, even tho this behavior can be customized.
+
+All _Source Generation_ tasks should be ordered in a way that the plugin tasks run before anything else, out of the box.
+Running `gradle build` should be enough to your project setup.
+
+## Of Columba parser
+
+There is no required pre-defined order of appearence for the source files, nor should you worry about inline definitions vs separeted
+file definitions, and duplicated resolutions are ignored by default.
+The parser component of the plugin tries its best to ensure a smooth experience regarding Schema dependencies, but the parser can fail.
+If that's the case, please open an issue about it!
+
+## Of Columba working with external dependencies
+
+Should you depend on external JSON schema declaration files(.avsc), JSON protocol declaration files(.avpr) or Avro IDL files(.avdl),
+you can extend the classpath scan by providing the right configurations, see below:
+
+`build.gradle`
+```groovy
+dependencies {
+    compileOnlyAvroIDL someJar.outputs.files
+    compileOnlySchemaProtocol 'io.github.leofuso.events:avro-events:1.0.0'
+}
+```
+
+You can add as many as you want. You can also register the tasks manually.
+
+## Of Columba Options
+
+The following is all available customizations, alongside its default values.
+Since the plugin relly on [SpecificCompiler](https://github.com/justinsb/avro/blob/master/src/java/org/apache/avro/specific/SpecificCompiler.java) 
+implementation, all configurations are passed _as is_ to the compiler.
+
+`build.gradle`
+```groovy
+
+import org.apache.avro.compiler.specific.SpecificCompiler
+import org.apache.avro.generic.GenericData
+
+argo {
+    columba {
+        compiler = 'org.apache.avro:avro-compiler:1.11.0' // necessary due to the SpecificCompiler usage.
+        outputEncoding = 'UTF-8' // Encoding for the generated classes.
+        fields {
+            visibility = SpecificCompiler.FieldVisibility.PRIVATE // Java class property field visibility, either PRIVATE or PUBLIC. 
+            useDecimalType = true // either or not to use BigDecimal as decimal type, instead of ByteArray.
+            stringType = GenericData.StringType.CharSequence // String property implementing class, either CharSequence, String, Utf8.
+        }
+        accessors {
+            noSetters = false // all properties final
+            addExtraOptionalGetters = false // extra getters on top of default ones
+            useOptionalGetters = true // use optional instead of default getters
+            optionalGettersForNullableFieldsOnly = true // optional getters only for nullable fields
+        }
+    }
+    navis { /* empty*/ }
+}
+```
+
+[Decimal type ref](https://avro.apache.org/docs/1.11.1/specification/#decimal).
+
+As you can see it, it was a deliberate choice to reference the actual classes that the SpecificCompiler uses, to prevent miss config
+associated with typos.
+
+### Of Columba option details
 
 
-## Publishing 🚀
+## Compatibility
 
-This template is ready to let you publish to [Gradle Portal](https://plugins.gradle.org/).
+To be defined.
 
-The [![Publish Plugin to Portal](https://github.com/cortinico/kotlin-gradle-plugin-template/workflows/Publish%20Plugin%20to%20Portal/badge.svg?branch=1.0.0)](https://github.com/cortinico/kotlin-gradle-plugin-template/actions?query=workflow%3A%22Publish+Plugin+to+Portal%22) Github Action will take care of the publishing whenever you **push a tag**.
 
-Please note that you need to configure two secrets: `GRADLE_PUBLISH_KEY` and `GRADLE_PUBLISH_SECRET` with the credetials you can get from your profile on the Gradle Portal.
+## Of IntelliJ integration
 
-## 100% Kotlin 🅺
+The plugin attempts to make IntelliJ play more smoothly with generated sources when using Gradle-generated project files.
+However, there are still some rough edges.
+It should work better if you first run `gradle build`, and _after_ that run `gradle idea`.
 
-This template is designed to use Kotlin everywhere. The build files are written using [**Gradle Kotlin DSL**](https://docs.gradle.org/current/userguide/kotlin_dsl.html) as well as the [Plugin DSL](https://docs.gradle.org/current/userguide/plugins.html#sec:plugins_block) to setup the build.
+# Kotlin Support
 
-Dependencies are centralized inside the [libs.versions.toml](gradle/libs.versions.toml).
+The Java classes generated from your Avro files should be automatically accessible in the classpath to Kotlin classes in the same SourceSet,
+and transitively to any SourceSets that depend on that SourceSet.
+This is accomplished by this plugin detecting that the Kotlin plugin has been applied and informing the Kotlin compilation tasks 
+of the generated sources presence for cross-compilation.
 
-Moreover, a minimalistic Gradle Plugin is already provided in Kotlin to let you easily start developing your own around it.
+This plugin does **not** support producing the Avro generated classes as Kotlin classes, as that functionality is not 
+currently provided by the upstream Avro library (the compiler).
 
-## Static Analysis 🔍
+# Kotlin DSL Support
 
-This repository is using [**ktlint**](https://github.com/pinterest/ktlint) with the [ktlint-gradle](https://github.com/jlleitschuh/ktlint-gradle) plugin to format your code. To reformat all the source code as well as the buildscript you can run the `ktlintFormat` gradle task.
-This repository is also using [**detekt**](https://github.com/arturbosch/detekt) to analyze the source code, with the configuration that is stored in the [detekt.yml](config/detekt/detekt.yml) file (the file has been generated with the `detektGenerateConfig` task).
+Special notes relevant to using this plugin via the Gradle Kotlin DSL:
 
-## CI ⚙️
+* Apply the plugin declaratively using the `plugins {}` block. Otherwise, various features may not work as intended. 
+* See [Configuring Plugins in the Gradle Kotlin DSL](https://github.com/LeoFuso/argo) for more details.
+* Configuration in the `avro {}` block must be applied differently than in the Groovy DSL. See the example below for details.
 
-This repository is using [**GitHub Actions**](https://github.com/cortinico/kotlin-android-template/actions) as CI. You don't need to setup any external service and you should have a running CI once you start using this template.
-
-The following workflows are available:
-- [Validate Gradle Wrapper](.github/workflows/gradle-wrapper-validation.yml) – Checks that the gradle wrapper has a valid checksum.
-- [Pre Merge Checks](.github/workflows/pre-merge.yaml) – Executes the `preMerge` tasks as well as trying to run the Gradle plugin.
-- [Publish to Plugin Portal](.github/workflows/publish-plugin.yaml) – Executes the `publishPlugin` task when pushing a new tag.
-
-## Contributing 🤝
-
-Feel free to open an issue or submit a pull request for any bugs/improvements.
-
-## License
+## Of License
 
 This plugin is licensed under the MIT License. See the [License](License) file for details.
+
+## Of Open Source and the Community
+
+The development of this plugin in a direct response to [David's plugin](https://github.com/davidmc24/gradle-avro-plugin)
+of the same functionality.
+Any resemblence is not a coincidence. I've used David's plugin as a starting point, and copy some 
+of its functionality **as is**. David, and the community surrouding their plugin, did a wonderful job,
+and I am most definitely a user of David's plugin. If you're in doubt about which plugin to use, use
+David's, since it is the most battle tested, at least for now!
+
