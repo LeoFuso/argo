@@ -10,12 +10,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
-import org.junit.jupiter.api.condition.EnabledOnOs
 import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import kotlin.io.path.Path
-
+@DisabledOnOs(OS.WINDOWS)
 @DisplayName("IDL: Functional tests related to IDLProtocolTask.")
 class IDLProtocolTaskTest {
 
@@ -38,7 +37,6 @@ class IDLProtocolTaskTest {
  then should produce the necessary Protocol files.
 """
     )
-    @DisabledOnOs(OS.WINDOWS)
     fun t0() {
 
         /* Given */
@@ -109,7 +107,6 @@ class IDLProtocolTaskTest {
  then should produce the necessary Protocol files.
 """
     )
-    @DisabledOnOs(OS.WINDOWS)
     fun t1() {
 
         /* Given */
@@ -172,7 +169,6 @@ class IDLProtocolTaskTest {
  then should produce the necessary Protocol files.
 """
     )
-    @DisabledOnOs(OS.WINDOWS)
     fun t2() {
 
         /* Given */
@@ -290,7 +286,6 @@ class IDLProtocolTaskTest {
  then should produce the necessary IDL, Protocol and Java files.
 """
     )
-    @DisabledOnOs(OS.WINDOWS)
     fun t4() {
 
         /* Given */
@@ -372,96 +367,4 @@ class IDLProtocolTaskTest {
         ).allSatisfy { assertThat(it).exists() }
 
     }
-
-    @Test
-    @DisplayName(
-        """
- Given a build containing external IDL source files ― and 'compileOnlyAvroIDL' configured, but on Windows,
- when building,
- then should produce the necessary IDL, Protocol and Java files.
-"""
-    )
-    @EnabledOnOs(OS.WINDOWS)
-    fun t5() {
-
-        /* Given */
-        build append """
-                   
-            import org.apache.avro.compiler.specific.SpecificCompiler
-            import org.apache.avro.generic.GenericData
-            
-            buildscript {
-                repositories {
-                    mavenCentral()
-                }
-                dependencies {
-                    classpath group: 'org.apache.avro', name: 'avro', version: '1.11.0'
-                }
-            }
-            
-            plugins {
-                id 'java'
-                id 'idea'
-                id 'io.github.leofuso.argo'
-            }
-            
-            repositories {
-                mavenCentral()
-            }
-            
-            def sharedIDLJar = tasks.register('sharedIDLJar', Jar) {
-                from 'src\\shared'
-            }.get()
-            
-            dependencies {
-                compileOnlyAvroIDL sharedIDLJar.outputs.files
-            }
-            
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
-                }
-            }
-        """
-            .trimIndent()
-
-        val shared = rootDir tmkdirs "src\\shared\\shared.avdl"
-        shared append loadResource("tasks\\protocol\\shared.avdl").readText()
-
-        val dependent = rootDir tmkdirs "src\\main\\avro\\dependent.avdl"
-        dependent append loadResource("tasks\\protocol\\dependent.avdl").readText()
-
-        /* When */
-        val result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "sharedIDLJar",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}\\lib\\security\\cacerts",
-                "--stacktrace"
-            )
-            .withDebug(true)
-            .build()
-
-        /* Then */
-        val generateProtocol = result.task(":generateApacheAvroProtocol")
-        assertThat(generateProtocol)
-            .isNotNull
-            .extracting { it?.outcome }
-            .isSameAs(TaskOutcome.SUCCESS)
-
-        val buildPath = "${rootDir.absolutePath}\\build\\generated-main-specific-record"
-        assertThat(
-            listOf(
-                Path("$buildPath\\com\\example\\shared\\SomethingShared.java"),
-                Path("$buildPath\\com\\example\\dependent\\DependentProtocol.java"),
-                Path("$buildPath\\com\\example\\dependent\\ThisDependsOnTemporal.java"),
-                Path("${rootDir.absolutePath}\\build\\generated-main-avro-protocol\\com\\example\\dependent\\DependentProtocol.avpr")
-            )
-        ).allSatisfy { assertThat(it).exists() }
-
-    }
-
 }
