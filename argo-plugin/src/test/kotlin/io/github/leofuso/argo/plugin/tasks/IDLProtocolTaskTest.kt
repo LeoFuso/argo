@@ -14,6 +14,7 @@ import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import kotlin.io.path.Path
+
 @DisabledOnOs(OS.WINDOWS)
 @DisplayName("IDL: Functional tests related to IDLProtocolTask.")
 class IDLProtocolTaskTest {
