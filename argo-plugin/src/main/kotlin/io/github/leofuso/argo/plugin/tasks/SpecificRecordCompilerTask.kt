@@ -170,7 +170,7 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     }
 
     fun withExtension(options: ColumbaOptions) {
-        _pattern.include("**/*.$SCHEMA_EXTENSION", "**/*.$PROTOCOL_EXTENSION")
+        _pattern.include("**${File.separator}*.$SCHEMA_EXTENSION", "**${File.separator}*.$PROTOCOL_EXTENSION")
         _pattern.exclude(options.getExcluded().get())
         getEncoding().set(options.getOutputEncoding())
         getAdditionalVelocityTools().set(options.getAdditionalVelocityTools())
