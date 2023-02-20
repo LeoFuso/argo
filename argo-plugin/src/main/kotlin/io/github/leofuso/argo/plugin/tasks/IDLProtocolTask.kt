@@ -148,12 +148,12 @@ abstract class IDLProtocolTask : DefaultTask() {
         val buildDirectory = project.layout.buildDirectory.dir("generated-${source.name}-avro-protocol")
         getOutputDir().set(buildDirectory)
         val sourceDirectory = run {
-            val classpath = "src/${source.name}/avro"
+            val classpath = "src${File.separator}${source.name}${File.separator}avro"
             val path = Path(classpath)
             project.files(path).asPath
         }
         _sources.from(sourceDirectory)
-        _pattern.include("**/*.$IDL_EXTENSION")
+        _pattern.include("**${File.separator}*.$IDL_EXTENSION")
     }
 
 }

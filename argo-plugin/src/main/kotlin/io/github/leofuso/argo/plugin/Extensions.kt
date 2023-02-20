@@ -4,6 +4,7 @@ import org.apache.avro.Protocol
 import org.apache.avro.compiler.specific.SpecificCompiler
 import org.apache.avro.generic.GenericData.StringType
 import org.apache.avro.specific.SpecificData
+import java.io.File
 
 /**
  * Throws an [AssertionError] calculated by [lazyMessage] if the [value] is false.
@@ -53,4 +54,4 @@ fun SpecificCompiler.getConverters(): List<String> {
 }
 
 fun Protocol.path(): String =
-    namespace.replace(NAMESPACE_SEPARATOR, UNIX_SEPARATOR) + UNIX_SEPARATOR + name + EXTENSION_SEPARATOR + PROTOCOL_EXTENSION
+    namespace.replace(NAMESPACE_SEPARATOR, File.separator) + File.separator + name + EXTENSION_SEPARATOR + PROTOCOL_EXTENSION

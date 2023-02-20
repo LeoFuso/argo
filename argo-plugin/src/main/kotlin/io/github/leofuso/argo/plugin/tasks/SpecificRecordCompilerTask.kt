@@ -39,6 +39,7 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.kotlin.dsl.property
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
+import java.io.File
 import kotlin.io.path.Path
 
 fun getSpecificRecordCompileBuildDirectory(project: Project, source: SourceSet): Provider<Directory> =
@@ -195,7 +196,7 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
         source.java { it.srcDir(buildDirectory) }
 
         val sourceDirectory = run {
-            val classpath = "src/${source.name}/avro"
+            val classpath = "src${File.separator}${source.name}${File.separator}avro"
             val path = Path(classpath)
             project.files(path).asPath
         }
