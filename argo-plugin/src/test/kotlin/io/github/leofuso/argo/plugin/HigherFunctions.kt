@@ -12,3 +12,5 @@ infix fun File.tmkdirs(child: String) = run {
     Files.createFile(file.toPath())
     file
 }
+
+infix fun String.sh(other: String) = this + File.separator + other

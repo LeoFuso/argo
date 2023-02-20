@@ -91,25 +91,17 @@ class ColumbaFunctionalTest {
         """
             .trimIndent()
 
-        val slash = File.separator
+        rootDir tmkdirs ("src" sh "main" sh "avro" sh "protocol" sh "interop.avdl") append
+            loadResource("parser" sh "scenarios" sh "protocol" sh "interop.avdl").readText()
 
-        rootDir tmkdirs "src${slash}main${slash}avro${slash}protocol${slash}interop.avdl" append
-            loadResource("parser${slash}scenarios${slash}protocol${slash}interop.avdl").readText()
+        rootDir tmkdirs ("src" sh "main" sh "avro" sh "receipt" sh "obs.receipt.avsc") append
+            loadResource("parser" sh "scenarios" sh "reference" sh "chain" sh "obs.receipt.avsc").readText()
 
-        rootDir tmkdirs "src${slash}main${slash}avro${slash}receipt${slash}obs.receipt.avsc" append
-            loadResource(
-                "parser${slash}scenarios${slash}reference${slash}chain${slash}obs.receipt.avsc"
-            ).readText()
+        rootDir tmkdirs ("src" sh "main" sh "avro" sh "receipt" sh "obs.receipt-line.avsc") append
+            loadResource("parser" sh "scenarios" sh "reference" sh "chain" sh "obs.receipt-line.avsc").readText()
 
-        rootDir tmkdirs "src${slash}main${slash}avro${slash}receipt${slash}obs.receipt-line.avsc" append
-            loadResource(
-                "parser${slash}scenarios${slash}reference${slash}chain${slash}obs.receipt-line.avsc"
-            ).readText()
-
-        rootDir tmkdirs "src${slash}main${slash}avro${slash}obs.statement-line.avsc" append
-            loadResource(
-                "parser${slash}scenarios${slash}reference${slash}chain${slash}obs.statement-line.avsc"
-            ).readText()
+        rootDir tmkdirs ("src" sh "main" sh "avro" sh "obs.statement-line.avsc") append
+            loadResource("parser" sh "scenarios" sh "reference" sh "chain" sh "obs.statement-line.avsc").readText()
 
         /* When */
         val result = DefaultGradleRunner.create()
@@ -119,7 +111,7 @@ class ColumbaFunctionalTest {
                 "build",
                 "--stacktrace",
                 // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}${slash}lib${slash}security${slash}cacerts"
+                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}" sh "lib" sh "security" sh "cacerts"
             )
             .forwardOutput()
             .withDebug(true)
@@ -138,25 +130,25 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        val buildPath = "${rootDir.absolutePath}${slash}build${slash}generated-main-specific-record"
-        val eventsPath = "$buildPath${slash}io${slash}github${slash}leofuso${slash}obs${slash}demo${slash}events${slash}"
-        val apachePath = "$buildPath${slash}org${slash}apache${slash}avro${slash}"
+        val buildPath = rootDir.absolutePath sh "build" sh "generated-main-specific-record"
+        val eventsPath = buildPath sh "io" sh "github" sh "leofuso" sh "obs" sh "demo" sh "events"
+        val apachePath = buildPath sh "org" sh "apache" sh "avro"
         assertThat(
             listOf(
-                Path("${eventsPath}Details.java"),
-                Path("${eventsPath}Ratio.java"),
-                Path("${eventsPath}ReceiptLine.java"),
-                Path("${eventsPath}Source.java"),
-                Path("${eventsPath}StatementLine.java"),
-                Path("${eventsPath}Department.java"),
-                Path("${eventsPath}Operation.java"),
-                Path("${eventsPath}Receipt.java"),
-                Path("${apachePath}Node.java"),
-                Path("${apachePath}InteropProtocol.java"),
-                Path("${apachePath}Interop.java"),
-                Path("${apachePath}Kind.java"),
-                Path("${apachePath}Foo.java"),
-                Path("${apachePath}MD5.java")
+                Path(eventsPath sh "Details.java"),
+                Path(eventsPath sh "Ratio.java"),
+                Path(eventsPath sh "ReceiptLine.java"),
+                Path(eventsPath sh "Source.java"),
+                Path(eventsPath sh "StatementLine.java"),
+                Path(eventsPath sh "Department.java"),
+                Path(eventsPath sh "Operation.java"),
+                Path(eventsPath sh "Receipt.java"),
+                Path(apachePath sh "Node.java"),
+                Path(apachePath sh "InteropProtocol.java"),
+                Path(apachePath sh "Interop.java"),
+                Path(apachePath sh "Kind.java"),
+                Path(apachePath sh "Foo.java"),
+                Path(apachePath sh "MD5.java")
             )
         ).allSatisfy { assertThat(it).exists() }
     }
