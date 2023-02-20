@@ -91,17 +91,17 @@ class ColumbaFunctionalTest {
         """
             .trimIndent()
 
-        rootDir tmkdirs ("src" sh "main" sh "avro" sh "protocol" sh "interop.avdl") append
-            loadResource("parser" sh "scenarios" sh "protocol" sh "interop.avdl").readText()
+        rootDir tmkdirs ("src/main/avro/protocol/interop.avdl" slash "/") append
+            loadResource("parser/scenarios/protocol/interop.avdl" slash "/").readText()
 
-        rootDir tmkdirs ("src" sh "main" sh "avro" sh "receipt" sh "obs.receipt.avsc") append
-            loadResource("parser" sh "scenarios" sh "reference" sh "chain" sh "obs.receipt.avsc").readText()
+        rootDir tmkdirs ("src/main/avro/receipt/obs.receipt.avsc" slash "/") append
+            loadResource("parser/scenarios/reference/chain/obs.receipt.avsc" slash "/").readText()
 
-        rootDir tmkdirs ("src" sh "main" sh "avro" sh "receipt" sh "obs.receipt-line.avsc") append
-            loadResource("parser" sh "scenarios" sh "reference" sh "chain" sh "obs.receipt-line.avsc").readText()
+        rootDir tmkdirs ("src/main/avro/receipt/obs.receipt-line.avsc" slash "/") append
+            loadResource("parser/scenarios/reference/chain/obs.receipt-line.avsc" slash "/").readText()
 
-        rootDir tmkdirs ("src" sh "main" sh "avro" sh "obs.statement-line.avsc") append
-            loadResource("parser" sh "scenarios" sh "reference" sh "chain" sh "obs.statement-line.avsc").readText()
+        rootDir tmkdirs ("src/main/avro/obs.statement-line.avsc" slash "/") append
+            loadResource("parser/scenarios/reference/chain/obs.statement-line.avsc" slash "/").readText()
 
         /* When */
         val result = DefaultGradleRunner.create()
@@ -111,7 +111,7 @@ class ColumbaFunctionalTest {
                 "build",
                 "--stacktrace",
                 // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}" sh "lib" sh "security" sh "cacerts"
+                "-Djavax.net.ssl.trustStore=${(System.getenv("JAVA_HOME") + "/lib/security/cacerts") slash "/"}"
             )
             .forwardOutput()
             .withDebug(true)
@@ -130,9 +130,9 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        val buildPath = rootDir.absolutePath sh "build" sh "generated-main-specific-record"
-        val eventsPath = buildPath sh "io" sh "github" sh "leofuso" sh "obs" sh "demo" sh "events"
-        val apachePath = buildPath sh "org" sh "apache" sh "avro"
+        val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record" slash "/"
+        val eventsPath = "$buildPath/io/github/leofuso/obs/demo/events" slash "/"
+        val apachePath = "$buildPath/org/apache/avro" slash "/"
         assertThat(
             listOf(
                 Path(eventsPath sh "Details.java"),

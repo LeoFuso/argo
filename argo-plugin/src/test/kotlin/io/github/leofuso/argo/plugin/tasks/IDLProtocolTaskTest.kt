@@ -410,7 +410,7 @@ class IDLProtocolTaskTest {
             }
             
             def sharedIDLJar = tasks.register('sharedIDLJar', Jar) {
-                from 'src\shared'
+                from 'src\\shared'
             }.get()
             
             dependencies {

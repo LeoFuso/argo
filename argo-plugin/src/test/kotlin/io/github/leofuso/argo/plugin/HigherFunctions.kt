@@ -14,3 +14,5 @@ infix fun File.tmkdirs(child: String) = run {
 }
 
 infix fun String.sh(other: String) = this + File.separator + other
+
+infix fun String.slash(target: String) = this.replace(target, File.separator)
