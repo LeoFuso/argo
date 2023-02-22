@@ -22,7 +22,7 @@ dependencies {
 }
 
 tasks.register("generateProtocol", IDLProtocolTask) {
-    sources.from file('src/dependent')
+    source(file('src/dependent'))
     classpath = configurations.shared
     outputDir = file('build/protocol')
 }

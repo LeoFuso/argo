@@ -1,10 +1,13 @@
 package io.github.leofuso.argo.plugin
 
+import io.github.leofuso.argo.custom.CommentGenerator
+import io.github.leofuso.argo.custom.TimestampGenerator
 import io.github.leofuso.argo.plugin.fixtures.loadResource
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
@@ -700,4 +703,261 @@ class ColumbaFunctionalTest {
         }
     }
 
+    @DisplayName(
+        """
+ Given an Argo 'gradle.build' with useDecimalType config,
+ when building,
+ then should produce the necessary Java files, with correct caracteristics.
+"""
+    )
+    @ParameterizedTest(name = "{index} ==> Use decimal type ''{0}''")
+    @CsvSource(
+        "Boolean.TRUE, true",
+        "Boolean.FALSE, false",
+        "'true', true",
+        "'false', false",
+        "true, true",
+        "false, false"
+    )
+    fun t6(config: String, extraDecimal: Boolean) {
+
+        /* Given */
+        build append """
+            
+            plugins {
+                id 'java'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            dependencies {
+                
+            }
+            
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+            }
+            
+            argo {
+                columba {
+                    fields {
+                        useDecimalType = $config
+                    }
+                }
+            }
+            
+        """
+            .trimIndent()
+
+        rootDir tmkdirs "src/main/avro/user.avsc" append
+            loadResource("tasks/compiler/user.avsc").readText()
+
+        /* When */
+        val result = DefaultGradleRunner.create()
+            .withProjectDir(rootDir)
+            .withPluginClasspath()
+            .withArguments(
+                "build",
+                "--stacktrace",
+                // GradleRunner was throwing SunCertPathBuilderException... idk
+                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
+            )
+            .forwardOutput()
+            .withDebug(true)
+            .build()
+
+        /* Then */
+        val compile = result.task(":compileApacheAvroJava")
+        assertThat(compile)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        if (extraDecimal) {
+            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+                .exists()
+                .content()
+                .asString()
+                .contains("public java.math.BigDecimal getSalary()")
+                .doesNotContain("public java.nio.ByteBuffer getSalary()")
+        } else {
+            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+                .exists()
+                .content()
+                .asString()
+                .contains("public java.nio.ByteBuffer getSalary()")
+                .doesNotContain("public java.math.BigDecimal getSalary()")
+        }
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given an Argo 'gradle.build' with a custom template directory,
+ when building,
+ then should produce the necessary Java files, with correct caracteristics.
+"""
+    )
+    fun t7() {
+
+        /* Given */
+        build append """
+            
+            plugins {
+                id 'java'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            dependencies {
+                
+            }
+            
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+            }
+            
+            argo {
+                columba {
+                    velocityTemplateDirectory = file('templates/custom/')
+                }
+            }
+            
+        """
+            .trimIndent()
+
+        rootDir tmkdirs "src/main/avro/user.avsc" append
+            loadResource("tasks/compiler/user.avsc").readText()
+
+        rootDir tmkdirs "templates/custom/record.vm" append
+            loadResource("tasks/compiler/record.vm").readText()
+
+        /* When */
+        val result = DefaultGradleRunner.create()
+            .withProjectDir(rootDir)
+            .withPluginClasspath()
+            .withArguments(
+                "build",
+                "--stacktrace",
+                // GradleRunner was throwing SunCertPathBuilderException... idk
+                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
+            )
+            .forwardOutput()
+            .withDebug(true)
+            .build()
+
+        /* Then */
+        val compile = result.task(":compileApacheAvroJava")
+        assertThat(compile)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            .exists()
+            .content()
+            .asString()
+            .contains("Custom template")
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given an Argo 'gradle.build' with custom velocity classes,
+ when building,
+ then should produce the necessary Java files, with correct caracteristics.
+"""
+    )
+    @Disabled("I'll need to refactor the API to accept class name, instead of the actual classes.")
+    fun t8() {
+
+        val pluginClasspath = readPluginClasspath<ColumbaFunctionalTest>()
+
+        /* Given */
+        build append """
+            
+            import com.github.davidmc24.gradle.plugin.avro.test.custom.*
+
+            buildscript {
+                dependencies {
+                    classpath files($pluginClasspath)
+                }
+            }
+            
+            plugins {
+                id 'java'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            dependencies {
+                
+            }
+            
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+            }
+            
+            argo {
+                columba {
+                    velocityTemplateDirectory = file('templates/custom/')
+                    additionalVelocityTools = [
+                            TimestampGenerator,
+                            CommentGenerator
+                    ]
+                }
+            }
+            
+        """
+            .trimIndent()
+
+        rootDir tmkdirs "src/main/avro/user.avsc" append
+            loadResource("tasks/compiler/user.avsc").readText()
+
+        rootDir tmkdirs "templates/custom/record-tools.vm" append
+            loadResource("tasks/compiler/record-tools.vm").readText()
+
+        /* When */
+        val result = DefaultGradleRunner.create()
+            .withProjectDir(rootDir)
+            .withPluginClasspath()
+            .withArguments(
+                "build",
+                "--stacktrace",
+                // GradleRunner was throwing SunCertPathBuilderException... idk
+                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
+            )
+            .forwardOutput()
+            .withDebug(true)
+            .build()
+
+        /* Then */
+        val compile = result.task(":compileApacheAvroJava")
+        assertThat(compile)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            .exists()
+            .content()
+            .asString()
+            .contains(CommentGenerator.CUSTOM_COMMENT)
+            .contains(TimestampGenerator.MESSAGE_PREFIX)
+    }
 }

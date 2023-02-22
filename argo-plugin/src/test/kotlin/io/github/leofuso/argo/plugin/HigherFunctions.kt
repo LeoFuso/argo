@@ -16,3 +16,11 @@ infix fun File.tmkdirs(child: String) = run {
 infix fun String.sh(other: String) = this + File.separator + other
 
 infix fun String.slash(target: String) = this.replace(target, File.separator)
+
+inline fun <reified T> readPluginClasspath() = checkNotNull(T::class.java.classLoader.getResource("plugin-classpath.txt")) {
+    "Did not find plugin classpath resource, run `testClasses` build task."
+}
+    .readText()
+    .replace("\\", "\\\\")
+    .map { "\"$it\"" }
+    .joinToString(", ")

@@ -41,5 +41,6 @@ argo {
             useOptionalGetters = true
             optionalGettersForNullableFieldsOnly = true
         }
+        additionalVelocityTools = []
     }
 }

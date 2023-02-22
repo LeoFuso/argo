@@ -57,7 +57,13 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
             .let(compiler::setAdditionalVelocityTools)
 
         task.getVelocityTemplateDirectory().orNull?.let {
-            compiler.setTemplateDir(it.asFile.absolutePath)
+            val path = it.asFile.absolutePath
+            val correctPath = path.endsWith(File.separator)
+            if (correctPath) {
+                compiler.setTemplateDir(path)
+            } else {
+                compiler.setTemplateDir(path + File.separator)
+            }
         }
 
         task.getAdditionalConverters().orNull?.forEach(compiler::addCustomConversion)
