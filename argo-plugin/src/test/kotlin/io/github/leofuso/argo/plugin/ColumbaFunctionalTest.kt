@@ -894,12 +894,8 @@ class ColumbaFunctionalTest {
                 mavenCentral()
             }
             
-            def velocityJar = tasks.register('velocityJar', Jar) {
-                from '$classpath'
-            }.get()
-            
             dependencies {
-                compileApacheAvroJava files(velocityJar)
+                compileApacheAvroJava files($classpath)
             }
             
             java {
@@ -932,8 +928,8 @@ class ColumbaFunctionalTest {
             .withProjectDir(rootDir)
             .withPluginClasspath()
             .withArguments(
-                "velocityJar",
                 "build",
+                "--info",
                 "--stacktrace",
                 // GradleRunner was throwing SunCertPathBuilderException... idk
                 "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
@@ -955,5 +951,88 @@ class ColumbaFunctionalTest {
             .asString()
             .contains(CommentGenerator.CUSTOM_COMMENT)
             .contains(TimestampGenerator.MESSAGE_PREFIX)
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given an Argo 'gradle.build' with custom converter classes,
+ when building,
+ then should produce the necessary Java files, with correct caracteristics.
+"""
+    )
+    fun t9() {
+
+        val classpath = readPluginClasspath<ColumbaFunctionalTest>()
+
+        /* Given */
+        build append """
+             
+            import org.apache.avro.generic.GenericData
+                                  
+            plugins {
+                id 'java'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            dependencies {
+                implementation files($classpath)
+                compileApacheAvroJava files($classpath)
+            }
+            
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+            }
+            
+            argo {
+                columba {
+                    additionalLogicalTypeFactories.put('timezone', 'io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory')
+                    additionalConverters.add('io.github.leofuso.argo.custom.TimeZoneConversion')
+                    fields {
+                        stringType = GenericData.StringType.String
+                    }
+                }
+            }
+            
+        """
+            .trimIndent()
+
+        rootDir tmkdirs "src/main/avro/custom-conversion.avsc" append
+            loadResource("tasks/compiler/custom-conversion.avsc").readText()
+
+        /* When */
+        val result = DefaultGradleRunner.create()
+            .withProjectDir(rootDir)
+            .withPluginClasspath()
+            .withArguments(
+                "build",
+                "--stacktrace",
+                "--info",
+                // GradleRunner was throwing SunCertPathBuilderException... idk
+                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
+            )
+            .forwardOutput()
+            .withDebug(true)
+            .build()
+
+        /* Then */
+        val compile = result.task(":compileApacheAvroJava")
+        assertThat(compile)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/test/Event.java"))
+            .exists()
+            .content()
+            .asString()
+            .contains("java.time.Instant start;")
+            .contains("java.util.TimeZone timezone;")
     }
 }

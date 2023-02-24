@@ -24,6 +24,7 @@ import java.util.TimeZone;
 
 @SuppressWarnings("unused")
 public class TimeZoneConversion extends Conversion<TimeZone> {
+
     public static final String LOGICAL_TYPE_NAME = "timezone";
 
     @Override

@@ -40,21 +40,23 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
             }
     }
 
-    private fun doConfigure(compiler: SpecificCompiler) {
-
-        /* Introduces side effect */
-        val classLoader = urlClassLoader(task.classpath.files)
+    fun configureLogicalTypeFactories() {
+        val classLoader = javaClass.classLoader.loadURLs(task.classpath.files)
         task.getAdditionalLogicalTypeFactories().orNull?.forEach {
-            val unknownClass = classLoader.loadClass(it)
+            val unknownClass = classLoader.loadClass(it.value)
             val requiredDefaultConstructor = unknownClass.getDeclaredConstructor()
             val instance = requiredDefaultConstructor.newInstance()
             if (instance is LogicalTypeFactory) {
-                LogicalTypes.register(instance)
+                LogicalTypes.register(it.key, instance)
             } else {
                 logger.warn("Class [${unknownClass.name}] cannot be used as a LogicalTypeFactory.")
             }
         }
+    }
 
+    private fun doConfigure(compiler: SpecificCompiler) {
+
+        val classLoader = javaClass.classLoader.loadURLs(task.classpath.files)
         task.getAdditionalVelocityTools().orNull
             ?.map {
                 val velocityToolClass = classLoader.loadClass(it)
@@ -137,19 +139,19 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
                 if (converters.isNotEmpty()) {
                     logger.info(
                         "\tAdditional converters {}",
-                        converters.joinToString(",\n", "[\n", "\n\t ]", transform = { "\t\t$it" })
+                        converters.joinToString(",\n", "[\n", "\n\t ]", transform = { "\t\t${it.javaClass.name}" })
                     )
                 } else {
                     logger.info("\tNo additional converters.")
                 }
             }
 
-        LogicalTypes.getCustomRegisteredTypes().keys
+        LogicalTypes.getCustomRegisteredTypes().entries
             .also { types ->
                 if (types.isNotEmpty()) {
                     logger.info(
                         "\tAdditional Logical Type factories {}",
-                        types.joinToString(",\n", "[\n", "\n\t ]", transform = { "\t\t$it" })
+                        types.joinToString(",\n", "[\n", "\n\t ]", transform = { "\t\t${it.key}:${it.value.javaClass.name}" })
                     )
                 } else {
                     logger.info("\tNo Additional Logical Type factories.")

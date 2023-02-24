@@ -17,6 +17,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileType
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
@@ -135,7 +136,7 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
 
     @Input
     @Optional
-    abstract fun getAdditionalLogicalTypeFactories(): ListProperty<String>
+    abstract fun getAdditionalLogicalTypeFactories(): MapProperty<String, String>
 
     @Input
     @Optional
@@ -168,12 +169,15 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
             logger.lifecycle("Generating SpecificRecord Java sources from all sources.")
         }
 
-        val parser = DefaultSchemaParser(logger)
-        val resolution = parser.parse(sources.asFileTree)
-
         try {
+
             val delegate = SpecificCompilerTaskDelegate(this)
+            delegate.configureLogicalTypeFactories()
+
+            val parser = DefaultSchemaParser(logger)
+            val resolution = parser.parse(sources.asFileTree)
             delegate.run(resolution, getOutputDir().asFile.get())
+
             didWork = true
         } catch (ex: Throwable) {
             throw TaskExecutionException(this, ex)

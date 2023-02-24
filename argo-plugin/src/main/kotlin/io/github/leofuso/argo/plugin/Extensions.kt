@@ -1,5 +1,6 @@
 package io.github.leofuso.argo.plugin
 
+import org.apache.avro.Conversion
 import org.apache.avro.Protocol
 import org.apache.avro.compiler.specific.SpecificCompiler
 import org.apache.avro.generic.GenericData.StringType
@@ -48,11 +49,11 @@ fun SpecificCompiler.getTemplateDirectory(): String {
     return field.get(this) as String
 }
 
-fun SpecificCompiler.getConverters(): List<String> {
+fun SpecificCompiler.getConverters(): List<Conversion<*>> {
     val field = SpecificCompiler::class.java.getDeclaredField("specificData")
     field.isAccessible = true
     val data = field.get(this) as SpecificData
-    return data.conversions.map { it.javaClass.simpleName }
+    return data.conversions.map { it }
 }
 
 fun Protocol.path(): String =
