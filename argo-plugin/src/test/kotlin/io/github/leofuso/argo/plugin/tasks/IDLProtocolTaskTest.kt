@@ -282,7 +282,7 @@ class IDLProtocolTaskTest {
     @Test
     @DisplayName(
         """
- Given a build containing external IDL source files ― and 'compileOnlyAvroIDL' configured,
+ Given a build containing external IDL source files ― and 'generateApacheAvroProtocol' configured,
  when building,
  then should produce the necessary IDL, Protocol and Java files.
 """
@@ -319,7 +319,7 @@ class IDLProtocolTaskTest {
             }.get()
             
             dependencies {
-                compileOnlyAvroIDL sharedIDLJar.outputs.files
+                generateApacheAvroProtocol sharedIDLJar.outputs.files
             }
             
             java {

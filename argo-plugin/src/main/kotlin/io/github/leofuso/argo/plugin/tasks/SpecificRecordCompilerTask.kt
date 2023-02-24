@@ -6,8 +6,6 @@ import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
 import io.github.leofuso.argo.plugin.compiler.SpecificCompilerTaskDelegate
 import io.github.leofuso.argo.plugin.compiler.parser.DefaultSchemaParser
-import org.apache.avro.Conversion
-import org.apache.avro.LogicalTypes
 import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
 import org.apache.avro.generic.GenericData.StringType
 import org.gradle.api.DefaultTask
@@ -15,6 +13,8 @@ import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileType
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -61,6 +61,7 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
 
     private val _sources: ConfigurableFileCollection = project.objects.fileCollection()
     private val _pattern: PatternFilterable = PatternSet()
+    private val _classpath: ConfigurableFileCollection = project.objects.fileCollection()
 
     @get:Input
     val useDecimalType = project.objects.property<Boolean>()
@@ -85,6 +86,16 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
             _pattern.setExcludes(value.excludes)
         }
 
+    @get:Classpath
+    @get:InputFiles
+    var classpath: FileCollection
+        get() = _classpath
+        set(value) = _classpath.setFrom(value)
+
+    @get:Internal
+    val configurableClasspath: ConfigurableFileCollection
+        get() = _classpath
+
     @OutputDirectory
     abstract fun getOutputDir(): DirectoryProperty
 
@@ -92,14 +103,14 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     @Incremental
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
-    fun getSources() = _sources.asFileTree.matching(_pattern)
+    fun getSources(): FileTree = _sources.asFileTree.matching(_pattern)
 
     /**
      * Adds some source to this task. The given source objects will be evaluated as per [org.gradle.api.Project.files].
      *
      * @param sources The source to add
      */
-    open fun source(vararg sources: Any) = _sources.from(*sources)
+    open fun source(vararg sources: Any): ConfigurableFileCollection = _sources.from(*sources)
 
     @Input
     @Optional
@@ -107,7 +118,7 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
 
     @Input
     @Optional
-    abstract fun getAdditionalVelocityTools(): ListProperty<Class<*>>
+    abstract fun getAdditionalVelocityTools(): ListProperty<String>
 
     @Optional
     @Classpath
@@ -124,11 +135,11 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
 
     @Input
     @Optional
-    abstract fun getAdditionalLogicalTypeFactories(): ListProperty<Class<out LogicalTypes.LogicalTypeFactory>>
+    abstract fun getAdditionalLogicalTypeFactories(): ListProperty<String>
 
     @Input
     @Optional
-    abstract fun getAdditionalConverters(): ListProperty<Class<out Conversion<*>>>
+    abstract fun getAdditionalConverters(): ListProperty<String>
 
     @TaskAction
     fun process(inputChanges: InputChanges) {

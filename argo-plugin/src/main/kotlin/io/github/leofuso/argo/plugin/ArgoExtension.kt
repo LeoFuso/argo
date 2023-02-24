@@ -1,7 +1,5 @@
 package io.github.leofuso.argo.plugin
 
-import org.apache.avro.Conversion
-import org.apache.avro.LogicalTypes
 import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
 import org.apache.avro.generic.GenericData.StringType
 import org.gradle.api.Action
@@ -58,13 +56,13 @@ abstract class ColumbaOptions {
 
     fun accessors(action: Action<in ColumbaAccessorOptions>) = action.invoke(getAccessors())
 
-    abstract fun getAdditionalVelocityTools(): ListProperty<Class<*>>
+    abstract fun getAdditionalVelocityTools(): ListProperty<String>
 
     abstract fun getVelocityTemplateDirectory(): DirectoryProperty
 
-    abstract fun getAdditionalLogicalTypeFactories(): ListProperty<Class<out LogicalTypes.LogicalTypeFactory>>
+    abstract fun getAdditionalLogicalTypeFactories(): ListProperty<String>
 
-    abstract fun getAdditionalConverters(): ListProperty<Class<out Conversion<*>>>
+    abstract fun getAdditionalConverters(): ListProperty<String>
 
     @Internal
     fun withConventions(project: Project): ColumbaOptions {

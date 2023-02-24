@@ -10,6 +10,7 @@ const val GROUP_SOURCE_GENERATION = "Source Generation"
 /**
  * Extensions
  */
+const val CLASS_EXTENSION = "class"
 const val SCHEMA_EXTENSION = "avsc"
 const val PROTOCOL_EXTENSION = "avpr"
 const val VELOCITY_TEMPLATE_EXTENSION = "vm"

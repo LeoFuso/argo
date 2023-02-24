@@ -7,6 +7,22 @@ plugins {
 group = "io.github.leofuso.argo"
 version = "0.0.1-SNAPSHOT"
 
+/**
+* Write the plugin's classpath to a file to share with tests.
+*/
+val classpathManifest: Task = tasks.create("createClasspathManifest") {
+
+    val outputDir = File("$buildDir/$name")
+    sourceSets.test.get().runtimeClasspath
+    outputs.dir(outputDir)
+
+    doLast {
+        outputDir.mkdirs()
+        val classpath = sourceSets.test.map { it.runtimeClasspath.joinToString("\n") }
+        File("$outputDir/plugin-classpath.txt").writeText(classpath.get())
+    }
+}
+
 dependencies {
     implementation(libs.compiler)
     implementation(libs.jacksonDatabind)
@@ -14,7 +30,10 @@ dependencies {
     testImplementation(libs.bundles.junit)
     testImplementation(libs.assertj)
     testImplementation(libs.combinatorics)
+    testRuntimeOnly(files(classpathManifest))
 }
+
+
 
 gradlePlugin {
     website.set("https://github.com/LeoFuso/argo")

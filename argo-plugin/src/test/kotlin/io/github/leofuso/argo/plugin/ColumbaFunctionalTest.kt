@@ -7,7 +7,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.DisabledOnOs
@@ -878,22 +877,14 @@ class ColumbaFunctionalTest {
  then should produce the necessary Java files, with correct caracteristics.
 """
     )
-    @Disabled("I'll need to refactor the API to accept class name, instead of the actual classes.")
     fun t8() {
 
-        val pluginClasspath = readPluginClasspath<ColumbaFunctionalTest>()
+        val classpath = readPluginClasspath<ColumbaFunctionalTest>()
 
         /* Given */
         build append """
-            
-            import com.github.davidmc24.gradle.plugin.avro.test.custom.*
-
-            buildscript {
-                dependencies {
-                    classpath files($pluginClasspath)
-                }
-            }
-            
+             
+                                  
             plugins {
                 id 'java'
                 id 'io.github.leofuso.argo'
@@ -903,8 +894,12 @@ class ColumbaFunctionalTest {
                 mavenCentral()
             }
             
+            def velocityJar = tasks.register('velocityJar', Jar) {
+                from '$classpath'
+            }.get()
+            
             dependencies {
-                
+                compileApacheAvroJava files(velocityJar)
             }
             
             java {
@@ -917,8 +912,8 @@ class ColumbaFunctionalTest {
                 columba {
                     velocityTemplateDirectory = file('templates/custom/')
                     additionalVelocityTools = [
-                            TimestampGenerator,
-                            CommentGenerator
+                            'io.github.leofuso.argo.custom.TimestampGenerator',
+                            'io.github.leofuso.argo.custom.CommentGenerator'
                     ]
                 }
             }
@@ -929,7 +924,7 @@ class ColumbaFunctionalTest {
         rootDir tmkdirs "src/main/avro/user.avsc" append
             loadResource("tasks/compiler/user.avsc").readText()
 
-        rootDir tmkdirs "templates/custom/record-tools.vm" append
+        rootDir tmkdirs "templates/custom/record.vm" append
             loadResource("tasks/compiler/record-tools.vm").readText()
 
         /* When */
@@ -937,6 +932,7 @@ class ColumbaFunctionalTest {
             .withProjectDir(rootDir)
             .withPluginClasspath()
             .withArguments(
+                "velocityJar",
                 "build",
                 "--stacktrace",
                 // GradleRunner was throwing SunCertPathBuilderException... idk

@@ -9,6 +9,7 @@ import io.github.leofuso.argo.plugin.getStringType
 import io.github.leofuso.argo.plugin.getTemplateDirectory
 import io.github.leofuso.argo.plugin.tasks.SpecificRecordCompilerTask
 import org.apache.avro.LogicalTypes
+import org.apache.avro.LogicalTypes.LogicalTypeFactory
 import org.apache.avro.Schema
 import org.apache.avro.compiler.specific.SpecificCompiler
 import java.io.File
@@ -40,17 +41,23 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
     }
 
     private fun doConfigure(compiler: SpecificCompiler) {
+
         /* Introduces side effect */
+        val classLoader = urlClassLoader(task.classpath.files)
         task.getAdditionalLogicalTypeFactories().orNull?.forEach {
-            val factoryClass = it
-            val requiredDefaultConstructor = factoryClass.getDeclaredConstructor()
-            val factory = requiredDefaultConstructor.newInstance()
-            LogicalTypes.register(factory)
+            val unknownClass = classLoader.loadClass(it)
+            val requiredDefaultConstructor = unknownClass.getDeclaredConstructor()
+            val instance = requiredDefaultConstructor.newInstance()
+            if (instance is LogicalTypeFactory) {
+                LogicalTypes.register(instance)
+            } else {
+                logger.warn("Class [${unknownClass.name}] cannot be used as a LogicalTypeFactory.")
+            }
         }
 
         task.getAdditionalVelocityTools().orNull
             ?.map {
-                val velocityToolClass = it
+                val velocityToolClass = classLoader.loadClass(it)
                 val requiredDefaultConstructor = velocityToolClass.getDeclaredConstructor()
                 requiredDefaultConstructor.newInstance()
             }
@@ -66,7 +73,7 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
             }
         }
 
-        task.getAdditionalConverters().orNull?.forEach(compiler::addCustomConversion)
+        task.getAdditionalConverters().orNull?.map { classLoader.loadClass(it) }?.forEach(compiler::addCustomConversion)
 
         task.getStringType().orNull?.let { compiler.setStringType(it) }
         task.noSetters.orNull?.let { compiler.isCreateSetters = it.not() }
