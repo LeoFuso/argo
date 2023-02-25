@@ -718,7 +718,7 @@ class ColumbaFunctionalTest {
         "true, true",
         "false, false"
     )
-    fun t6(config: String, extraDecimal: Boolean) {
+    fun t6(config: String, useDecimalType: Boolean) {
 
         /* Given */
         build append """
@@ -777,7 +777,7 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        if (extraDecimal) {
+        if (useDecimalType) {
             assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
@@ -953,15 +953,16 @@ class ColumbaFunctionalTest {
             .contains(TimestampGenerator.MESSAGE_PREFIX)
     }
 
-    @Test
+    @ParameterizedTest(name = "{index} ==> Use String type ''{0}''")
     @DisplayName(
         """
- Given an Argo 'gradle.build' with custom converter classes,
+ Given an Argo 'gradle.build' with custom converter classes, and multiple String types,
  when building,
  then should produce the necessary Java files, with correct caracteristics.
 """
     )
-    fun t9() {
+    @ValueSource(strings = ["String", "CharSequence", "Utf8"])
+    fun t9(stringType: String) {
 
         val classpath = readPluginClasspath<ColumbaFunctionalTest>()
 
@@ -995,7 +996,7 @@ class ColumbaFunctionalTest {
                     additionalLogicalTypeFactories.put('timezone', 'io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory')
                     additionalConverters.add('io.github.leofuso.argo.custom.TimeZoneConversion')
                     fields {
-                        stringType = GenericData.StringType.String
+                        stringType = GenericData.StringType.$stringType
                     }
                 }
             }
@@ -1005,6 +1006,90 @@ class ColumbaFunctionalTest {
 
         rootDir tmkdirs "src/main/avro/custom-conversion.avsc" append
             loadResource("tasks/compiler/custom-conversion.avsc").readText()
+
+        /* When */
+        val result = DefaultGradleRunner.create()
+            .withProjectDir(rootDir)
+            .withPluginClasspath()
+            .withArguments(
+                "build",
+                "--stacktrace",
+                "--info",
+                // GradleRunner was throwing SunCertPathBuilderException... idk
+                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
+            )
+            .forwardOutput()
+            .withDebug(true)
+            .build()
+
+        /* Then */
+        val compile = result.task(":compileApacheAvroJava")
+        assertThat(compile)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/test/Event.java"))
+            .exists()
+            .content()
+            .asString()
+            .contains("java.time.Instant start;")
+            .contains("java.util.TimeZone timezone;")
+    }
+
+    @ParameterizedTest(name = "{index} ==> Use String type ''{0}''")
+    @DisplayName(
+        """
+ Given an Argo 'gradle.build' with custom converter classes, and multiple String types,
+ when building from a Protocol,
+ then should produce the necessary Java files, with correct caracteristics.
+"""
+    )
+    @ValueSource(strings = ["String", "CharSequence", "Utf8"])
+    fun t10(stringType: String) {
+
+        val classpath = readPluginClasspath<ColumbaFunctionalTest>()
+
+        /* Given */
+        build append """
+             
+            import org.apache.avro.generic.GenericData
+                                  
+            plugins {
+                id 'java'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenCentral()
+            }
+            
+            dependencies {
+                implementation files($classpath)
+                compileApacheAvroJava files($classpath)
+            }
+            
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+            }
+            
+            argo {
+                columba {
+                    additionalLogicalTypeFactories.put('timezone', 'io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory')
+                    additionalConverters.add('io.github.leofuso.argo.custom.TimeZoneConversion')
+                    fields {
+                        stringType = GenericData.StringType.$stringType
+                    }
+                }
+            }
+            
+        """
+            .trimIndent()
+
+        rootDir tmkdirs "src/main/avro/custom-conversion.avpr" append
+            loadResource("tasks/compiler/custom-conversion.avpr").readText()
 
         /* When */
         val result = DefaultGradleRunner.create()
