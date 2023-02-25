@@ -23,6 +23,7 @@
                   <project path="$PROJECT_DIR$/use-cases/classpath-protocol-task" />
                   <project path="$PROJECT_DIR$/use-cases/protocol-task" />
                   <project path="$PROJECT_DIR$/use-cases/simple-java" />
+                  <project path="$PROJECT_DIR$/use-cases/simple-kotlin" />
                 </projects>
               </build>
             </builds>
@@ -41,6 +42,7 @@
             <option value="$PROJECT_DIR$/use-cases/classpath-protocol-task" />
             <option value="$PROJECT_DIR$/use-cases/protocol-task" />
             <option value="$PROJECT_DIR$/use-cases/simple-java" />
+            <option value="$PROJECT_DIR$/use-cases/simple-kotlin" />
           </set>
         </option>
       </GradleProjectSettings>

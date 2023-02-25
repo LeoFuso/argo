@@ -10,7 +10,7 @@ dependencies {
 }
 
 tasks.register("generateProtocol", IDLProtocolTask) {
-    sources.from file('src/main/avro')
+    source(file('src/main/avro'))
     classpath = configurations.runtimeClasspath
     outputDir = file('build/protocol')
 }

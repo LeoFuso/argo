@@ -1,9 +1,13 @@
 package io.github.leofuso.argo.plugin
 
+import org.apache.avro.Conversion
 import org.apache.avro.Protocol
 import org.apache.avro.compiler.specific.SpecificCompiler
 import org.apache.avro.generic.GenericData.StringType
 import org.apache.avro.specific.SpecificData
+import org.gradle.api.Project
+import org.gradle.api.tasks.SourceSet
+import java.io.File
 
 /**
  * Throws an [AssertionError] calculated by [lazyMessage] if the [value] is false.
@@ -45,12 +49,23 @@ fun SpecificCompiler.getTemplateDirectory(): String {
     return field.get(this) as String
 }
 
-fun SpecificCompiler.getConverters(): List<String> {
+fun SpecificCompiler.getConverters(): List<Conversion<*>> {
     val field = SpecificCompiler::class.java.getDeclaredField("specificData")
     field.isAccessible = true
     val data = field.get(this) as SpecificData
-    return data.conversions.map { it.javaClass.simpleName }
+    return data.conversions.map { it }
 }
 
 fun Protocol.path(): String =
-    namespace.replace(NAMESPACE_SEPARATOR, UNIX_SEPARATOR) + UNIX_SEPARATOR + name + EXTENSION_SEPARATOR + PROTOCOL_EXTENSION
+    namespace.replace(NAMESPACE_SEPARATOR, File.separator) + File.separator + name + EXTENSION_SEPARATOR + PROTOCOL_EXTENSION
+
+fun Project.addCompileOnlyConfiguration(name: String, description: String, source: SourceSet) =
+    this.configurations.findByName(source.compileOnlyConfigurationName)?.let {
+        val configuration = project.configurations.create(name) { config ->
+            config.isVisible = true
+            config.isCanBeResolved = true
+            config.isCanBeConsumed = false
+            config.description = description
+        }
+        configuration.extendsFrom(it)
+    }

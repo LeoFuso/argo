@@ -7,8 +7,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.SourceTask
@@ -30,9 +28,6 @@ abstract class ArgoPlugin : Plugin<Project> {
         project.plugins.withType<JavaPlugin> {
 
             addApacheAvroCompilerDependencyConfiguration(project, extension.getColumba())
-            addCompileOnlyAvroIDLConfiguration(project)
-            addCompileOnlySchemaProtocolConfiguration(project)
-
             project.extensions.getByType<SourceSetContainer>()
                 .configureEach { source ->
                     configureColumbaTasks(project, extension.getColumba(), source)
@@ -64,48 +59,41 @@ abstract class ArgoPlugin : Plugin<Project> {
         project.configurations.findByName(COMPILE_CLASSPATH_CONFIGURATION_NAME)?.extendsFrom(config)
     }
 
-    private fun addCompileOnlyAvroIDLConfiguration(project: Project) {
-        val description = """
-            |CompileOnly dependencies containing IDL(.$IDL_EXTENSION) source files.
-        """.trimMargin()
-
-        val config = project.configurations.create("compileOnlyAvroIDL") {
-            it.isVisible = true
-            it.isCanBeResolved = true
-            it.isCanBeConsumed = false
-            it.description = description
-        }
-        project.configurations.findByName(COMPILE_ONLY_CONFIGURATION_NAME)?.let { config.extendsFrom(it) }
-    }
-
-    private fun addCompileOnlySchemaProtocolConfiguration(project: Project) {
-        val description = """
-            |CompileOnly dependencies containing Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) source files.
-        """.trimMargin()
-
-        val config = project.configurations.create("compileOnlySchemaProtocol") {
-            it.isVisible = true
-            it.isCanBeResolved = true
-            it.isCanBeConsumed = false
-            it.description = description
-        }
-        project.configurations.findByName(COMPILE_ONLY_CONFIGURATION_NAME)?.let { config.extendsFrom(it) }
-    }
-
     private fun configureColumbaTasks(project: Project, extension: ColumbaOptions, sourceSet: SourceSet) {
-        val taskContainer: TaskContainer = project.tasks
+
+        /* extra configs */
+        val javaTaskName = sourceSet.getCompileTaskName("apacheAvroJava")
+        project.addCompileOnlyConfiguration(
+            javaTaskName,
+            "Class(.$CLASS_EXTENSION) files needed by the SpecificCompiler.",
+            sourceSet
+        )
 
         val protocolTaskName = sourceSet.getTaskName("generate", "apacheAvroProtocol")
+        project.addCompileOnlyConfiguration(
+            protocolTaskName,
+            "IDL(.$IDL_EXTENSION) source files needed for Protocol(.$PROTOCOL_EXTENSION) resolution.",
+            sourceSet
+        )
+
+        val javaTaskSourcesName = "${javaTaskName}Sources"
+        project.addCompileOnlyConfiguration(
+            javaTaskSourcesName,
+            "Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) source files to be compiled.",
+            sourceSet
+        )
+
+        val taskContainer: TaskContainer = project.tasks
         val protocolTaskProvider = taskContainer.register<IDLProtocolTask>(protocolTaskName) {
-            project.configurations.findByName("compileOnlyAvroIDL")?.let { configurableClasspath.from(it) }
-            project.configurations.getByName(RUNTIME_CLASSPATH_CONFIGURATION_NAME).let { configurableClasspath.from(it) }
+            project.configurations.findByName(protocolTaskName)?.let { configurableClasspath.from(it) }
+            project.configurations.findByName(sourceSet.runtimeClasspathConfigurationName)?.let { configurableClasspath.from(it) }
             configureSourceSet(sourceSet)
         }
 
-        val javaTaskName = sourceSet.getCompileTaskName("apacheAvroJava")
         val javaTaskProvider: TaskProvider<SpecificRecordCompilerTask> =
             taskContainer.register<SpecificRecordCompilerTask>(javaTaskName) {
-                project.configurations.findByName("compileOnlySchemaProtocol")?.let { source(it) }
+                project.configurations.findByName(javaTaskSourcesName)?.let { source(it) }
+                project.configurations.findByName(javaTaskName)?.let { configurableClasspath.from(it) }
                 withExtension(extension)
                 configureSourceSet(sourceSet)
                 dependsOn(protocolTaskProvider)

@@ -43,7 +43,7 @@ tasks {
                 listOf(
                     "-Xjsr305=strict",
                     "-opt-in=kotlin.RequiresOptIn",
-                    //"-Werror",
+                    "-Werror",
                     "-verbose"
                 )
             )
@@ -52,6 +52,11 @@ tasks {
 
     test {
         useJUnitPlatform()
+        outputs.upToDateWhen { false }
+    }
+
+    check {
+        dependsOn("lintKotlin")
     }
 }
 

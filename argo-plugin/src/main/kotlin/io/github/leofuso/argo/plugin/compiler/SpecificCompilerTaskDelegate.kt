@@ -9,6 +9,7 @@ import io.github.leofuso.argo.plugin.getStringType
 import io.github.leofuso.argo.plugin.getTemplateDirectory
 import io.github.leofuso.argo.plugin.tasks.SpecificRecordCompilerTask
 import org.apache.avro.LogicalTypes
+import org.apache.avro.LogicalTypes.LogicalTypeFactory
 import org.apache.avro.Schema
 import org.apache.avro.compiler.specific.SpecificCompiler
 import java.io.File
@@ -39,28 +40,42 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
             }
     }
 
-    private fun doConfigure(compiler: SpecificCompiler) {
-        /* Introduces side effect */
+    fun configureLogicalTypeFactories() {
+        val classLoader = javaClass.classLoader.loadURLs(task.classpath.files)
         task.getAdditionalLogicalTypeFactories().orNull?.forEach {
-            val factoryClass = it
-            val requiredDefaultConstructor = factoryClass.getDeclaredConstructor()
-            val factory = requiredDefaultConstructor.newInstance()
-            LogicalTypes.register(factory)
+            val unknownClass = classLoader.loadClass(it.value)
+            val requiredDefaultConstructor = unknownClass.getDeclaredConstructor()
+            val instance = requiredDefaultConstructor.newInstance()
+            if (instance is LogicalTypeFactory) {
+                LogicalTypes.register(it.key, instance)
+            } else {
+                logger.warn("Class [${unknownClass.name}] cannot be used as a LogicalTypeFactory.")
+            }
         }
+    }
 
+    private fun doConfigure(compiler: SpecificCompiler) {
+
+        val classLoader = javaClass.classLoader.loadURLs(task.classpath.files)
         task.getAdditionalVelocityTools().orNull
             ?.map {
-                val velocityToolClass = it
+                val velocityToolClass = classLoader.loadClass(it)
                 val requiredDefaultConstructor = velocityToolClass.getDeclaredConstructor()
                 requiredDefaultConstructor.newInstance()
             }
             .let(compiler::setAdditionalVelocityTools)
 
         task.getVelocityTemplateDirectory().orNull?.let {
-            compiler.setTemplateDir(it.asFile.absolutePath)
+            val path = it.asFile.absolutePath
+            val correctPath = path.endsWith(File.separator)
+            if (correctPath) {
+                compiler.setTemplateDir(path)
+            } else {
+                compiler.setTemplateDir(path + File.separator)
+            }
         }
 
-        task.getAdditionalConverters().orNull?.forEach(compiler::addCustomConversion)
+        task.getAdditionalConverters().orNull?.map { classLoader.loadClass(it) }?.forEach(compiler::addCustomConversion)
 
         task.getStringType().orNull?.let { compiler.setStringType(it) }
         task.noSetters.orNull?.let { compiler.isCreateSetters = it.not() }
@@ -124,19 +139,19 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
                 if (converters.isNotEmpty()) {
                     logger.info(
                         "\tAdditional converters {}",
-                        converters.joinToString(",\n", "[\n", "\n\t ]", transform = { "\t\t$it" })
+                        converters.joinToString(",\n", "[\n", "\n\t ]", transform = { "\t\t${it.javaClass.name}" })
                     )
                 } else {
                     logger.info("\tNo additional converters.")
                 }
             }
 
-        LogicalTypes.getCustomRegisteredTypes().keys
+        LogicalTypes.getCustomRegisteredTypes().entries
             .also { types ->
                 if (types.isNotEmpty()) {
                     logger.info(
                         "\tAdditional Logical Type factories {}",
-                        types.joinToString(",\n", "[\n", "\n\t ]", transform = { "\t\t$it" })
+                        types.joinToString(",\n", "[\n", "\n\t ]", transform = { "\t\t${it.key}:${it.value.javaClass.name}" })
                     )
                 } else {
                     logger.info("\tNo Additional Logical Type factories.")

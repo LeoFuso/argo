@@ -3,12 +3,14 @@ package io.github.leofuso.argo.plugin.tasks
 import io.github.leofuso.argo.plugin.GROUP_SOURCE_GENERATION
 import io.github.leofuso.argo.plugin.IDL_EXTENSION
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
+import io.github.leofuso.argo.plugin.compiler.urlClassLoader
 import io.github.leofuso.argo.plugin.path
 import org.apache.avro.compiler.idl.Idl
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileType
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
@@ -26,8 +28,6 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
 import java.io.File
-import java.net.MalformedURLException
-import java.net.URLClassLoader
 import java.nio.file.Files
 import java.util.*
 import kotlin.io.path.Path
@@ -73,14 +73,14 @@ abstract class IDLProtocolTask : DefaultTask() {
     @Incremental
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
-    fun getSources() = _sources.asFileTree.matching(_pattern)
+    fun getSources(): FileTree = _sources.asFileTree.matching(_pattern)
 
     /**
      * Adds some source to this task. The given source objects will be evaluated as per [org.gradle.api.Project.files].
      *
      * @param sources The source to add
      */
-    open fun source(vararg sources: Any) = _sources.from(*sources)
+    open fun source(vararg sources: Any): ConfigurableFileCollection = _sources.from(*sources)
 
     @TaskAction
     fun process(inputChanges: InputChanges) {
@@ -107,7 +107,7 @@ abstract class IDLProtocolTask : DefaultTask() {
         }
 
         val parsed = mutableSetOf<String>()
-        val classLoader = assembleClassLoader()
+        val classLoader = urlClassLoader(classpath.files)
         val outputDir = getOutputDir().asFile.get()
         sources.files.forEach {
 
@@ -134,26 +134,16 @@ abstract class IDLProtocolTask : DefaultTask() {
         didWork = true
     }
 
-    private fun assembleClassLoader() = classpath.files.mapNotNull {
-        try {
-            val uri = it.toURI()
-            uri.toURL()
-        } catch (ex: MalformedURLException) {
-            logger.error("Unnable to extract URL from file at [{}]", it.path, ex)
-            null
-        }
-    }.toTypedArray().let { URLClassLoader(it, null) }
-
     fun configureSourceSet(source: SourceSet) {
         val buildDirectory = project.layout.buildDirectory.dir("generated-${source.name}-avro-protocol")
         getOutputDir().set(buildDirectory)
         val sourceDirectory = run {
-            val classpath = "src/${source.name}/avro"
+            val classpath = "src${File.separator}${source.name}${File.separator}avro"
             val path = Path(classpath)
             project.files(path).asPath
         }
         _sources.from(sourceDirectory)
-        _pattern.include("**/*.$IDL_EXTENSION")
+        _pattern.include("**${File.separator}*.$IDL_EXTENSION")
     }
 
 }

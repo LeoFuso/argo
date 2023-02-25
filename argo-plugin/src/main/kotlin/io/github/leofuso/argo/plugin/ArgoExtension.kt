@@ -1,13 +1,12 @@
 package io.github.leofuso.argo.plugin
 
-import org.apache.avro.Conversion
-import org.apache.avro.LogicalTypes
 import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
 import org.apache.avro.generic.GenericData.StringType
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
@@ -58,13 +57,13 @@ abstract class ColumbaOptions {
 
     fun accessors(action: Action<in ColumbaAccessorOptions>) = action.invoke(getAccessors())
 
-    abstract fun getAdditionalVelocityTools(): ListProperty<Class<*>>
+    abstract fun getAdditionalVelocityTools(): ListProperty<String>
 
     abstract fun getVelocityTemplateDirectory(): DirectoryProperty
 
-    abstract fun getAdditionalLogicalTypeFactories(): ListProperty<Class<out LogicalTypes.LogicalTypeFactory>>
+    abstract fun getAdditionalLogicalTypeFactories(): MapProperty<String, String>
 
-    abstract fun getAdditionalConverters(): ListProperty<Class<out Conversion<*>>>
+    abstract fun getAdditionalConverters(): ListProperty<String>
 
     @Internal
     fun withConventions(project: Project): ColumbaOptions {
@@ -74,7 +73,7 @@ abstract class ColumbaOptions {
         getAdditionalVelocityTools().convention(listOf())
         getVelocityTemplateDirectory().convention(project.objects.directoryProperty())
         getAdditionalConverters().convention(listOf())
-        getAdditionalLogicalTypeFactories().convention(listOf())
+        getAdditionalLogicalTypeFactories().convention(mapOf())
 
         fields {
             it.getStringType().convention(StringType.CharSequence)

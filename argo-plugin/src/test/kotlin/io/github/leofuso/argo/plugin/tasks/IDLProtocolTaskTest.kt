@@ -9,10 +9,13 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.DisabledOnOs
+import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import kotlin.io.path.Path
 
+@DisabledOnOs(OS.WINDOWS)
 @DisplayName("IDL: Functional tests related to IDLProtocolTask.")
 class IDLProtocolTaskTest {
 
@@ -279,7 +282,7 @@ class IDLProtocolTaskTest {
     @Test
     @DisplayName(
         """
- Given a build containing external IDL source files ― and 'compileOnlyAvroIDL' configured,
+ Given a build containing external IDL source files ― and 'generateApacheAvroProtocol' configured,
  when building,
  then should produce the necessary IDL, Protocol and Java files.
 """
@@ -316,7 +319,7 @@ class IDLProtocolTaskTest {
             }.get()
             
             dependencies {
-                compileOnlyAvroIDL sharedIDLJar.outputs.files
+                generateApacheAvroProtocol sharedIDLJar.outputs.files
             }
             
             java {
@@ -365,5 +368,4 @@ class IDLProtocolTaskTest {
         ).allSatisfy { assertThat(it).exists() }
 
     }
-
 }

@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.github.leofuso.argo"
-version = "0.0.1-SNAPSHOT"
+version = "0.1.0"
 
 dependencies {
     implementation(libs.compiler)
@@ -23,7 +23,7 @@ gradlePlugin {
         create("argoPlugin") {
             id = "io.github.leofuso.argo"
             implementationClass = "io.github.leofuso.argo.plugin.ArgoPlugin"
-            displayName = "Argo Plugin"
+            displayName = "Argo"
             description = """
                 |A Gradle plugin aimed to help working with Apache Avro.
                 |It supports code generation for JSON schema declaration files(.avsc),
