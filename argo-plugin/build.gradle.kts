@@ -30,7 +30,7 @@ gradlePlugin {
                 |JSON protocol declaration files(.avpr), and Avro IDL files.
                 |In the future, it should support Schema Registry integration, as well."
             """.trimMargin().replace("\n", "")
-            tags.set(listOf("plugin", "gradle", "avro", "kafka", "schema-registry", "confluent", "java"))
+            tags.set(listOf("avro", "kafka", "schema-registry", "confluent", "java", "code generation"))
         }
     }
 }
