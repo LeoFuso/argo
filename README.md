@@ -1,6 +1,9 @@
 # Of Argo
 
-[![Pre Merge Checks](https://github.com/cortinico/kotlin-gradle-plugin-template/workflows/Pre%20Merge%20Checks/badge.svg)](https://github.com/cortinico/kotlin-gradle-plugin-template/actions?query=workflow%3A%22Pre+Merge+Checks%22)  [![License](https://img.shields.io/github/license/cortinico/kotlin-android-template.svg)](LICENSE) ![Language](https://img.shields.io/github/languages/top/cortinico/kotlin-android-template?color=blue&logo=kotlin)
+[![Validate Gradle Wrapper](https://github.com/LeoFuso/argo/actions/workflows/gradle-wrapper-validation.yml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/gradle-wrapper-validation.yml)
+[![Build Check](https://github.com/LeoFuso/argo/actions/workflows/pre-merge.yaml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/pre-merge.yaml)
+[![Publish Plugin to Portal](https://github.com/LeoFuso/argo/actions/workflows/publish-plugin.yaml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/publish-plugin.yaml)
+[![License](https://img.shields.io/github/license/cortinico/kotlin-android-template.svg)](LICENSE) ![Language](https://img.shields.io/github/languages/top/cortinico/kotlin-android-template?color=blue&logo=kotlin)
 
 A [Gradle](http://www.gradle.org/) plugin aimed to help working with [Apache Avro](http://avro.apache.org/). 
 It supports Java code generation from JSON schema declaration files(.avsc), JSON protocol declaration files(.avpr), and Avro IDL files. 
@@ -116,18 +119,75 @@ If that's the case, please open an issue about it!
 
 ## Of Columba working with external dependencies
 
+### External Sources
 Should you depend on external JSON schema declaration files(.avsc), JSON protocol declaration files(.avpr) or Avro IDL files(.avdl),
 you can extend the classpath scan by providing the right configurations, see below:
 
 `build.gradle`
 ```groovy
 dependencies {
-    compileOnlyAvroIDL someJar.outputs.files
-    compileOnlySchemaProtocol 'io.github.leofuso.events:avro-events:1.0.0'
+    generateApacheAvroProtocol someJar.outputs.files
+    generateTestApacheAvroProtocol 'io.github.leofuso.events:avro-events:1.0.0'
+    compileApacheAvroJavaSources 'io.github.leofuso.events:avro-events:1.0.0'
+    compileTestApacheAvroJavaSources someJar.outputs.files
 }
 ```
 
-You can add as many as you want. You can also register the tasks manually.
+There are as many configurations as there are SourceSets.
+
+### External Tools
+
+There are also configurations to import custom conversions, LogicalTypeFactories and VelocityTools 
+that you may want to use during the Code Generation phase.
+
+Here is an example of how this would look:
+
+`build.gradle`
+```groovy
+import org.apache.avro.generic.GenericData
+                                  
+plugins {
+    id 'java'
+    id 'io.github.leofuso.argo'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation files('/usr/your-user/downloads/some-jar.jar')
+    compileApacheAvroJava files('/usr/your-user/downloads/some-jar.jar')
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
+argo {
+    columba {
+        additionalLogicalTypeFactories.put('timezone', 'io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory')
+        additionalConverters.add('io.github.leofuso.argo.custom.TimeZoneConversion')
+        velocityTemplateDirectory = file('templates/custom/')
+        additionalVelocityTools = [
+            'io.github.leofuso.argo.custom.TimestampGenerator',
+            'io.github.leofuso.argo.custom.CommentGenerator'
+        ]
+        fields {
+            stringType = GenericData.StringType.Utf8
+        }
+    }
+}
+```
+Keep in mind that **both** `implementation` and `compileApacheAvroJava` are necessary. 
+Since additional **LogicalTypeFactories** or **CustomConversions** should be present in the `classpath` during
+the task run, you can't use a custom conversion first declared on the source code that the build targets.
+
+You can use a multiple module configuration to achieve this, or have it in a separate `jar` file.
+
+Obs. the `implementation` is needed so that the code that references the custom conversion can compile. 
 
 ## Of Columba Options
 
@@ -166,8 +226,36 @@ argo {
 As you can see it, it was a deliberate choice to reference the actual classes that the SpecificCompiler uses, to prevent miss config
 associated with typos.
 
+### Of External Tools
+
+You can customize the compiler by providing additional Velocity Tools, custom LogicalTypeFactories
+and custom type conversions.
+By default, those configurations are all empty.  
+
+`build.gradle`
+```groovy
+
+dependencies {
+    implementation files('/usr/your-user/downloads/some-jar.jar')
+    compileApacheAvroJava files('/usr/your-user/downloads/some-jar.jar')
+}
+
+argo {
+    columba {
+        additionalLogicalTypeFactories.put('timezone', 'io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory')
+        additionalConverters.add('io.github.leofuso.argo.custom.TimeZoneConversion')
+        velocityTemplateDirectory = file('templates/custom/')
+        additionalVelocityTools = [
+            'io.github.leofuso.argo.custom.TimestampGenerator',
+        ]
+    }
+    navis { /* empty*/ }
+}
+```
+
 ### Of Columba option details
 
+To be defined.
 
 ## Compatibility
 
@@ -187,20 +275,20 @@ and transitively to any SourceSets that depend on that SourceSet.
 This is accomplished by this plugin detecting that the Kotlin plugin has been applied and informing the Kotlin compilation tasks 
 of the generated sources presence for cross-compilation.
 
-This plugin does **not** support producing the Avro generated classes as Kotlin classes, as that functionality is not 
+This plugin doesn't support producing the Avro generated classes as Kotlin classes, as that functionality is not 
 currently provided by the upstream Avro library (the compiler).
 
 # Kotlin DSL Support
 
 Special notes relevant to using this plugin via the Gradle Kotlin DSL:
 
-* Apply the plugin declaratively using the `plugins {}` block. Otherwise, various features may not work as intended. 
+* Apply the plugin declaratively using the `plugins {}` block. Otherwise, various features mayn't work as intended. 
 * See [Configuring Plugins in the Gradle Kotlin DSL](https://github.com/LeoFuso/argo) for more details.
 * Configuration in the `avro {}` block must be applied differently than in the Groovy DSL. See the example below for details.
 
 ## Of License
 
-This plugin is licensed under the MIT License. See the [License](License) file for details.
+This plugin is licensed under the MIT License. See the [License](LICENSE) file for details.
 
 ## Of Open Source and the Community
 
@@ -208,6 +296,6 @@ The development of this plugin in a direct response to [David's plugin](https://
 of the same functionality.
 Any resemblence is not a coincidence. I've used David's plugin as a starting point, and copy some 
 of its functionality **as is**. David, and the community surrouding their plugin, did a wonderful job,
-and I am most definitely a user of David's plugin. If you're in doubt about which plugin to use, use
+and I'm most definitely a user of David's plugin. If you're in doubt about which plugin to use, use
 David's, since it is the most battle tested, at least for now!
 
