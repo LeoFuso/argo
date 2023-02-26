@@ -5,7 +5,7 @@ on:
     branches:
       - 'main'
     tags:
-      - 'v1.*'
+      - 'v0.*'
 
 jobs:
   gradle:
@@ -22,10 +22,6 @@ jobs:
         with:
           distribution: temurin
           java-version: 11
-
-      - uses: gradle/gradle-build-action@v2
-        with:
-          arguments: check
 
       - uses: gradle/gradle-build-action@v2
         with:

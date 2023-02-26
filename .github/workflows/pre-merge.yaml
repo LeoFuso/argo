@@ -14,6 +14,8 @@ jobs:
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
+    env:
+      GRADLE_VERSION: 7.6.1
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
     steps:
 

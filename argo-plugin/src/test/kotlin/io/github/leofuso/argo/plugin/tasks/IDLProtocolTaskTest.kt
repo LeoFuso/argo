@@ -1,10 +1,11 @@
 package io.github.leofuso.argo.plugin.tasks
 
 import io.github.leofuso.argo.plugin.append
+import io.github.leofuso.argo.plugin.buildGradleRunner
+import io.github.leofuso.argo.plugin.buildGradleRunnerAndFail
 import io.github.leofuso.argo.plugin.fixtures.loadResource
 import io.github.leofuso.argo.plugin.tmkdirs
 import org.assertj.core.api.Assertions.assertThat
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -70,6 +71,7 @@ class IDLProtocolTaskTest {
                 source(file('src/dependent'))
                 classpath = configurations.shared
                 outputDir = file('build/protocol')
+                dependsOn(':jar')
             }
             
         """
@@ -82,12 +84,7 @@ class IDLProtocolTaskTest {
         dependent append loadResource("tasks/protocol/dependent.avdl").readText()
 
         /* When */
-        val result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments("build", "sharedIDLJar", "generateProtocol", "--stacktrace")
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner("build", "sharedIDLJar", "generateProtocol")
 
         /* Then */
         val generateProtocol = result.task(":generateProtocol")
@@ -133,6 +130,7 @@ class IDLProtocolTaskTest {
                 source(file('src/main/avro'))
                 classpath = configurations.runtimeClasspath
                 outputDir = file('build/protocol')
+                dependsOn(':jar')
             }
             
         """
@@ -145,11 +143,7 @@ class IDLProtocolTaskTest {
         dependent append loadResource("tasks/protocol/dependent.avdl").readText()
 
         /* When */
-        val result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments("build", "sharedIDLJar", "generateProtocol", "--stacktrace")
-            .build()
+        val result = buildGradleRunner("build", "sharedIDLJar", "generateProtocol")
 
         /* Then */
         val generateProtocol = result.task(":generateProtocol")
@@ -203,11 +197,7 @@ class IDLProtocolTaskTest {
         v2 append loadResource("tasks/protocol/namespace/v2.avdl").readText()
 
         /* When */
-        val result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments("build", "generateProtocol", "--stacktrace")
-            .build()
+        val result = buildGradleRunner("build", "generateProtocol")
 
         /* Then */
         val generateProtocol = result.task(":generateProtocol")
@@ -262,11 +252,7 @@ class IDLProtocolTaskTest {
         v2 append loadResource("tasks/protocol/namespace/v1.avdl").readText()
 
         /* When */
-        val result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments("build", "generateProtocol", "--stacktrace")
-            .buildAndFail()
+        val result = buildGradleRunnerAndFail("build", "generateProtocol")
 
         /* Then */
         val generateProtocol = result.task(":generateProtocol")
@@ -282,7 +268,7 @@ class IDLProtocolTaskTest {
     @Test
     @DisplayName(
         """
- Given a build containing external IDL source files ― and 'generateApacheAvroProtocol' configured,
+ Given a build with external IDL source files ― and 'generateApacheAvroProtocol' configured,
  when building,
  then should produce the necessary IDL, Protocol and Java files.
 """
@@ -294,15 +280,6 @@ class IDLProtocolTaskTest {
                    
             import org.apache.avro.compiler.specific.SpecificCompiler
             import org.apache.avro.generic.GenericData
-            
-            buildscript {
-                repositories {
-                    mavenCentral()
-                }
-                dependencies {
-                    classpath group: 'org.apache.avro', name: 'avro', version: '1.11.0'
-                }
-            }
             
             plugins {
                 id 'java'
@@ -337,18 +314,7 @@ class IDLProtocolTaskTest {
         dependent append loadResource("tasks/protocol/dependent.avdl").readText()
 
         /* When */
-        val result = GradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "sharedIDLJar",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts",
-                "--stacktrace"
-            )
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner("build", "sharedIDLJar")
 
         /* Then */
         val generateProtocol = result.task(":generateApacheAvroProtocol")

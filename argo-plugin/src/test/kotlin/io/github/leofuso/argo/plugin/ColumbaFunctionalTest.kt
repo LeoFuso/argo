@@ -178,7 +178,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/user.avsc").readText()
 
         /* When */
-        val result = buildGradleRunner<ColumbaFunctionalTest>()
+        val result = buildGradleRunner()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")
@@ -652,7 +652,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/user.avsc").readText()
 
         /* When */
-        val result = buildGradleRunner<ColumbaFunctionalTest>()
+        val result = buildGradleRunner()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")
