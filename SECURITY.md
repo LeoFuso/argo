@@ -2,11 +2,11 @@
 
 ## Supported Versions
 
-During development phase all reports will be disregarded.
+During the development phase all reports will be disregarded.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| < 1.0.0   | :x:                |
+| Version | Supported |
+|---------|-----------|
+| < 0.1.0 | :x:       |
 
 ## Reporting a Vulnerability
 
