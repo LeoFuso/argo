@@ -5,7 +5,6 @@ import io.github.leofuso.argo.custom.TimestampGenerator
 import io.github.leofuso.argo.plugin.fixtures.loadResource
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -49,15 +48,6 @@ class ColumbaFunctionalTest {
             
             import org.apache.avro.compiler.specific.SpecificCompiler
             import org.apache.avro.generic.GenericData
-            
-            buildscript {
-                repositories {
-                    mavenCentral()
-                }
-                dependencies {
-                    classpath group: 'org.apache.avro', name: 'avro', version: '1.11.0'
-                }
-            }
             
             plugins {
                 id 'java'
@@ -113,18 +103,7 @@ class ColumbaFunctionalTest {
             loadResource("parser/scenarios/reference/chain/obs.statement-line.avsc").readText()
 
         /* When */
-        val result = DefaultGradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "--stacktrace",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
-            )
-            .forwardOutput()
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner()
 
         /* Then */
         val generateProtocol = result.task(":generateApacheAvroProtocol")
@@ -199,18 +178,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/user.avsc").readText()
 
         /* When */
-        val result = DefaultGradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "--stacktrace",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
-            )
-            .forwardOutput()
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner<ColumbaFunctionalTest>()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")
@@ -252,15 +220,6 @@ class ColumbaFunctionalTest {
             import org.apache.avro.compiler.specific.SpecificCompiler
             import org.apache.avro.generic.GenericData
 
-            buildscript {
-                repositories {
-                    mavenCentral()
-                }
-                dependencies {
-                    classpath group: 'org.apache.avro', name: 'avro', version: '1.11.0'
-                }
-            }
-
             plugins {
                 id 'java'
                 id 'io.github.leofuso.argo'
@@ -295,18 +254,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/user.avsc").readText()
 
         /* When */
-        val result = DefaultGradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "--stacktrace",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
-            )
-            .forwardOutput()
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")
@@ -346,15 +294,6 @@ class ColumbaFunctionalTest {
             import org.apache.avro.compiler.specific.SpecificCompiler
             import org.apache.avro.generic.GenericData
 
-            buildscript {
-                repositories {
-                    mavenCentral()
-                }
-                dependencies {
-                    classpath group: 'org.apache.avro', name: 'avro', version: '1.11.0'
-                }
-            }
-
             plugins {
                 id 'java'
                 id 'io.github.leofuso.argo'
@@ -389,18 +328,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/user.avsc").readText()
 
         /* When */
-        val result = DefaultGradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "--stacktrace",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
-            )
-            .forwardOutput()
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")
@@ -471,18 +399,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/user.avsc").readText()
 
         /* When */
-        val result = DefaultGradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "--stacktrace",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
-            )
-            .forwardOutput()
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")
@@ -562,18 +479,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/user.avsc").readText()
 
         /* When */
-        val result = DefaultGradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "--stacktrace",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
-            )
-            .forwardOutput()
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")
@@ -660,18 +566,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/user.avsc").readText()
 
         /* When */
-        val result = DefaultGradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "--stacktrace",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
-            )
-            .forwardOutput()
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")
@@ -757,18 +652,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/user.avsc").readText()
 
         /* When */
-        val result = DefaultGradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "--stacktrace",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
-            )
-            .forwardOutput()
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner<ColumbaFunctionalTest>()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")
@@ -842,18 +726,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/record.vm").readText()
 
         /* When */
-        val result = DefaultGradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "--stacktrace",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
-            )
-            .forwardOutput()
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")
@@ -924,19 +797,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/record-tools.vm").readText()
 
         /* When */
-        val result = DefaultGradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "--info",
-                "--stacktrace",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
-            )
-            .forwardOutput()
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")
@@ -1008,19 +869,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/custom-conversion.avsc").readText()
 
         /* When */
-        val result = DefaultGradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "--stacktrace",
-                "--info",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
-            )
-            .forwardOutput()
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")
@@ -1092,19 +941,7 @@ class ColumbaFunctionalTest {
             loadResource("tasks/compiler/custom-conversion.avpr").readText()
 
         /* When */
-        val result = DefaultGradleRunner.create()
-            .withProjectDir(rootDir)
-            .withPluginClasspath()
-            .withArguments(
-                "build",
-                "--stacktrace",
-                "--info",
-                // GradleRunner was throwing SunCertPathBuilderException... idk
-                "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
-            )
-            .forwardOutput()
-            .withDebug(true)
-            .build()
+        val result = buildGradleRunner()
 
         /* Then */
         val compile = result.task(":compileApacheAvroJava")

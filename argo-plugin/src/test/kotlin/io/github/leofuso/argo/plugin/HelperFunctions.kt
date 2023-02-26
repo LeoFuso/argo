@@ -1,8 +1,12 @@
 package io.github.leofuso.argo.plugin
 
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import java.io.File
 import java.nio.file.Files
 import java.util.*
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
 
 infix fun File.append(content: String) = this.writeText(content)
     .let { this }
@@ -35,3 +39,21 @@ inline fun <reified T> readPluginClasspath(): String {
         .map { it.replace("java/main", "java/test") }
         .joinToString(", ") { "\"$it\"" }
 }
+
+inline fun <reified T : Any> T.buildGradleRunner(vararg args: String = arrayOf("build")): BuildResult = DefaultGradleRunner.create()
+    .withProjectDir(
+        T::class.memberProperties.find { it.name == "rootDir" }
+            ?.apply { isAccessible = true }
+            ?.let { it.get(this) as File }
+    )
+    .withPluginClasspath()
+    .withArguments(
+        *args,
+        "--stacktrace",
+        "--info",
+        // GradleRunner was throwing SunCertPathBuilderException... idk
+        "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
+    )
+    .forwardOutput()
+    .withDebug(true)
+    .build()
