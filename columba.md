@@ -99,8 +99,8 @@ There are as many configurations as there are SourceSets.
 
 ### Tools
 
-Should you want to import custom conversions, LogicalTypeFactories and VelocityTools during the Code Generation phase,
-there are specific configuraions to do so, see below:
+Should you want to import [custom conversions, LogicalTypeFactories](https://avro.apache.org/docs/1.11.1/specification/#logical-types)
+and [VelocityTools](https://velocity.apache.org/tools/3.1/) during the Code Generation phase, there are specific configuraions to do so, see below:
 
 `build.gradle`
 ```groovy
