@@ -23,6 +23,8 @@ plugins {
 }
 ```
 
+See all [available versions](CHANGELOG.md).
+
 The plugin automatically applies a compiler dependency, it is used to compile the `build.gradle(.kts)`.
 The need of this dependency is to be able to reference specific classes available to the compiler;
 those classes offer customized behavior during the compilation, e.g., the different _String_ types supported by the _Avro Protocol_.
