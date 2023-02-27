@@ -146,6 +146,10 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     fun process(inputChanges: InputChanges) {
 
         val sources = getSources()
+        if (sources.files.isEmpty()) {
+            logger.lifecycle("Skipping task '${this.name}': No sources.")
+            return
+        }
         if (inputChanges.isIncremental) {
 
             val changes = inputChanges.getFileChanges(sources)
@@ -171,12 +175,15 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
 
         try {
 
-            val delegate = SpecificCompilerTaskDelegate(this)
-            delegate.configureLogicalTypeFactories()
+            SpecificCompilerTaskDelegate(this)
+                .use { delegate ->
 
-            val parser = DefaultSchemaParser(logger)
-            val resolution = parser.parse(sources.asFileTree)
-            delegate.run(resolution, getOutputDir().asFile.get())
+                    delegate.configureLogicalTypeFactories()
+                    val parser = DefaultSchemaParser(logger)
+                    val resolution = parser.parse(sources.asFileTree)
+
+                    delegate.run(resolution, getOutputDir().asFile.get())
+                }
 
             didWork = true
         } catch (ex: Throwable) {

@@ -21,6 +21,8 @@
                 <projects>
                   <project path="$PROJECT_DIR$/use-cases" />
                   <project path="$PROJECT_DIR$/use-cases/classpath-protocol-task" />
+                  <project path="$PROJECT_DIR$/use-cases/external-tools" />
+                  <project path="$PROJECT_DIR$/use-cases/kotlin-complete" />
                   <project path="$PROJECT_DIR$/use-cases/protocol-task" />
                   <project path="$PROJECT_DIR$/use-cases/simple-java" />
                   <project path="$PROJECT_DIR$/use-cases/simple-kotlin" />
@@ -40,6 +42,8 @@
             <option value="$PROJECT_DIR$/build-conventions" />
             <option value="$PROJECT_DIR$/use-cases" />
             <option value="$PROJECT_DIR$/use-cases/classpath-protocol-task" />
+            <option value="$PROJECT_DIR$/use-cases/external-tools" />
+            <option value="$PROJECT_DIR$/use-cases/kotlin-complete" />
             <option value="$PROJECT_DIR$/use-cases/protocol-task" />
             <option value="$PROJECT_DIR$/use-cases/simple-java" />
             <option value="$PROJECT_DIR$/use-cases/simple-kotlin" />

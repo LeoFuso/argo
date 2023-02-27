@@ -64,7 +64,7 @@ This basic setup generates 4 tasks:
     - Both generate JSON Protocol declaration files from Avro IDL files(.avdl).
 
 By default, the tasks infer the location of the source files to be `src/avro`, even tho this behavior can be customized, 
-see [External Sources](#external-sources).
+see [External Sources](#sources).
 
 All _Source Generation_ tasks should be ordered in a way that the plugin tasks run before anything else, out of the box.
 Running `gradle build` should be enough to your project setup.

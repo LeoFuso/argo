@@ -12,10 +12,10 @@ jobs:
   gradle:
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ macos-12, windows-2022, ubuntu-22.04 ]
     runs-on: ${{ matrix.os }}
     env:
-      GRADLE_VERSION: 7.6.1
+      GRADLE_VERSION: 8.0.1
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
     steps:
 

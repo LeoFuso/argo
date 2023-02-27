@@ -69,17 +69,17 @@ abstract class ArgoPlugin : Plugin<Project> {
             sourceSet
         )
 
-        val protocolTaskName = sourceSet.getTaskName("generate", "apacheAvroProtocol")
-        project.addCompileOnlyConfiguration(
-            protocolTaskName,
-            "IDL(.$IDL_EXTENSION) source files needed for Protocol(.$PROTOCOL_EXTENSION) resolution.",
-            sourceSet
-        )
-
         val javaTaskSourcesName = "${javaTaskName}Sources"
         project.addCompileOnlyConfiguration(
             javaTaskSourcesName,
             "Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) source files to be compiled.",
+            sourceSet
+        )
+
+        val protocolTaskName = sourceSet.getTaskName("generate", "apacheAvroProtocol")
+        project.addCompileOnlyConfiguration(
+            protocolTaskName,
+            "IDL(.$IDL_EXTENSION) source files needed for Protocol(.$PROTOCOL_EXTENSION) resolution.",
             sourceSet
         )
 

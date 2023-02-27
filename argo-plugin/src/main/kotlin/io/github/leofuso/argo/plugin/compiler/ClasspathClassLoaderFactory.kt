@@ -4,16 +4,10 @@ import org.gradle.internal.classloader.VisitableURLClassLoader
 import java.io.File
 import java.net.URLClassLoader
 
-fun urlClassLoader(files: Set<File>, parent: ClassLoader? = null) = files.mapNotNull {
-    val uri = it.toURI()
-    uri.toURL()
-}.toTypedArray()
+inline fun <reified T> T.urlClassLoader(files: Set<File>): URLClassLoader = files.map { it.toURI().toURL() }
+    .toTypedArray()
     .let {
-        if (parent != null) {
-            URLClassLoader(it, parent)
-        } else {
-            URLClassLoader(it)
-        }
+        URLClassLoader.newInstance(it, T::class.java.classLoader)
     }
 
 fun ClassLoader.loadURLs(files: Set<File>): ClassLoader = files.mapNotNull {
