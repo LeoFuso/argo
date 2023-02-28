@@ -165,7 +165,7 @@ import org.apache.avro.generic.GenericData
 
 argo {
     columba {
-        compiler = 'org.apache.avro:avro-compiler:1.11.0' // necessary due to the SpecificCompiler usage.
+        compiler = 'org.apache.avro:avro-compiler:1.11.1' // necessary due to the SpecificCompiler usage.
         outputEncoding = 'UTF-8' // Encoding for the generated classes.
         fields {
             visibility = SpecificCompiler.FieldVisibility.PRIVATE // Java class property field visibility, either PRIVATE or PUBLIC. 

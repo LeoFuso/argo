@@ -19,6 +19,12 @@ const val JAVA_EXTENSION = "java"
 const val AVRO_EXTENSION_NAME = "avro"
 
 /**
+ * Compreesed extensions
+ */
+const val JAR_EXTENSION = "jar"
+const val ZIP_EXTENSION = "zip"
+
+/**
 * Default dependencies
 */
 const val DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY = "org.apache.avro:avro-compiler:1.11.1"

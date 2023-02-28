@@ -20,6 +20,7 @@ argo {
 
         getCompiler().set("org.apache.avro:avro-compiler:1.11.1")
         getOutputEncoding().set("UTF-8")
+        getExcluded().add("**/*Json.avsc")
 
         getAdditionalVelocityTools().add("io.github.leofuso.argo.custom.TimestampGenerator")
         getVelocityTemplateDirectory().set(File("templates/custom/"))

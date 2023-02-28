@@ -22,28 +22,7 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
 
     private val classLoader = urlClassLoader(task.classpath.files)
 
-    fun run(resolution: Resolution, output: File) {
-
-        configurationReport()
-
-        resolution.schemas
-            .forEach { (_, schema) ->
-                val compiler = SpecificCompiler(schema)
-                doConfigure(compiler)
-                compiler.compileToDestination(null, output)
-                logger.lifecycle("Schema [{}] successfully compiled to destination.", schema.fullName)
-            }
-
-        resolution.protocol
-            .forEach { (_, protocol) ->
-                val compiler = SpecificCompiler(protocol)
-                doConfigure(compiler)
-                compiler.compileToDestination(null, output)
-                logger.lifecycle("Schema [{}] successfully compiled to destination.", protocol.namespace + "." + protocol.name)
-            }
-    }
-
-    fun configureLogicalTypeFactories() {
+    init {
         urlClassLoader(task.classpath.files)
             .use { loader ->
                 task.getAdditionalLogicalTypeFactories().orNull?.forEach {
@@ -56,6 +35,24 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
                         logger.warn("Class [${unknownClass.name}] cannot be used as a LogicalTypeFactory.")
                     }
                 }
+            }
+    }
+
+    fun run(resolution: Resolution, output: File) {
+        configurationReport()
+        resolution.schemas
+            .forEach { (_, schema) ->
+                val compiler = SpecificCompiler(schema)
+                doConfigure(compiler)
+                compiler.compileToDestination(null, output)
+                logger.lifecycle("Schema [{}] successfully compiled to destination.", schema.fullName)
+            }
+        resolution.protocol
+            .forEach { (_, protocol) ->
+                val compiler = SpecificCompiler(protocol)
+                doConfigure(compiler)
+                compiler.compileToDestination(null, output)
+                logger.lifecycle("Schema [{}] successfully compiled to destination.", protocol.namespace + "." + protocol.name)
             }
     }
 
