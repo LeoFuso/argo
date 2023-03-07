@@ -5,6 +5,10 @@ plugins {
     id("io.github.leofuso.argo")
 }
 
+kotlin {
+    jvmToolchain(JavaVersion.VERSION_11.ordinal)
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }

@@ -14,3 +14,9 @@ tasks.register("generateProtocol", IDLProtocolTask) {
     classpath = configurations.runtimeClasspath
     outputDir = file('build/protocol')
 }
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
