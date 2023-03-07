@@ -120,11 +120,7 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
                     .matching(_pattern)
                     .files
             }.onFailure { throwable ->
-                if (logger.isInfoEnabled) {
-                    logger.warn("Task '${this.name}' is unable to extract sources from File[${it.path}].", throwable)
-                } else {
-                    logger.warn("Task '${this.name}' is unable to extract sources from File[${it.path}].")
-                }
+                logger.error("Task '${this.name}' is unable to extract sources from File[${it.path}].", throwable)
             }
         }
         .filter { it.isSuccess }
@@ -139,7 +135,8 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
             }
 
             _sources.from(it)
-            _sources.asFileTree.matching(_pattern)
+                .asFileTree
+                .matching(_pattern)
         }
 
     /**

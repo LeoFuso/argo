@@ -23,6 +23,7 @@ object ArgoExtensionSupplier {
     }
 }
 
+@Suppress("unused")
 abstract class ArgoExtension {
 
     @Nested
@@ -38,7 +39,7 @@ abstract class ArgoExtension {
 
 interface NavisOptions
 
-@Suppress("TooManyFunctions")
+@Suppress("TooManyFunctions", "MemberVisibilityCanBePrivate")
 abstract class ColumbaOptions {
 
     abstract fun getCompiler(): Property<String>

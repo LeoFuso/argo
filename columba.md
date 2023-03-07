@@ -2,6 +2,8 @@
 
 ...and its inner workings.
 
+**Disclaimer**: Functionality on **Windows OS** has not yet been verified.
+
 ### Of its usage
 
 Add the following to your build files. Substitute the desired version based on your needs.
@@ -187,13 +189,19 @@ argo {
 As you can see it, it was a deliberate choice to reference the actual classes that the SpecificCompiler uses, to prevent miss config
 associated with typos.
 
-### Of Option details
+### Option details
 
 To be defined.
 
-## Compatibility
+## Of Compatibility
 
-All tests were performed using **Gradle 7.6**, **Java 11** and Avro version compatible with `org.apache.avro:avro-compiler:1.11.1`.
+All tests were performed using the following specs:
+
+| Gradle | Java | Compiler                               |
+|--------|------|----------------------------------------|
+| 7.6    | 11   | `org.apache.avro:avro-compiler:1.11.1` |
+| 8.0.1  | 11   | `org.apache.avro:avro-compiler:1.11.1` |
+
 
 ## Of IntelliJ integration
 
@@ -201,7 +209,7 @@ The plugin attempts to make IntelliJ play more smoothly with generated sources w
 However, there are still some rough edges.
 It should work better if you first run `gradle build`, and _after_ that run `gradle idea`.
 
-# Kotlin Support
+# Of Kotlin Support
 
 The Java classes generated from your Avro files should be automatically accessible in the classpath to Kotlin classes in the same SourceSet,
 and transitively to any SourceSets that depend on that SourceSet.
@@ -209,7 +217,11 @@ This is accomplished by this plugin detecting that the Kotlin plugin has been ap
 of the generated sources presence for cross-compilation.
 
 This plugin doesn't support producing the Avro generated classes as Kotlin classes, as that functionality is not
-currently provided by the upstream Avro library (the compiler).
+provided by the upstream Avro library (the compiler).
+
+## DSL
+
+One can find examples of how to apply the plugin using _Kotlin DSL_ [here](use-cases/kotlin-complete/build.gradle.kts).
 
 ## Of Open Source and the Community
 
