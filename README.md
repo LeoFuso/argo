@@ -45,7 +45,7 @@ plugins {
 
 ... and that's it!
 
-# Kotlin DSL Support
+# Of Kotlin DSL Support
 
 Special notes relevant to using this plugin via the Gradle Kotlin DSL:
 

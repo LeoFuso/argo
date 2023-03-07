@@ -28,7 +28,7 @@ gradlePlugin {
                 |A Gradle plugin aimed to help working with Apache Avro.
                 |It supports code generation for JSON schema declaration files(.avsc),
                 |JSON protocol declaration files(.avpr), and Avro IDL files.
-                |In the future, it should support Schema Registry integration, as well."
+                |In the future, it should support Schema Registry integration, as well.
             """.trimMargin().replace("\n", "")
             tags.set(listOf("avro", "kafka", "schema-registry", "confluent", "java", "code generation"))
         }
