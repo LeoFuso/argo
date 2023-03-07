@@ -10,7 +10,12 @@ rootProject.name = ("argo-project")
 
 includeBuild("build-conventions")
 includeBuild("argo-plugin")
-//includeBuild("use-cases")
+
+/* Unecessary build */
+if (System.getenv("CI") == null) {
+    includeBuild("use-cases")
+}
+
 
 plugins {
     `gradle-enterprise`
