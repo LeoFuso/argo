@@ -200,7 +200,6 @@ All tests were performed using the following specs:
 | Gradle | Java | Compiler                               |
 |--------|------|----------------------------------------|
 | 7.6    | 11   | `org.apache.avro:avro-compiler:1.11.1` |
-| 8.0.1  | 11   | `org.apache.avro:avro-compiler:1.11.1` |
 
 
 ## Of IntelliJ integration
