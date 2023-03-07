@@ -12,8 +12,10 @@ jobs:
   gradle:
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ macos-12, windows-2022, ubuntu-22.04 ]
     runs-on: ${{ matrix.os }}
+    env:
+      GRADLE_VERSION: 7.6
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
     steps:
 
@@ -21,8 +23,8 @@ jobs:
 
       - uses: actions/setup-java@v3
         with:
-          distribution: temurin
-          java-version: 11
+          distribution: oracle
+          java-version: 17
 
       - name: Setup and performs Gradle 'check' task.
         uses: gradle/gradle-build-action@v2

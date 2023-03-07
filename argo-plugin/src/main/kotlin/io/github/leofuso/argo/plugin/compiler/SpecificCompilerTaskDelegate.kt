@@ -12,17 +12,34 @@ import org.apache.avro.LogicalTypes
 import org.apache.avro.LogicalTypes.LogicalTypeFactory
 import org.apache.avro.Schema
 import org.apache.avro.compiler.specific.SpecificCompiler
+import java.io.Closeable
 import java.io.File
 
-class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask) {
+class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask) : Closeable {
 
     private val stubSchema = Schema.createEnum("STUB", "A Stub Schema", "io.github.leofuso.argo.stub", listOf("STUB"))
     private val logger = task.logger
 
+    private val classLoader = urlClassLoader(task.classpath.files)
+
+    init {
+        urlClassLoader(task.classpath.files)
+            .use { loader ->
+                task.getAdditionalLogicalTypeFactories().orNull?.forEach {
+                    val unknownClass = loader.loadClass(it.value)
+                    val requiredDefaultConstructor = unknownClass.getDeclaredConstructor()
+                    val instance = requiredDefaultConstructor.newInstance()
+                    if (instance is LogicalTypeFactory) {
+                        LogicalTypes.register(it.key, instance)
+                    } else {
+                        logger.warn("Class [${unknownClass.name}] cannot be used as a LogicalTypeFactory.")
+                    }
+                }
+            }
+    }
+
     fun run(resolution: Resolution, output: File) {
-
         configurationReport()
-
         resolution.schemas
             .forEach { (_, schema) ->
                 val compiler = SpecificCompiler(schema)
@@ -30,7 +47,6 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
                 compiler.compileToDestination(null, output)
                 logger.lifecycle("Schema [{}] successfully compiled to destination.", schema.fullName)
             }
-
         resolution.protocol
             .forEach { (_, protocol) ->
                 val compiler = SpecificCompiler(protocol)
@@ -40,23 +56,8 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
             }
     }
 
-    fun configureLogicalTypeFactories() {
-        val classLoader = javaClass.classLoader.loadURLs(task.classpath.files)
-        task.getAdditionalLogicalTypeFactories().orNull?.forEach {
-            val unknownClass = classLoader.loadClass(it.value)
-            val requiredDefaultConstructor = unknownClass.getDeclaredConstructor()
-            val instance = requiredDefaultConstructor.newInstance()
-            if (instance is LogicalTypeFactory) {
-                LogicalTypes.register(it.key, instance)
-            } else {
-                logger.warn("Class [${unknownClass.name}] cannot be used as a LogicalTypeFactory.")
-            }
-        }
-    }
-
     private fun doConfigure(compiler: SpecificCompiler) {
 
-        val classLoader = javaClass.classLoader.loadURLs(task.classpath.files)
         task.getAdditionalVelocityTools().orNull
             ?.map {
                 val velocityToolClass = classLoader.loadClass(it)
@@ -64,6 +65,8 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
                 requiredDefaultConstructor.newInstance()
             }
             .let(compiler::setAdditionalVelocityTools)
+
+        task.getAdditionalConverters().orNull?.map { classLoader.loadClass(it) }?.forEach(compiler::addCustomConversion)
 
         task.getVelocityTemplateDirectory().orNull?.let {
             val path = it.asFile.absolutePath
@@ -74,8 +77,6 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
                 compiler.setTemplateDir(path + File.separator)
             }
         }
-
-        task.getAdditionalConverters().orNull?.map { classLoader.loadClass(it) }?.forEach(compiler::addCustomConversion)
 
         task.getStringType().orNull?.let { compiler.setStringType(it) }
         task.noSetters.orNull?.let { compiler.isCreateSetters = it.not() }
@@ -157,5 +158,9 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
                     logger.info("\tNo Additional Logical Type factories.")
                 }
             }
+    }
+
+    override fun close() {
+        classLoader.close()
     }
 }

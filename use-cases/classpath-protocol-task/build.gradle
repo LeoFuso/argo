@@ -21,6 +21,12 @@ dependencies {
     shared sharedIDLJar.outputs.files
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
 tasks.register("generateProtocol", IDLProtocolTask) {
     source(file('src/dependent'))
     classpath = configurations.shared

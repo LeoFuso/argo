@@ -46,6 +46,12 @@ inline fun <reified T : Any> T.buildGradleRunner(vararg args: String = arrayOf("
             ?.apply { isAccessible = true }
             ?.let { it.get(this) as File }
     )
+    .apply {
+        val gradleVersion = System.getenv("GRADLE_VERSION")
+        if (gradleVersion != null) {
+            this.withGradleVersion(gradleVersion)
+        }
+    }
     .withPluginClasspath()
     .withArguments(
         *args,
@@ -57,3 +63,27 @@ inline fun <reified T : Any> T.buildGradleRunner(vararg args: String = arrayOf("
     .forwardOutput()
     .withDebug(true)
     .build()
+
+inline fun <reified T : Any> T.buildGradleRunnerAndFail(vararg args: String = arrayOf("build")): BuildResult = DefaultGradleRunner.create()
+    .withProjectDir(
+        T::class.memberProperties.find { it.name == "rootDir" }
+            ?.apply { isAccessible = true }
+            ?.let { it.get(this) as File }
+    )
+    .apply {
+        val gradleVersion = System.getenv("GRADLE_VERSION")
+        if (gradleVersion != null) {
+            this.withGradleVersion(gradleVersion)
+        }
+    }
+    .withPluginClasspath()
+    .withArguments(
+        *args,
+        "--stacktrace",
+        "--info",
+        // GradleRunner was throwing SunCertPathBuilderException... idk
+        "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
+    )
+    .forwardOutput()
+    .withDebug(true)
+    .buildAndFail()

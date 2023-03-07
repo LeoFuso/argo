@@ -15,9 +15,11 @@ tasks {
     register("check") {
         group = "verification"
         description = "Delegates task-action to argo-plugin build."
-        dependsOn(gradle.includedBuild("argo-plugin").task(":pluginUnderTestMetadata"))
-        dependsOn(gradle.includedBuild("argo-plugin").task(":validatePlugins"))
-        dependsOn(gradle.includedBuild("argo-plugin").task(":check"))
+        dependsOn(
+            gradle.includedBuild("argo-plugin").task(":pluginUnderTestMetadata"),
+            gradle.includedBuild("argo-plugin").task(":validatePlugins"),
+            gradle.includedBuild("argo-plugin").task(":check")
+        )
     }
 
     register("publish") {

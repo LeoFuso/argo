@@ -3,6 +3,7 @@ pluginManagement {
 }
 dependencyResolutionManagement {
     repositories {
+        mavenLocal()
         google()
         mavenCentral()
     }
@@ -12,3 +13,5 @@ include(':simple-java')
 include(':simple-kotlin')
 include(':classpath-protocol-task')
 include(':protocol-task')
+include(':external-tools')
+include(':kotlin-complete')
