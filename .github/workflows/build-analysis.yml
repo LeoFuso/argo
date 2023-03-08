@@ -44,8 +44,12 @@ jobs:
           gradle-version: 7.6
           arguments: ':argo-plugin:build -x :argo-plugin:test'
 
-      - name: Setup and performs Gradle 'check' task.
+      - name: Setup Gradle.
         uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 7.6
+
+      - name: Performs Gradle 'check' task.
         run: ./gradlew check --stacktrace --info --continue
 
       - name: Upload reports
