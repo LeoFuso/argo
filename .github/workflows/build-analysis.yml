@@ -37,7 +37,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
-          cache-disabled: true
+          cache-disabled: false
 
       - name: Performs 'dry-run'
         run: 'gradle :argo-plugin:build -x :argo-plugin:test'
