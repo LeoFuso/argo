@@ -52,6 +52,16 @@ tasks {
         }
     }
 
+    detekt.configure {
+        reports {
+            xml.required.set(true)
+            html.required.set(true)
+            txt.required.set(false)
+            sarif.required.set(false)
+            md.required.set(false)
+        }
+    }
+
     jacocoTestReport {
         reports {
             xml.required.set(true)
