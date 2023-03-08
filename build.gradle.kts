@@ -12,6 +12,14 @@ tasks {
         dependsOn(cleanTasks)
     }
 
+    register("build") {
+        group = "build"
+        description = "Delegates task-action to argo-plugin build."
+        dependsOn(
+            gradle.includedBuild("argo-plugin").task(":build")
+        )
+    }
+
     register("check") {
         group = "verification"
         description = "Delegates task-action to argo-plugin build."

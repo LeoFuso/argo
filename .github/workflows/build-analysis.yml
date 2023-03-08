@@ -38,7 +38,21 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
+      - name: Gradle 'dry-run' task.
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 7.6
+          arguments: ':argo-plugin:build -x :argo-plugin:test'
+
       - name: Setup and performs Gradle 'check' task.
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: check
+          gradle-version: 7.6
+          arguments: check --stacktrace --info --continue
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-reports
+          path: build/reports/
+
