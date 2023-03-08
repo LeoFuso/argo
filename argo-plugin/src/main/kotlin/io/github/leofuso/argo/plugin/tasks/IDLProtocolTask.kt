@@ -37,10 +37,7 @@ abstract class IDLProtocolTask : DefaultTask() {
 
     init {
 
-        description = """
-            |Generates Avro Protocol(.$PROTOCOL_EXTENSION) source files from Avro IDL(.$IDL_EXTENSION) source files.
-        """.trimMargin().replace("\n", "")
-
+        description = "Generates Avro Protocol(.$PROTOCOL_EXTENSION) source files from Avro IDL(.$IDL_EXTENSION) source files."
         group = GROUP_SOURCE_GENERATION
     }
 
@@ -107,30 +104,32 @@ abstract class IDLProtocolTask : DefaultTask() {
         }
 
         val parsed = mutableSetOf<String>()
-        val classLoader = urlClassLoader(classpath.files)
-        val outputDir = getOutputDir().asFile.get()
-        sources.files.forEach {
+        urlClassLoader(classpath.files)
+            .use { classLoader ->
+                val outputDir = getOutputDir().asFile.get()
+                sources.files.forEach {
 
-            val idl = Idl(it, classLoader)
-            val protocol = idl.CompilationUnit()
-            val content = protocol.toString(true)
-            val path = protocol.path()
+                    val idl = Idl(it, classLoader)
+                    val protocol = idl.CompilationUnit()
+                    val content = protocol.toString(true)
+                    val path = protocol.path()
 
-            if (parsed.contains(path)) {
-                val exception =
-                    IllegalStateException(
-                        "Invalid Protocol [$path]. There's already another Protocol defined in the classpath with the same name."
-                    )
-                throw TaskExecutionException(this, exception)
+                    if (parsed.contains(path)) {
+                        val exception =
+                            IllegalStateException(
+                                "Invalid Protocol [$path]. There's already another Protocol defined in the classpath with the same name."
+                            )
+                        throw TaskExecutionException(this, exception)
+                    }
+
+                    logger.lifecycle("Writing Protocol($PROTOCOL_EXTENSION) to ['$path'].")
+                    val output = File(outputDir, path)
+                    Files.createDirectories(output.parentFile.toPath())
+                    Files.createFile(output.toPath())
+                    output.writeText(content)
+                    parsed.add(path)
+                }
             }
-
-            logger.lifecycle("Writing Protocol($PROTOCOL_EXTENSION) to ['$path'].")
-            val output = File(outputDir, path)
-            Files.createDirectories(output.parentFile.toPath())
-            Files.createFile(output.toPath())
-            output.writeText(content)
-            parsed.add(path)
-        }
         didWork = true
     }
 
