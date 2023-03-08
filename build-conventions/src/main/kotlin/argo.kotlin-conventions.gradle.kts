@@ -102,7 +102,7 @@ sonar {
         property("sonar.organization", "leofuso")
         property("sonar.host.url", "https://sonarcloud.io")
     }
-    if (System.getenv("CI") == null) {
+    if (System.getenv("SONAR_TOKEN") == null) {
         isSkipProject = true
     }
 }
