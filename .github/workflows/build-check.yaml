@@ -9,10 +9,10 @@ on:
       - '*'
 
 jobs:
-  gradle:
+  check:
     strategy:
       matrix:
-        os: [ macos-12, windows-2022, ubuntu-22.04 ]
+        os: [ macos-12, windows-2022 ]
     runs-on: ${{ matrix.os }}
     env:
       GRADLE_VERSION: 7.6

@@ -9,7 +9,7 @@ on:
       - '*'
 
 jobs:
-  gradle:
+  analysis:
     runs-on: ubuntu-22.04
     environment: SonarQube
     env:
@@ -30,6 +30,7 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+
       - name: Cache Gradle packages
         uses: actions/cache@v3
         with:
