@@ -57,6 +57,8 @@ inline fun <reified T : Any> T.buildGradleRunner(vararg args: String = arrayOf("
         *args,
         "--stacktrace",
         "--info",
+        "--build-cache",
+        "--configuration-cache",
         // GradleRunner was throwing SunCertPathBuilderException... idk
         "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
     )
@@ -81,6 +83,8 @@ inline fun <reified T : Any> T.buildGradleRunnerAndFail(vararg args: String = ar
         *args,
         "--stacktrace",
         "--info",
+        "--build-cache",
+        "--configuration-cache",
         // GradleRunner was throwing SunCertPathBuilderException... idk
         "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
     )

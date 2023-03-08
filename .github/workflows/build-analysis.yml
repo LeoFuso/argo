@@ -43,7 +43,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: 'gradle check --stacktrace --continue'
+        run: 'gradle check --build-cache --stacktrace --continue'
 
       - name: Upload reports
         if: ${{ failure() }}
