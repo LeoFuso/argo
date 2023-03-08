@@ -3,7 +3,7 @@
 [![Validate Gradle Wrapper](https://github.com/LeoFuso/argo/actions/workflows/gradle-wrapper-validation.yml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/gradle-wrapper-validation.yml)
 [![Build Check](https://github.com/LeoFuso/argo/actions/workflows/pre-merge.yaml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/pre-merge.yaml)
 [![Publish Plugin to Portal](https://github.com/LeoFuso/argo/actions/workflows/publish-plugin.yaml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/publish-plugin.yaml)
-[![License](https://img.shields.io/github/license/cortinico/kotlin-android-template.svg)](LICENSE) ![Language](https://img.shields.io/github/languages/top/cortinico/kotlin-android-template?color=blue&logo=kotlin)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 A [Gradle](http://www.gradle.org/) plugin aimed to help working with [Apache Avro](http://avro.apache.org/). 
 It supports Java code generation from JSON schema declaration files(.avsc), JSON protocol declaration files(.avpr), and Avro IDL files. 
@@ -55,5 +55,5 @@ Special notes relevant to using this plugin via the Gradle Kotlin DSL:
 
 ## Of License
 
-This plugin is licensed under the MIT License. See the [License](LICENSE) file for details.
+This plugin is licensed under the Apache-2.0 License. See the [License](LICENSE) file for details.
 
