@@ -10,12 +10,15 @@ on:
 
 jobs:
   check:
+    name: 'Build Check { ${{ matrix.os }} - java ${{ matrix.java }}-zulu - gradle v${{ matrix.gradle }}}'
     strategy:
       matrix:
-        os: [ macos-12, windows-2022 ]
+        os: [ macos-12, windows-2022, ubuntu-22.04 ]
+        java: [ 11, 17 ]
+        gradle: [ '7.5', '7.5.1', '7.6' ]
     runs-on: ${{ matrix.os }}
     env:
-      GRADLE_VERSION: 7.6
+      GRADLE_VERSION: ${{ matrix.gradle }}
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
     steps:
 
@@ -23,11 +26,11 @@ jobs:
 
       - uses: actions/setup-java@v3
         with:
-          distribution: oracle
-          java-version: 17
+          distribution: zulu
+          java-version: ${{ matrix.java }}
 
       - name: Setup and performs Gradle 'check' task.
         uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: ${{ env.GRADLE_VERSION }}
+          gradle-version: 7.6
           arguments: check

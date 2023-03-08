@@ -10,10 +10,9 @@ on:
 
 jobs:
   analysis:
+    name: 'SonarQube build analysis'
     runs-on: ubuntu-22.04
     environment: SonarQube
-    env:
-      GRADLE_VERSION: 7.6
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
     steps:
 
@@ -36,11 +35,8 @@ jobs:
       - name: Setup Gradle.
         uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: ${{ env.GRADLE_VERSION }}
+          gradle-version: 7.6
           cache-disabled: false
-
-      - name: Performs 'dry-run'
-        run: 'gradle :argo-plugin:build -x :argo-plugin:test'
 
       - name: Performs Gradle 'check' task.
         env:
