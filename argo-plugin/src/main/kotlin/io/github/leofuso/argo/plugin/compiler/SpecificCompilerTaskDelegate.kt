@@ -93,6 +93,7 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
         task.getFieldVisibility().orNull?.let { compiler.setFieldVisibility(it) }
     }
 
+    @SuppressWarnings("kotlin:S1192")
     private fun configurationReport() {
 
         if (logger.isInfoEnabled.not()) {

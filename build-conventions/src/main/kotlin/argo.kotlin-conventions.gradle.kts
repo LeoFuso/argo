@@ -2,9 +2,11 @@ import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
+    jacoco
     id("org.jetbrains.kotlin.jvm")
     id("org.jmailen.kotlinter")
     id("io.gitlab.arturbosch.detekt")
+    id("org.sonarqube")
 }
 
 repositories {
@@ -50,16 +52,25 @@ tasks {
         }
     }
 
+    jacocoTestReport {
+        reports {
+            xml.required.set(true)
+            html.required.set(true)
+        }
+        dependsOn(tasks.test)
+        finalizedBy(tasks.sonar)
+    }
+
     test {
         useJUnitPlatform()
         outputs.upToDateWhen { false }
+        finalizedBy(tasks.jacocoTestReport)
     }
 
     check {
-        dependsOn("lintKotlin")
+        dependsOn(tasks.lintKotlin)
     }
 }
-
 
 kotlinter {
     ignoreFailures = false
@@ -73,4 +84,15 @@ kotlinter {
 
 detekt {
     config = files("${rootDir.parentFile.absolutePath}/build-conventions/detekt.yml")
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "LeoFuso_argo")
+        property("sonar.organization", "leofuso")
+        property("sonar.host.url", "https://sonarcloud.io")
+    }
+    if (System.getenv("CI") == null) {
+        isSkipProject = true
+    }
 }
