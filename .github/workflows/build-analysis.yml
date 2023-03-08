@@ -34,7 +34,7 @@ jobs:
         run: 'gradle :argo-plugin:build -x :argo-plugin:test'
 
       - name: Performs Gradle 'check' task.
-        run: 'gradle check --stacktrace --info --continue'
+        run: 'gradle check --stacktrace --continue'
 
       - name: Upload reports
         if: ${{ failure() }}

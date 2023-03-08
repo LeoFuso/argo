@@ -72,6 +72,12 @@ tasks {
     }
 
     test {
+
+        jvmArgs("-Xss320k")
+        minHeapSize = "120m"
+        maxHeapSize = "280m"
+        maxParallelForks = Runtime.getRuntime().availableProcessors().div(2)
+
         useJUnitPlatform()
         outputs.upToDateWhen { false }
         finalizedBy(tasks.jacocoTestReport)
