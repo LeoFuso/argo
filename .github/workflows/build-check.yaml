@@ -29,4 +29,5 @@ jobs:
       - name: Setup and performs Gradle 'check' task.
         uses: gradle/gradle-build-action@v2
         with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
           arguments: check
