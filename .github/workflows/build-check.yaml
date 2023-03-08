@@ -10,11 +10,11 @@ on:
 
 jobs:
   check:
-    name: 'Build Check { ${{ matrix.os }} - java ${{ matrix.java }}-zulu - gradle v${{ matrix.gradle }}}'
+    name: '${{ matrix.os }} - java/${{ matrix.java }}-zulu & gradle v${{ matrix.gradle }}'
     strategy:
       matrix:
         os: [ macos-12, windows-2022, ubuntu-22.04 ]
-        java: [ 11, 17 ]
+        java: [ '11.0.18', '17.0.6' ]
         gradle: [ '7.5', '7.5.1', '7.6' ]
     runs-on: ${{ matrix.os }}
     env:
