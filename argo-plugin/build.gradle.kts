@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.github.leofuso.argo"
-version = "0.1.0"
+version = "0.1.1"
 
 dependencies {
     implementation(libs.compiler)
