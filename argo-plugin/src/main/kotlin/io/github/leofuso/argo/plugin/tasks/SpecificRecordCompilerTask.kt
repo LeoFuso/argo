@@ -140,7 +140,7 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
         }
 
     /**
-     * Adds some source to this task. The given source objects will be evaluated as per [org.gradle.api.Project.files].
+     * Adds some source to this task. The given source objects will be evaluated in accordance with [org.gradle.api.Project.files].
      *
      * @param sources The source to add
      */
