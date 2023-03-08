@@ -46,11 +46,10 @@ jobs:
 
       - name: Setup and performs Gradle 'check' task.
         uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: 7.6
-          arguments: check --stacktrace --info --continue
+        run: ./gradlew check --stacktrace --info --continue
 
       - name: Upload reports
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
           name: build-reports
