@@ -1,22 +1,20 @@
-name: Publish Plugin to Gradle Plugin Portal
+name: Publish
 
 on:
   push:
     branches:
       - 'main'
-    tags:
-      - 'v0.*'
 
 jobs:
   publish:
-    name: 'Argo Publication'
+    name: 'Argo'
     runs-on: ubuntu-22.04
-    environment: Main
+    environment: Portal
     env:
       gradle.publish.key: ${{ secrets.GRADLE_PUBLISH_KEY }}
-      gradle.publish.secret: ${{ secrets.GRADLE_PUBLISH_SECRET }}
-      org.gradle.project.signing.key: ${{ secrets.ORG_GRADLE_PROJECT_SIGNING_KEY }}
-      org.gradle.project.signing.password: ${{ secrets.ORG_GRADLE_PROJECT_SIGNING_PASSWORD }}
+      gradle.publish.secret: ${{ secrets.GRADLE_PUBLISH_PASSWORD }}
+      org.gradle.project.signing.key: ${{ secrets.SIGNING_PK }}
+      org.gradle.project.signing.password: ${{ secrets.SIGNING_PASSWORD }}
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
     steps:
 
@@ -27,6 +25,7 @@ jobs:
           distribution: oracle
           java-version: 17
 
-      - uses: gradle/gradle-build-action@v2
+      - name: Performs 'publish' task.
+        uses: gradle/gradle-build-action@v2
         with:
           arguments: publish
