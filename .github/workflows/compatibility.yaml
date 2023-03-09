@@ -10,7 +10,7 @@ on:
 
 jobs:
   compatibility-1:
-    name: '${{ matrix.os }} - v${{ matrix.gradle }} & ${{ matrix.java }}-zulu'
+    name: '${{ runner.os }}(${{ matrix.java }}-zulu, v${{ matrix.gradle }})'
     strategy:
       matrix:
         os: [ macos-12, windows-2022 ]
@@ -41,7 +41,7 @@ jobs:
             --build-cache
             --scan
 
-      - name: Reports upload
+      - name: Upload 'build-report'
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
@@ -49,9 +49,8 @@ jobs:
           path: '**/build/reports/'
 
   compatibility-2:
-    name: 'Ubuntu'
+    name: '${{ runner.os }}(${{ matrix.java }}-zulu, v${{ matrix.gradle }})'
     runs-on: ubuntu-22.04
-    environment: SonarQube
     env:
       GRADLE_VERSION: 7.6
     if: ${{ !contains(github.event.head_commit.message, 'ci compatibility-skip') }}
@@ -76,7 +75,7 @@ jobs:
             --build-cache
             --scan
 
-      - name: Build Report upload
+      - name: Upload 'build-report'
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:

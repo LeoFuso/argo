@@ -104,8 +104,7 @@ detekt {
 
 sonar {
     properties {
-        val sonarqubeProjectKey: String? by project
-        sonarqubeProjectKey?.let { property("sonar.projectKey", it) }
+        property("sonar.projectKey", "io.github.leofuso.argo")
         property("sonar.organization", "leofuso")
         property("sonar.host.url", "https://sonarcloud.io")
     }
