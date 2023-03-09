@@ -10,7 +10,7 @@ on:
 
 jobs:
   compatibility-1:
-    name: '${{ runner.os }}(${{ matrix.java }}-zulu, v${{ matrix.gradle }})'
+    name: '${{ matrix.os }}(${{ matrix.java }}-zulu, v${{ matrix.gradle }})'
     strategy:
       matrix:
         os: [ macos-12, windows-2022 ]
