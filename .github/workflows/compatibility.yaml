@@ -49,7 +49,7 @@ jobs:
           path: '**/build/reports/'
 
   compatibility-2:
-    name: '${{ runner.os }}(${{ matrix.java }}-zulu, v${{ matrix.gradle }})'
+    name: '${{ matrix.os }}(${{ matrix.java }}-zulu, v${{ matrix.gradle }})'
     runs-on: ubuntu-22.04
     env:
       GRADLE_VERSION: 7.6
