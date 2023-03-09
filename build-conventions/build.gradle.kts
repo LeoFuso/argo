@@ -9,4 +9,5 @@ dependencies {
     implementation(libs.publish)
     implementation(libs.klint)
     implementation(libs.detekt)
+    implementation(libs.sonarqube)
 }

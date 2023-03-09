@@ -154,6 +154,7 @@ class ColumbaFunctionalTest {
             
             plugins {
                 id 'java'
+                id 'idea'
                 id 'io.github.leofuso.argo'
             }
             
@@ -222,6 +223,7 @@ class ColumbaFunctionalTest {
 
             plugins {
                 id 'java'
+                id 'idea'
                 id 'io.github.leofuso.argo'
             }
             
@@ -296,6 +298,7 @@ class ColumbaFunctionalTest {
 
             plugins {
                 id 'java'
+                id 'idea'
                 id 'io.github.leofuso.argo'
             }
             
@@ -367,6 +370,7 @@ class ColumbaFunctionalTest {
             
             plugins {
                 id 'java'
+                id 'idea'
                 id 'io.github.leofuso.argo'
             }
             
@@ -447,6 +451,7 @@ class ColumbaFunctionalTest {
             
             plugins {
                 id 'java'
+                id 'idea'
                 id 'io.github.leofuso.argo'
             }
             
@@ -533,6 +538,7 @@ class ColumbaFunctionalTest {
             
             plugins {
                 id 'java'
+                id 'idea'                
                 id 'io.github.leofuso.argo'
             }
             
@@ -620,6 +626,7 @@ class ColumbaFunctionalTest {
             
             plugins {
                 id 'java'
+                id 'idea'                
                 id 'io.github.leofuso.argo'
             }
             
@@ -693,6 +700,7 @@ class ColumbaFunctionalTest {
             
             plugins {
                 id 'java'
+                id 'idea'                
                 id 'io.github.leofuso.argo'
             }
             
@@ -760,6 +768,7 @@ class ColumbaFunctionalTest {
                                   
             plugins {
                 id 'java'
+                id 'idea'                
                 id 'io.github.leofuso.argo'
             }
             
@@ -834,6 +843,7 @@ class ColumbaFunctionalTest {
                                   
             plugins {
                 id 'java'
+                id 'idea'                
                 id 'io.github.leofuso.argo'
             }
             
@@ -906,6 +916,7 @@ class ColumbaFunctionalTest {
                                   
             plugins {
                 id 'java'
+                id 'idea'                
                 id 'io.github.leofuso.argo'
             }
             

@@ -31,7 +31,7 @@ class DefaultSchemaFileVisitor(private val logger: Logger) : SchemaFileVisitor {
      *
      * @param details Meta-info about the directory.
      */
-    @Suppress("EmptyFunctionBlock")
+    @Suppress("EmptyFunctionBlock", "kotlin:S1186")
     override fun visitDir(details: FileVisitDetails) {}
 
     /**

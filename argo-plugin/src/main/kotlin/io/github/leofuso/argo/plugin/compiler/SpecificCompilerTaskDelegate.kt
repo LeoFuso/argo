@@ -23,19 +23,16 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
     private val classLoader = urlClassLoader(task.classpath.files)
 
     init {
-        urlClassLoader(task.classpath.files)
-            .use { loader ->
-                task.getAdditionalLogicalTypeFactories().orNull?.forEach {
-                    val unknownClass = loader.loadClass(it.value)
-                    val requiredDefaultConstructor = unknownClass.getDeclaredConstructor()
-                    val instance = requiredDefaultConstructor.newInstance()
-                    if (instance is LogicalTypeFactory) {
-                        LogicalTypes.register(it.key, instance)
-                    } else {
-                        logger.warn("Class [${unknownClass.name}] cannot be used as a LogicalTypeFactory.")
-                    }
-                }
+        task.getAdditionalLogicalTypeFactories().orNull?.forEach {
+            val unknownClass = classLoader.loadClass(it.value)
+            val requiredDefaultConstructor = unknownClass.getDeclaredConstructor()
+            val instance = requiredDefaultConstructor.newInstance()
+            if (instance is LogicalTypeFactory) {
+                LogicalTypes.register(it.key, instance)
+            } else {
+                logger.warn("Class [${unknownClass.name}] cannot be used as a LogicalTypeFactory.")
             }
+        }
     }
 
     fun run(resolution: Resolution, output: File) {
@@ -93,6 +90,7 @@ class SpecificCompilerTaskDelegate(private val task: SpecificRecordCompilerTask)
         task.getFieldVisibility().orNull?.let { compiler.setFieldVisibility(it) }
     }
 
+    @SuppressWarnings("kotlin:S1192")
     private fun configurationReport() {
 
         if (logger.isInfoEnabled.not()) {

@@ -1,4 +1,4 @@
-name: Validate Gradle Wrapper
+name: Gradle
 on:
   push:
     branches:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   validation:
-    name: Validation
+    name: 'Wrapper validation'
     runs-on: ubuntu-22.04
     steps:
 

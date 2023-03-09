@@ -1,0 +1,62 @@
+name: SonarQube
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  analysis:
+    name: '${{ matrix.os }}(${{ matrix.java }}-zulu, v${{ matrix.gradle }})'
+    strategy:
+      matrix:
+        os: [ 'ubuntu-22.04' ]
+        java: [ '17.0.6' ]
+        gradle: [ '7.6' ]
+    runs-on: ${{ matrix.os }}
+    environment: SonarQube
+    env:
+      GRADLE_VERSION: 7.6
+    if: ${{ !contains(github.event.head_commit.message, 'ci analysis-skip') }}
+    steps:
+
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: zulu
+          java-version: '17.0.6'
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ matrix.os }}-sonar
+          restore-keys: ${{ matrix.os }}-sonar
+
+      - name: Performs 'check' task.
+        uses: gradle/gradle-build-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          gradle-version: 7.6
+          cache-disabled: false
+          arguments: |
+            check
+            --stacktrace
+            --continue
+            --build-cache
+            --scan
+
+      - name: Upload 'analysis-build-report'
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: analysis-${{ matrix.os }}--${{ matrix.java }}--${{ matrix.gradle }}--build-report
+          path: '**/build/reports/'
