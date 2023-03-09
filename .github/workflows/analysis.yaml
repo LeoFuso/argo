@@ -14,13 +14,13 @@ jobs:
     strategy:
       matrix:
         os: [ macos-12, windows-2022 ]
-        java: [ '11.0.18', '17.0.6' ]
-        gradle: [ '7.5', '7.5.1', '7.6' ]
+        java: [ '17.0.6' ]
+        gradle: [ '7.6' ]
     runs-on: ${{ matrix.os }}
     environment: SonarQube
     env:
       GRADLE_VERSION: ${{ matrix.gradle }}
-    if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
+    if: ${{ !contains(github.event.head_commit.message, 'ci analysis-skip') }}
     steps:
 
       - uses: actions/checkout@v3
@@ -36,13 +36,13 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+          key: ${{ matrix.os }}-sonar
+          restore-keys: ${{ matrix.os }}-sonar
 
       - name: Performs 'check' task.
         uses: gradle/gradle-build-action@v2
         env:
-          org.gradle.project.sonarqube.project.key: argo-${{ runner.os }}
+          org.gradle.project.sonarqube.project.key: argo-${{ matrix.os }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
@@ -59,15 +59,20 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.os }}--${{ matrix.java }}--${{ matrix.gradle }}--build
+          name: ${{ matrix.os }}--${{ matrix.java }}--${{ matrix.gradle }}--build-report
           path: '**/build/reports/'
   analysis-2:
     name: 'Ubuntu'
-    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        os: [ 'ubuntu-22.04' ]
+        java: [ '17.0.6' ]
+        gradle: [ '7.6' ]
+    runs-on: ${{ matrix.os }}
     environment: SonarQube
     env:
       GRADLE_VERSION: 7.6
-    if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
+    if: ${{ !contains(github.event.head_commit.message, 'ci analysis-skip') }}
     steps:
 
       - uses: actions/checkout@v3
@@ -83,13 +88,13 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+          key: ${{ matrix.os }}-sonar
+          restore-keys: ${{ matrix.os }}-sonar
 
       - name: Performs 'check' task.
         uses: gradle/gradle-build-action@v2
         env:
-          org.gradle.project.sonarqube.project.key: argo-${{ runner.os }}
+          org.gradle.project.sonarqube.project.key: argo-${{ matrix.os }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
@@ -106,5 +111,5 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ runner.os }}--17.0.6--7.6--build
+          name: ${{ matrix.os }}--${{ matrix.java }}--${{ matrix.gradle }}--build-report
           path: '**/build/reports/'

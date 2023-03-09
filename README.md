@@ -1,7 +1,6 @@
 # Of Argo
 
-[![Validate Gradle Wrapper](https://github.com/LeoFuso/argo/actions/workflows/gradle-wrapper-validation.yml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/gradle-wrapper-validation.yml)
-[![Build Check](https://github.com/LeoFuso/argo/actions/workflows/build-check.yaml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/build-check.yaml)
+[![Analysis](https://github.com/LeoFuso/argo/actions/workflows/analysis.yaml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/analysis.yaml)
 [![Publish Plugin to Portal](https://github.com/LeoFuso/argo/actions/workflows/publish-plugin.yaml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/publish-plugin.yaml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
