@@ -11,6 +11,7 @@ on:
 jobs:
   analysis:
     name: '${{ matrix.os }}(${{ matrix.java }}-zulu, v${{ matrix.gradle }})'
+    timeout-minutes: 10
     strategy:
       matrix:
         os: [ 'ubuntu-22.04' ]
