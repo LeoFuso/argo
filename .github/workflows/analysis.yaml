@@ -21,7 +21,6 @@ jobs:
     environment: SonarQube
     env:
       GRADLE_VERSION: 7.6
-    if: ${{ !contains(github.event.head_commit.message, '[ASKIP]') }}
     steps:
 
       - uses: actions/checkout@v3
