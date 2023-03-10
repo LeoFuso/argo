@@ -13,6 +13,9 @@ jobs:
     env:
       gradle.publish.key: ${{ secrets.GRADLE_PUBLISH_KEY }}
       gradle.publish.secret: ${{ secrets.GRADLE_PUBLISH_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
+      ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_PK }}
+      ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
     steps:
 
@@ -26,10 +29,4 @@ jobs:
       - name: Performs 'sign' task.
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: |
-             :argo-plugin:signArgoPluginPluginMarkerMavenPublication
-             -PsigningKeyId=${{ secrets.SIGNING_KEY_ID }}
-             -PsigningPassword=${{ secrets.SIGNING_PASSWORD }}
-             -PsigningKey=${{ secrets.SIGNING_PK }}
-             --stacktrace
-          
+          arguments: ':argo-plugin:signArgoPluginPluginMarkerMavenPublication'
