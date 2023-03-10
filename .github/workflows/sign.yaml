@@ -1,14 +1,13 @@
-name: Publish
+name: Sign
 
 on:
-  workflow_dispatch:
-  push:
+  pull_request:
     branches:
-      - main
+      - '*'
 
 jobs:
-  publish:
-    name: Argo
+  sign:
+    name: Signing
     runs-on: ubuntu-22.04
     environment: Portal
     env:
@@ -26,7 +25,7 @@ jobs:
           distribution: zulu
           java-version: 17.0.6
 
-      - name: Performs 'publish' task.
+      - name: Performs 'sign' task.
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: publish
+          arguments: ':argo-plugin:signArgoPluginPluginMarkerMavenPublication'
