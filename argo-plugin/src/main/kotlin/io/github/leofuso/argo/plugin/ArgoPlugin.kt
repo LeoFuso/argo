@@ -7,6 +7,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME
+import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.SourceTask
@@ -22,12 +24,13 @@ import org.gradle.plugins.ide.idea.GenerateIdeaModule
 abstract class ArgoPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
-        val extension = ArgoExtensionSupplier.get(project)
 
-        /* Columba setup */
         project.plugins.withType<JavaPlugin> {
+            val extension = ArgoExtensionSupplier.get(project)
             project.logger.info("Using Gradle ${project.gradle.gradleVersion}.")
-            addApacheAvroCompilerDependencyConfiguration(project, extension.getColumba())
+
+            /* Columba Setup */
+            //addApacheAvroCompilerDependencyConfiguration(project, extension.getColumba())
             project.extensions.getByType<SourceSetContainer>()
                 .configureEach { source ->
                     configureColumbaTasks(project, extension.getColumba(), source)
@@ -42,21 +45,30 @@ abstract class ArgoPlugin : Plugin<Project> {
             |Compiler needed to generate code from Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) source files.
         """.trimMargin()
 
-        val config = project.configurations.create("apacheAvroCompiler") {
+        project.configurations.create("apacheAvroCompiler") {
+
             it.isVisible = true
-            it.isCanBeResolved = false
-            it.isCanBeConsumed = true
+            it.isCanBeResolved = true
+            it.isCanBeConsumed = false
             it.description = description
 
-            it.defaultDependencies { dependencies ->
-                val compilerDependency = project.dependencies.create(extension.getCompiler().get())
-                project.logger.lifecycle("Using 'org.apache.avro-compiler' version: '{}'.", compilerDependency.version)
-                val jacksonDependency = project.dependencies.create(DEFAULT_JACKSON_DATABIND_DEPENDENCY)
-                dependencies.add(compilerDependency)
-                dependencies.add(jacksonDependency)
+            val cliDependency = project.dependencies.create("io.github.leofuso.columba:columba-cli:0.1.2-SNAPSHOT")
+            val compilerDependency = project.dependencies.create(extension.getCompiler().get())
+            val jacksonDependency = project.dependencies.create(DEFAULT_JACKSON_DATABIND_DEPENDENCY)
+
+            project.logger.lifecycle("Using 'org.apache.avro-compiler' version: '{}'.", compilerDependency.version)
+            project.logger.lifecycle("Using 'io.github.leofuso.columba:columba-cli' version: '{}'.", cliDependency.version)
+
+            it.defaultDependencies { default ->
+                default.add(cliDependency)
+                default.add(compilerDependency)
+                default.add(jacksonDependency)
             }
+
+            it.extendsFrom(project.configurations.findByName(IMPLEMENTATION_CONFIGURATION_NAME))
         }
-        project.configurations.findByName(COMPILE_CLASSPATH_CONFIGURATION_NAME)?.extendsFrom(config)
+
+        project.configurations.findByName(RUNTIME_ONLY_CONFIGURATION_NAME)
     }
 
     private fun configureColumbaTasks(project: Project, extension: ColumbaOptions, sourceSet: SourceSet) {
@@ -68,6 +80,17 @@ abstract class ArgoPlugin : Plugin<Project> {
             "Class(.$CLASS_EXTENSION) files needed by the SpecificCompiler.",
             sourceSet
         )
+
+        project.configurations.findByName(sourceSet.runtimeClasspathConfigurationName + "1")
+            ?.defaultDependencies {
+                val cliDependency = project.dependencies.create("io.github.leofuso.columba:columba-cli:0.1.2-SNAPSHOT")
+                val compilerDependency = project.dependencies.create(extension.getCompiler().get())
+                val jacksonDependency = project.dependencies.create(DEFAULT_JACKSON_DATABIND_DEPENDENCY)
+
+                it.add(cliDependency)
+                it.add(compilerDependency)
+                it.add(jacksonDependency)
+            }
 
         val javaTaskSourcesName = "${javaTaskName}Sources"
         project.addCompileOnlyConfiguration(
@@ -94,6 +117,8 @@ abstract class ArgoPlugin : Plugin<Project> {
             taskContainer.register<SpecificRecordCompilerTask>(javaTaskName) {
                 project.configurations.findByName(javaTaskSourcesName)?.let { source(it) }
                 project.configurations.findByName(javaTaskName)?.let { configurableClasspath.from(it) }
+                project.configurations.findByName(sourceSet.runtimeClasspathConfigurationName)?.let { configurableClasspath.from(it) }
+
                 withExtension(extension)
                 configureSourceSet(sourceSet)
                 dependsOn(protocolTaskProvider)

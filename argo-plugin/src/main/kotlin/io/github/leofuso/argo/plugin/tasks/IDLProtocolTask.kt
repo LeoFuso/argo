@@ -36,7 +36,6 @@ import kotlin.io.path.Path
 abstract class IDLProtocolTask : DefaultTask() {
 
     init {
-
         description = "Generates Avro Protocol(.$PROTOCOL_EXTENSION) source files from Avro IDL(.$IDL_EXTENSION) source files."
         group = GROUP_SOURCE_GENERATION
     }
@@ -62,6 +61,9 @@ abstract class IDLProtocolTask : DefaultTask() {
     @get:Internal
     val configurableClasspath: ConfigurableFileCollection
         get() = _classpath
+
+//    @get:Nested
+//    abstract val launcher: Property<JavaLauncher>
 
     @OutputDirectory
     abstract fun getOutputDir(): DirectoryProperty

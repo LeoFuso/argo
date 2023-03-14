@@ -81,6 +81,8 @@ inline fun <reified T : Any> T.buildGradleRunnerAndFail(vararg args: String = ar
         *args,
         "--stacktrace",
         "--info",
+        "-Porg.gradle.daemon=false",
+        "-Porg.gradle.daemon.idletimeout=5000",
         // GradleRunner was throwing SunCertPathBuilderException... idk
         "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
     )

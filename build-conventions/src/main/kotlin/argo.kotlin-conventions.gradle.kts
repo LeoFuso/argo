@@ -25,13 +25,12 @@ java {
 }
 
 kotlin {
-    jvmToolchain(JavaVersion.VERSION_11.ordinal)
+    jvmToolchain(JavaVersion.VERSION_17.ordinal)
 }
 
 tasks {
 
     withType<Detekt>().configureEach {
-        jvmTarget = "11"
         reports {
             html.required.set(true)
             txt.required.set(true)

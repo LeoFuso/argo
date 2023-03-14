@@ -5,12 +5,16 @@ import org.apache.avro.generic.GenericData.StringType
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
+import org.gradle.jvm.toolchain.JavaLauncher
+import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.create
+import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
@@ -18,7 +22,7 @@ import javax.inject.Inject
 object ArgoExtensionSupplier {
     fun get(project: Project): ArgoExtension {
         val extension = project.extensions.create<ArgoExtension>("argo")
-        extension.getColumba().withConventions(project)
+        extension.getColumba().applyConventions()
         return extension
     }
 }
@@ -40,7 +44,10 @@ abstract class ArgoExtension {
 interface NavisOptions
 
 @Suppress("TooManyFunctions", "MemberVisibilityCanBePrivate")
-abstract class ColumbaOptions {
+abstract class ColumbaOptions(@Inject val project: Project, @Inject val javaToolchainService: JavaToolchainService) {
+
+    @get:Nested
+    abstract val launcher: Property<JavaLauncher>
 
     abstract fun getCompiler(): Property<String>
 
@@ -67,7 +74,12 @@ abstract class ColumbaOptions {
     abstract fun getAdditionalConverters(): ListProperty<String>
 
     @Internal
-    fun withConventions(project: Project): ColumbaOptions {
+    fun applyConventions(): ColumbaOptions {
+
+        val toolchain = project.extensions.getByType<JavaPluginExtension>().toolchain
+        val defaultLauncher = javaToolchainService.launcherFor(toolchain)
+        launcher.convention(defaultLauncher)
+
         getCompiler().convention(DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY)
         getExcluded().convention(listOf())
         getOutputEncoding().convention("UTF-8")

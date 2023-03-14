@@ -62,7 +62,7 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     }
 
     private val _sources: ConfigurableFileCollection = project.objects.fileCollection()
-    private val _pattern: PatternFilterable = PatternSet()
+    private val _pattern = PatternSet()
     private val _compressedPattern: PatternFilterable = PatternSet()
         .include(
             "**${File.separator}*.$JAR_EXTENSION",
@@ -89,10 +89,7 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
     @get:Internal
     var pattern: PatternFilterable
         get() = _pattern
-        set(value) = run {
-            _pattern.setIncludes(value.includes)
-            _pattern.setExcludes(value.excludes)
-        }
+        set(value) { _pattern.copyFrom(value) }
 
     @get:Classpath
     @get:InputFiles
@@ -209,14 +206,13 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
 
         try {
 
-            SpecificCompilerTaskDelegate(this)
-                .use { delegate ->
-
-                    val parser = DefaultSchemaParser(logger)
-                    val resolution = parser.parse(sources.asFileTree)
-
-                    delegate.run(resolution, getOutputDir().asFile.get())
-                }
+            project.javaexec {exec ->
+                exec.mainClass.set("io.github.leofuso.columba.compiler.cli.MainKt")
+                //exec.classpath(_classpath)
+                getSources().files.forEach { file -> exec.args(file.path)  }
+                exec.args(getOutputDir().asFile.get().path)
+                exec.jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005")
+            }
 
             didWork = true
 
