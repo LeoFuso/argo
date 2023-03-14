@@ -10,7 +10,7 @@ version = "0.1.2-SNAPSHOT"
 
 dependencies {
 
-    runtimeOnly("io.github.leofuso.columba:columba-cli:${project.version}")
+    api("io.github.leofuso.columba:columba-cli:${project.version}")
     implementation(libs.compiler)
     implementation(libs.jacksonDatabind)
     testRuntimeOnly(libs.junitLauncher)

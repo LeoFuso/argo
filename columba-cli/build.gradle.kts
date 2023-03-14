@@ -22,7 +22,7 @@ val main: Configuration by configurations.creating {
 }
 
 application {
-    mainClass.set("io.github.leofuso.columba.compiler.cli.MainKt")
+    mainClass.set("io.github.leofuso.columba.cli.MainKt")
 }
 
 dependencies {
@@ -41,7 +41,7 @@ dependencies {
 
 tasks.jar {
     manifest {
-        attributes["Main-Class"] = "io.github.leofuso.columba.compiler.cli.MainKt"
+        attributes["Main-Class"] = "io.github.leofuso.columba.cli.MainKt"
     }
     group = "build"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -56,7 +56,7 @@ artifacts {
 tasks.register<Jar>("uberJar") {
 
     manifest {
-        attributes["Main-Class"] = "io.github.leofuso.columba.compiler.cli.MainKt"
+        attributes["Main-Class"] = "io.github.leofuso.columba.cli.MainKt"
     }
 
     group = "build"

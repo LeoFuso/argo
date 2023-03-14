@@ -1,8 +1,8 @@
 package io.github.leofuso.argo.plugin.parser
 
-import io.github.leofuso.argo.plugin.compiler.exception.NonDeterministicSchemaResolutionException
-import io.github.leofuso.argo.plugin.compiler.parser.DefaultSchemaParser
-import io.github.leofuso.argo.plugin.compiler.parser.DependencyGraphAwareSchemaParser
+import io.github.leofuso.argo.plugin.columba.exception.NonDeterministicSchemaResolutionException
+import io.github.leofuso.argo.plugin.columba.parser.DefaultSchemaParser
+import io.github.leofuso.argo.plugin.columba.parser.DependencyGraphAwareSchemaParser
 import io.github.leofuso.argo.plugin.fixtures.FileTreeParameterResolver
 import io.github.leofuso.argo.plugin.fixtures.annotation.SchemaParameter
 import io.github.leofuso.argo.plugin.fixtures.loadResource

@@ -3,7 +3,7 @@ package io.github.leofuso.argo.plugin.tasks
 import io.github.leofuso.argo.plugin.GROUP_SOURCE_GENERATION
 import io.github.leofuso.argo.plugin.IDL_EXTENSION
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
-import io.github.leofuso.argo.plugin.compiler.urlClassLoader
+import io.github.leofuso.argo.plugin.columba.urlClassLoader
 import io.github.leofuso.argo.plugin.path
 import org.apache.avro.compiler.idl.Idl
 import org.gradle.api.DefaultTask

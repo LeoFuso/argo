@@ -6,8 +6,14 @@ import io.github.leofuso.argo.plugin.JAR_EXTENSION
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
 import io.github.leofuso.argo.plugin.ZIP_EXTENSION
-import io.github.leofuso.argo.plugin.compiler.SpecificCompilerTaskDelegate
-import io.github.leofuso.argo.plugin.compiler.parser.DefaultSchemaParser
+import io.github.leofuso.argo.plugin.columba.arguments.*
+import io.github.leofuso.argo.plugin.columba.arguments.CliArgument
+import io.github.leofuso.argo.plugin.columba.arguments.OutputArgument
+import io.github.leofuso.argo.plugin.columba.arguments.OutputEncodingArgument
+import io.github.leofuso.argo.plugin.columba.arguments.SourceArgument
+import io.github.leofuso.argo.plugin.columba.arguments.VelocityTemplateArgument
+import io.github.leofuso.argo.plugin.columba.invoker.DefaultCliInvoker
+import io.github.leofuso.argo.plugin.columba.invoker.NoopCliInvoker
 import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
 import org.apache.avro.generic.GenericData.StringType
 import org.gradle.api.DefaultTask
@@ -98,8 +104,27 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
         set(value) = _classpath.setFrom(value)
 
     @get:Internal
-    val configurableClasspath: ConfigurableFileCollection
+    internal val configurableClasspath: ConfigurableFileCollection
         get() = _classpath
+
+    @get:Internal
+    internal val arguments
+        get() = listOf("compile") + listOf(
+            SourceArgument(getSources()),
+            OutputArgument(getOutputDir()),
+            OutputEncodingArgument(getEncoding()),
+            VelocityTemplateArgument(getVelocityTemplateDirectory()),
+            VelocityToolsArgument(getAdditionalVelocityTools()),
+            ConverterArgument(getAdditionalConverters()),
+            LogicalTypeFactoryArgument(getAdditionalLogicalTypeFactories()),
+            StringTypeArgument(getStringType()),
+            FieldVisibilityArgument(getFieldVisibility()),
+            AllowSettersArgument(noSetters.map { it.not() }),
+            UseDecimalTypeArgument(useDecimalType),
+            ExtraOptionalGettersArgument(addExtraOptionalGetters),
+            UseOptionalGettersOnlyArgument(useOptionalGetters),
+            UseOptionalGettersForNullableFieldsOnlyArgument(optionalGettersForNullableFieldsOnly)
+        ).flatMap(CliArgument::args)
 
     @OutputDirectory
     abstract fun getOutputDir(): DirectoryProperty
@@ -206,13 +231,8 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
 
         try {
 
-            project.javaexec {exec ->
-                exec.mainClass.set("io.github.leofuso.columba.compiler.cli.MainKt")
-                //exec.classpath(_classpath)
-                getSources().files.forEach { file -> exec.args(file.path)  }
-                exec.args(getOutputDir().asFile.get().path)
-                exec.jvmArgs("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005")
-            }
+            DefaultCliInvoker()
+                .invoke(arguments, classpath)
 
             didWork = true
 

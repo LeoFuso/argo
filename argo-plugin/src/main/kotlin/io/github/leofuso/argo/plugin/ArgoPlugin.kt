@@ -81,9 +81,9 @@ abstract class ArgoPlugin : Plugin<Project> {
             sourceSet
         )
 
-        project.configurations.findByName(sourceSet.runtimeClasspathConfigurationName + "1")
+        project.configurations.findByName(sourceSet.runtimeClasspathConfigurationName)
             ?.defaultDependencies {
-                val cliDependency = project.dependencies.create("io.github.leofuso.columba:columba-cli:0.1.2-SNAPSHOT")
+                val cliDependency = project.dependencies.create(":columba-cli")
                 val compilerDependency = project.dependencies.create(extension.getCompiler().get())
                 val jacksonDependency = project.dependencies.create(DEFAULT_JACKSON_DATABIND_DEPENDENCY)
 

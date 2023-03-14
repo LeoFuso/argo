@@ -1,15 +1,9 @@
-package io.github.leofuso.argo.plugin
+package io.github.leofuso.columba.cli
 
 import org.apache.avro.Conversion
-import org.apache.avro.Protocol
 import org.apache.avro.compiler.specific.SpecificCompiler
-import org.apache.avro.generic.GenericData.StringType
+import org.apache.avro.generic.GenericData
 import org.apache.avro.specific.SpecificData
-import org.gradle.api.Project
-import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.util.PatternFilterable
-import org.gradle.api.tasks.util.PatternSet
-import java.io.File
 
 fun SpecificCompiler.getCharacterEncoding(): String {
     val field = SpecificCompiler::class.java.getDeclaredField("outputCharacterEncoding")
@@ -20,7 +14,7 @@ fun SpecificCompiler.getCharacterEncoding(): String {
 fun SpecificCompiler.getStringType(): String {
     val field = SpecificCompiler::class.java.getDeclaredField("stringType")
     field.isAccessible = true
-    return (field.get(this) as StringType).name
+    return (field.get(this) as GenericData.StringType).name
 }
 
 fun SpecificCompiler.enableDecimalLogicalType(): Boolean {
@@ -47,16 +41,3 @@ fun SpecificCompiler.getConverters(): List<Conversion<*>> {
     val data = field.get(this) as SpecificData
     return data.conversions.map { it }
 }
-
-fun Protocol.path(): String =
-    namespace.replace(NAMESPACE_SEPARATOR, File.separator) + File.separator + name + EXTENSION_SEPARATOR + PROTOCOL_EXTENSION
-
-fun Project.addCompileOnlyConfiguration(name: String, description: String, source: SourceSet) =
-    this.configurations.findByName(source.compileOnlyConfigurationName)?.let {
-        val configuration = project.configurations.maybeCreate(name)
-        configuration.isVisible = true
-        configuration.isCanBeResolved = true
-        configuration.isCanBeConsumed = false
-        configuration.description = description
-        configuration.extendsFrom(it)
-    }
