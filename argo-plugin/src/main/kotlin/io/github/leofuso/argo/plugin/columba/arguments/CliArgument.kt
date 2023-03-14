@@ -113,7 +113,7 @@ internal data class StringTypeArgument(val type: Property<StringType>) : CliArgu
 internal data class ConverterArgument(val converters: ListProperty<String>) : CliArgument {
     override fun args() =
         if (converters.isPresent && converters.get().isNotEmpty()) {
-            listOf("$CONVERTER_ARGS  ${converters.get().joinToString(";")}")
+            listOf("$CONVERTER_ARGS  ${converters.get().joinToString { ";" }}")
         } else {
             emptyList()
         }
