@@ -12,7 +12,7 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(JavaVersion.VERSION_11.ordinal)
+    jvmToolchain(17)
 }
 
 argo {

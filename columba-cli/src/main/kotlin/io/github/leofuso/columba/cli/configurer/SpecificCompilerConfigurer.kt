@@ -1,12 +1,6 @@
 package io.github.leofuso.columba.cli.configurer
 
 import io.github.leofuso.columba.cli.command.CompileCommand
-import io.github.leofuso.columba.cli.enableDecimalLogicalType
-import io.github.leofuso.columba.cli.getAdditionalVelocityTools
-import io.github.leofuso.columba.cli.getCharacterEncoding
-import io.github.leofuso.columba.cli.getConverters
-import io.github.leofuso.columba.cli.getStringType
-import io.github.leofuso.columba.cli.getTemplateDirectory
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema
 import org.apache.avro.compiler.specific.SpecificCompiler
@@ -65,7 +59,7 @@ class SpecificCompilerConfigurer(private val command: CompileCommand) {
     fun report() {
 
         if (!logger.isInfoEnabled()) {
-            logger.lifecycle("Run in info mode (-i or --info) to view configuration report.")
+            logger.lifecycle("Run in info mode (-i or --info) to view full configuration report.")
             return
         }
 

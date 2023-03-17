@@ -14,9 +14,9 @@ repositories {
 }
 
 dependencies {
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.22.0")
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-libraries:1.22.0")
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-ruleauthors:1.22.0")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${Versions.DETEKT}")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-libraries:${Versions.DETEKT}")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-ruleauthors:${Versions.DETEKT}")
 }
 
 java {
@@ -25,7 +25,7 @@ java {
 }
 
 kotlin {
-    jvmToolchain(JavaVersion.VERSION_17.ordinal)
+    jvmToolchain(17)
 }
 
 tasks {

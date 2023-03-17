@@ -18,11 +18,12 @@ plugins {
 
 dependencies {
     implementation 'org.apache.avro:avro:1.11.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 

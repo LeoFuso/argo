@@ -36,7 +36,7 @@ class CompileCommand : CliktCommand(
         }
     }
 
-    val logger by requireObject<CommandRunner.ConsoleLogger>()
+    val logger by requireObject<CommandRunner.SimpleLogger>()
 
     val fields by FieldOptions()
     val accessors by AccessorOptions()
@@ -59,7 +59,6 @@ class CompileCommand : CliktCommand(
         .file(canBeFile = false)
 
     override fun run() {
-
         logger.lifecycle("Compiling $source to $dest.")
         SpecificCompilerRunner(this)
             .run()

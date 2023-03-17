@@ -1,39 +1,54 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE
+import org.gradle.api.attributes.Bundling.EXTERNAL
+import org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
+import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
+import org.gradle.api.attributes.Usage.JAVA_RUNTIME
+import org.gradle.api.attributes.java.TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE
+import org.gradle.api.attributes.plugin.GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE
+
 plugins {
     application
     id("argo.kotlin-conventions")
+    id("argo.artifact-conventions")
 }
 
-group = "io.github.leofuso.columba"
-version = "0.1.2-SNAPSHOT"
+group = "$MAIN_GROUP.columba"
+version = Versions.ARGO
 
-val main: Configuration by configurations.creating {
+application {
+    mainClass.set("$MAIN_GROUP.columba.cli.MainKt")
+}
+
+val internal: Configuration by configurations.creating {
     isCanBeConsumed = true
     isCanBeResolved = false
     attributes {
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
-        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, JavaVersion.current().majorVersion.toInt())
-        attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion::class.java, GradleVersion.current().version))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named( "${project.group}:${project.name}:${project.version}"))
+        attribute(USAGE_ATTRIBUTE, objects.named(JAVA_RUNTIME))
+        attribute(BUNDLING_ATTRIBUTE, objects.named(EXTERNAL))
+        attribute(TARGET_JVM_VERSION_ATTRIBUTE, JavaVersion.current().majorVersion.toInt())
+        attribute(GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion::class.java, GradleVersion.current().version))
+        attribute(LIBRARY_ELEMENTS_ATTRIBUTE, objects.named( "${project.group}:${project.name}:${project.version}"))
     }
 }
 
-application {
-    mainClass.set("io.github.leofuso.columba.cli.MainKt")
+artifacts {
+    add("internal", tasks.jar)
 }
 
 dependencies {
 
-    compileOnly(libs.compiler)
-    compileOnly(libs.jacksonDatabind)
-    compileOnly(libs.clikt)
+    api(libs.clikt) { because("Facilitate CLI implementation.") }
 
-    runtimeOnly(libs.slf4j)
+    compileOnly(libs.compiler) { because("Decoupling the runtime environment. A user can choose the compiler version.") }
+    compileOnly(libs.jacksonDatabind) { because("The version of the compiler has a security issue associated with this dependency.") }
+
+    runtimeOnly(libs.slf4j.simple) { because("libs.compiler depends on SLF4J.") }
 
     testRuntimeOnly(libs.junitLauncher)
+    testRuntimeOnly(libs.compiler)
     testImplementation(libs.bundles.junit)
     testImplementation(libs.assertj)
     testImplementation(libs.combinatorics)
@@ -41,24 +56,8 @@ dependencies {
 
 tasks.jar {
     manifest {
-        attributes["Main-Class"] = "io.github.leofuso.columba.cli.MainKt"
+        attributes["Main-Class"] = "$MAIN_GROUP.columba.cli.MainKt"
     }
-    group = "build"
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-artifacts {
-    add("main", tasks.jar)
-}
-
-
-/* Used as Debug artifact */
-tasks.register<Jar>("uberJar") {
-
-    manifest {
-        attributes["Main-Class"] = "io.github.leofuso.columba.cli.MainKt"
-    }
-
     group = "build"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 

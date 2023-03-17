@@ -31,13 +31,13 @@ class DefaultSchemaFileClassifier(runner: CompileCommand) : SchemaFileClassifier
     private fun visitFile(source: File) {
         val doesntExists = source.exists().not()
         if (doesntExists) {
-            logger.lifecycle("Ignoring non-existent definition file at [${source.path}].")
+            logger.info("Ignoring non-existent definition file at [${source.path}].")
             return
         }
 
         val notReadable = source.canRead().not()
         if (notReadable) {
-            logger.lifecycle("Ignoring unreadable definition file at [${source.path}].")
+            logger.info("Ignoring unreadable definition file at [${source.path}].")
             return
         }
 
@@ -53,10 +53,10 @@ class DefaultSchemaFileClassifier(runner: CompileCommand) : SchemaFileClassifier
             }
 
             IDL_EXTENSION -> {
-                logger.lifecycle("Unsupported IDL files.")
+                logger.warn("Unsupported IDL files.")
             }
 
-            else -> logger.lifecycle(
+            else -> logger.warn(
                 "Ignoring a potential definition file having an unknown extension at [${source.path}]."
             )
         }

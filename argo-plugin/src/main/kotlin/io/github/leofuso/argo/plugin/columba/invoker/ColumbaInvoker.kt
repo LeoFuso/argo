@@ -1,12 +1,11 @@
 package io.github.leofuso.argo.plugin.columba.invoker
 
-import org.gradle.api.GradleException
+import org.apache.logging.log4j.io.IoBuilder
 import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.Logger
 import java.io.PrintStream
-import java.lang.reflect.InvocationTargetException
 
-interface CliInvoker {
+interface ColumbaInvoker {
 
     fun invoke(
         arguments: List<String>,
@@ -15,32 +14,31 @@ interface CliInvoker {
 
 }
 
-internal class DefaultCliInvoker(
+internal class DefaultColumbaInvoker(
     private val classloaderFactory: ClasspathClassLoaderFactory = GlobalClassLoaderFactory
-) : CliInvoker {
+) : ColumbaInvoker {
+
 
     override fun invoke(arguments: List<String>, classpath: FileCollection) {
-        try {
-            val classloader = classloaderFactory.produce(classpath)
-            val main = classloader.loadClass("io.github.leofuso.columba.cli.MainKt")
-            val mainMethod = main.getMethod(
-                "main",
-                Array<String>::class.java,
-                PrintStream::class.java,
-                PrintStream::class.java
-            )
-            mainMethod.invoke(null, arguments.toTypedArray(), System.out, System.err)
-        } catch (ex: InvocationTargetException) {
-            val message = ex.targetException.message
-            if (message != null) {
-                return
-            }
-            throw GradleException(message ?: "There was a problem running columba.", ex)
-        }
+
+        //val classloader = classloaderFactory.produce(classpath)
+        val main = Class.forName("io.github.leofuso.columba.cli.MainKt")
+        val mainMethod = main.getMethod(
+            "main",
+            Array<String>::class.java,
+            PrintStream::class.java,
+            PrintStream::class.java
+        )
+
+        val logger = IoBuilder
+            .forLogger(this::class.java)
+            .buildPrintStream()
+
+        mainMethod.invoke(null, arguments.toTypedArray(), logger, logger)
     }
 }
 
-internal class NoopCliInvoker(private val logger: Logger) : CliInvoker {
+internal class NoopColumbaInvoker(private val logger: Logger) : ColumbaInvoker {
 
     override fun invoke(arguments: List<String>, classpath: FileCollection) {
         logger.lifecycle("NO-OP cli invokation.")

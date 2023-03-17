@@ -1,11 +1,19 @@
 [versions]
-kotlin = "1.8.0"
+jacoco = "0.8.8"
 klint = "3.13.0"
 detekt = "1.22.0"
 sonarqube = "4.0.0.2929"
 publish = "1.1.0"
-junit = "5.9.1"
-assertj = "3.24.0"
+
+kotlin = "1.8.10"
+compiler = "1.11.1"
+jackson = "2.14.1"
+clikt = "3.5.2"
+slf4j = "2.0.6"
+log4j = "2.20.0"
+junit = "5.9.2"
+junitLauncher = "1.9.2"
+assertj = "3.24.2"
 
 [plugins]
 idea = { id = "org.gradle.idea" }
@@ -23,10 +31,23 @@ detekt = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin",
 sonarqube = { group = "org.sonarsource.scanner.gradle", name = "sonarqube-gradle-plugin", version.ref = "sonarqube" }
 publish = { group = "com.gradle.publish", name = "plugin-publish-plugin", version.ref = "publish" }
 
+clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "clikt" }
+log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
+log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
+log4j-slf4j-adapter = { group = "org.apache.logging.log4j", name = "log4j-slf4j-impl", version.ref = "log4j" }
+slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4j" }
+
+compiler = { group = "org.apache.avro", name = "avro-compiler", version.ref = "compiler" }
+jacksonDatabind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+
+junitLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitLauncher" }
 junit-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
 junit-params = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+combinatorics = { group = "com.speedment.common", name = "combinatorics", version = "3.2.10" }
+
 
 [bundles]
 junit = ["junit-api", "junit-engine", "junit-params"]

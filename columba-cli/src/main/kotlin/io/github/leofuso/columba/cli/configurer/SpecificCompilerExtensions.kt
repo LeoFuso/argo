@@ -1,4 +1,4 @@
-package io.github.leofuso.columba.cli
+package io.github.leofuso.columba.cli.configurer
 
 import org.apache.avro.Conversion
 import org.apache.avro.compiler.specific.SpecificCompiler

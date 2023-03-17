@@ -229,7 +229,7 @@ style:
   SpacingBetweenPackageAndImports:
     active: true
   TrimMultilineRawString:
-    active: true
+    active: false
   UnderscoresInNumericLiterals:
     active: true
   UnnecessaryAnnotationUseSiteTarget:

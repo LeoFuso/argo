@@ -12,8 +12,8 @@ import io.github.leofuso.argo.plugin.columba.arguments.OutputArgument
 import io.github.leofuso.argo.plugin.columba.arguments.OutputEncodingArgument
 import io.github.leofuso.argo.plugin.columba.arguments.SourceArgument
 import io.github.leofuso.argo.plugin.columba.arguments.VelocityTemplateArgument
-import io.github.leofuso.argo.plugin.columba.invoker.DefaultCliInvoker
-import io.github.leofuso.argo.plugin.columba.invoker.NoopCliInvoker
+import io.github.leofuso.argo.plugin.columba.invoker.ColumbaWorkAction
+import io.github.leofuso.argo.plugin.columba.invoker.DefaultColumbaInvoker
 import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
 import org.apache.avro.generic.GenericData.StringType
 import org.gradle.api.DefaultTask
@@ -47,7 +47,9 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.kotlin.dsl.property
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
+import org.gradle.workers.WorkerExecutor
 import java.io.File
+import javax.inject.Inject
 import kotlin.io.path.Path
 
 fun getSpecificRecordCompileBuildDirectory(project: Project, source: SourceSet): Provider<Directory> =
@@ -55,7 +57,7 @@ fun getSpecificRecordCompileBuildDirectory(project: Project, source: SourceSet):
 
 @CacheableTask
 @Suppress("TooManyFunctions")
-abstract class SpecificRecordCompilerTask : DefaultTask() {
+abstract class SpecificRecordCompilerTask @Inject constructor(private val executor: WorkerExecutor) : DefaultTask() {
 
     init {
 
@@ -229,16 +231,14 @@ abstract class SpecificRecordCompilerTask : DefaultTask() {
             logger.lifecycle("Generating SpecificRecord Java sources from all sources.")
         }
 
-        try {
-
-            DefaultCliInvoker()
-                .invoke(arguments, classpath)
-
-            didWork = true
-
-        } catch (ex: Throwable) {
-            throw TaskExecutionException(this, ex)
+        val queue = executor.processIsolation { spec ->
+            spec.classpath.from(classpath)
         }
+
+        queue.submit(ColumbaWorkAction::class.java) { parameters ->
+            parameters.arguments.set(arguments)
+        }
+
     }
 
     fun withExtension(options: ColumbaOptions) {

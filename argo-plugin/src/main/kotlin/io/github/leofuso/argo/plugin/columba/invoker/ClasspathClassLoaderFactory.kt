@@ -19,7 +19,7 @@ internal class CachedClassLoaderFactory : ClasspathClassLoaderFactory {
         return cache.getOrPut(hashCode) {
             URLClassLoader(
                 classpath.files.map { it.toURI().toURL() }.toTypedArray(),
-                this::class.java.classLoader
+                null
             )
         }
     }

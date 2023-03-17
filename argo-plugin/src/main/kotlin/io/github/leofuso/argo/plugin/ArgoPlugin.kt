@@ -3,11 +3,9 @@ package io.github.leofuso.argo.plugin
 import io.github.leofuso.argo.plugin.tasks.IDLProtocolTask
 import io.github.leofuso.argo.plugin.tasks.SpecificRecordCompilerTask
 import io.github.leofuso.argo.plugin.tasks.getSpecificRecordCompileBuildDirectory
-import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME
 import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import org.gradle.api.tasks.SourceSet
@@ -84,10 +82,12 @@ abstract class ArgoPlugin : Plugin<Project> {
 
         project.configurations.findByName(sourceSet.runtimeClasspathConfigurationName)
             ?.defaultDependencies {
-                val compilerDependency = project.dependencies.create(extension.getCompiler().get())
-                val jacksonDependency = project.dependencies.create(DEFAULT_JACKSON_DATABIND_DEPENDENCY)
-                it.add(compilerDependency)
-                it.add(jacksonDependency)
+                val cli = project.dependencies.create("io.github.leofuso.columba:columba-cli:0.1.2-SNAPSHOT")
+                val compiler = project.dependencies.create(extension.getCompiler().get())
+                val jackson = project.dependencies.create(DEFAULT_JACKSON_DATABIND_DEPENDENCY)
+                it.add(cli)
+                it.add(compiler)
+                it.add(jackson)
             }
 
         val javaTaskSourcesName = "${javaTaskName}Sources"

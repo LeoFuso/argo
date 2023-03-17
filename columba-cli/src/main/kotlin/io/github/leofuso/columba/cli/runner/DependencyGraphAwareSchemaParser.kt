@@ -1,6 +1,6 @@
 package io.github.leofuso.columba.cli.runner
 
-import io.github.leofuso.columba.cli.CommandRunner.ConsoleLogger
+import io.github.leofuso.columba.cli.CommandRunner
 import io.github.leofuso.columba.cli.command.CompileCommand
 import org.apache.avro.Protocol
 import org.apache.avro.Schema
@@ -80,7 +80,7 @@ interface DependencyGraphAwareSchemaParser {
     /**
      * Accessor to underlying [logger] implementation.
      */
-    fun logger(): ConsoleLogger
+    fun logger(): CommandRunner.SimpleLogger
 
     /**
      * A wrapper Schema(.avsc) files.

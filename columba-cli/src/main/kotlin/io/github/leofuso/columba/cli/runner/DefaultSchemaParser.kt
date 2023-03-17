@@ -53,13 +53,17 @@ class DefaultSchemaParser(private val runner: CompileCommand) : DependencyGraphA
 
         if (unresolved.isNotEmpty()) {
             val files = unresolved.map(File::getPath).reduce { acc, next -> "$acc; $next" }
-            logger.lifecycle(
+            logger.info(
                 "{} Schema(.{}) definition files remaining to be parsed. Files [{}].",
                 unresolved.size,
                 SCHEMA_EXTENSION,
                 files
             )
-            logger.lifecycle("Run in info mode (-i or --info) to get more details.")
+            if (!logger.isInfoEnabled()) {
+                logger.info(
+                    "There are some Schema definition files remaining to be parsed. Run in info mode (-i or --info) to get more details."
+                )
+            }
         }
         return definitions.toMap()
     }

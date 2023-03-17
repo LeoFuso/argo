@@ -23,11 +23,11 @@ dependencies {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(8)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
-tasks.register("generateProtocol", IDLProtocolTask) {
+tasks.register('generateProtocol', IDLProtocolTask) {
     source(file('src/dependent'))
     classpath = configurations.shared
     outputDir = file('build/protocol')
