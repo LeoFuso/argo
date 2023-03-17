@@ -93,7 +93,8 @@ kotlinter {
     experimentalRules = true
     disabledRules = arrayOf(
         "no-empty-first-line-in-method-block",
-        "no-blank-line-before-rbrace"
+        "no-blank-line-before-rbrace",
+        "no-wildcard-imports"
     )
 }
 

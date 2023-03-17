@@ -29,7 +29,7 @@ abstract class ArgoPlugin : Plugin<Project> {
             project.logger.info("Using Gradle ${project.gradle.gradleVersion}.")
 
             /* Columba Setup */
-            //addApacheAvroCompilerDependencyConfiguration(project, extension.getColumba())
+            // addApacheAvroCompilerDependencyConfiguration(project, extension.getColumba())
             project.extensions.getByType<SourceSetContainer>()
                 .configureEach { source ->
                     configureColumbaTasks(project, extension.getColumba(), source)

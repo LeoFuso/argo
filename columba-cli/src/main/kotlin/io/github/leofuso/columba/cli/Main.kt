@@ -42,7 +42,7 @@ class CommandRunner(private val out: PrintStream, private val err: PrintStream) 
             "--log",
             "-l",
             help = "A general LogLevel configuration."
-        ).enum()
+        ).enum(ignoreCase = true)
     )
         .single()
         .default(LogLevel.LIFECYCLE)

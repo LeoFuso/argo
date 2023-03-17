@@ -42,8 +42,8 @@ dependencies {
 
     api(libs.clikt) { because("Facilitate CLI implementation.") }
 
-    compileOnly(libs.compiler) { because("Decoupling the runtime environment. A user can choose the compiler version.") }
-    compileOnly(libs.jacksonDatabind) { because("The version of the compiler has a security issue associated with this dependency.") }
+    implementation(libs.compiler) { because("Decoupling the runtime environment. A user can choose the compiler version.") }
+    implementation(libs.jacksonDatabind) { because("The version of the compiler has a security issue associated with this dependency.") }
 
     runtimeOnly(libs.slf4j.simple) { because("libs.compiler depends on SLF4J.") }
 

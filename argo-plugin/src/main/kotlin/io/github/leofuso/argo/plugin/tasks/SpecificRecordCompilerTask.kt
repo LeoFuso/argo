@@ -7,13 +7,7 @@ import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
 import io.github.leofuso.argo.plugin.ZIP_EXTENSION
 import io.github.leofuso.argo.plugin.columba.arguments.*
-import io.github.leofuso.argo.plugin.columba.arguments.CliArgument
-import io.github.leofuso.argo.plugin.columba.arguments.OutputArgument
-import io.github.leofuso.argo.plugin.columba.arguments.OutputEncodingArgument
-import io.github.leofuso.argo.plugin.columba.arguments.SourceArgument
-import io.github.leofuso.argo.plugin.columba.arguments.VelocityTemplateArgument
 import io.github.leofuso.argo.plugin.columba.invoker.ColumbaWorkAction
-import io.github.leofuso.argo.plugin.columba.invoker.DefaultColumbaInvoker
 import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
 import org.apache.avro.generic.GenericData.StringType
 import org.gradle.api.DefaultTask
@@ -23,6 +17,7 @@ import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileType
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
@@ -40,7 +35,6 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
@@ -97,7 +91,9 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
     @get:Internal
     var pattern: PatternFilterable
         get() = _pattern
-        set(value) { _pattern.copyFrom(value) }
+        set(value) {
+            _pattern.copyFrom(value)
+        }
 
     @get:Classpath
     @get:InputFiles
@@ -111,22 +107,26 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
 
     @get:Internal
     internal val arguments
-        get() = listOf("compile") + listOf(
-            SourceArgument(getSources()),
-            OutputArgument(getOutputDir()),
-            OutputEncodingArgument(getEncoding()),
-            VelocityTemplateArgument(getVelocityTemplateDirectory()),
-            VelocityToolsArgument(getAdditionalVelocityTools()),
-            ConverterArgument(getAdditionalConverters()),
-            LogicalTypeFactoryArgument(getAdditionalLogicalTypeFactories()),
-            StringTypeArgument(getStringType()),
-            FieldVisibilityArgument(getFieldVisibility()),
-            AllowSettersArgument(noSetters.map { it.not() }),
-            UseDecimalTypeArgument(useDecimalType),
-            ExtraOptionalGettersArgument(addExtraOptionalGetters),
-            UseOptionalGettersOnlyArgument(useOptionalGetters),
-            UseOptionalGettersForNullableFieldsOnlyArgument(optionalGettersForNullableFieldsOnly)
-        ).flatMap(CliArgument::args)
+        get() =
+            LoggerArgument(logger).args() +
+                listOf("compile") +
+                listOf(
+                    SourceArgument(getSources()),
+                    OutputArgument(getOutputDir()),
+                    OutputEncodingArgument(getEncoding()),
+                    VelocityTemplateArgument(getVelocityTemplateDirectory()),
+                    VelocityToolsArgument(getAdditionalVelocityTools()),
+                    ConverterArgument(getAdditionalConverters()),
+                    LogicalTypeFactoryArgument(getAdditionalLogicalTypeFactories()),
+                    StringTypeArgument(getStringType()),
+                    FieldVisibilityArgument(getFieldVisibility()),
+                    AllowSettersArgument(noSetters.map { it.not() }),
+                    UseDecimalTypeArgument(useDecimalType),
+                    ExtraOptionalGettersArgument(addExtraOptionalGetters),
+                    UseOptionalGettersOnlyArgument(useOptionalGetters),
+                    UseOptionalGettersForNullableFieldsOnlyArgument(optionalGettersForNullableFieldsOnly)
+                )
+                    .flatMap(CliArgument::args)
 
     @OutputDirectory
     abstract fun getOutputDir(): DirectoryProperty
@@ -154,7 +154,7 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
             if (it.isNotEmpty()) {
                 logger.lifecycle("Found '${it.size}' definition files in the classpath.")
                 if (logger.isInfoEnabled) {
-                    logger.info("Applying source(${it.joinToString(", ") {file -> "'${File.separator}${file.name}'" }}).")
+                    logger.info("Applying source(${it.joinToString(", ") { file -> "'${File.separator}${file.name}'" }}).")
                 }
             }
 
@@ -235,8 +235,10 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
             spec.classpath.from(classpath)
         }
 
+        project.logging.captureStandardOutput(LogLevel.LIFECYCLE)
         queue.submit(ColumbaWorkAction::class.java) { parameters ->
             parameters.arguments.set(arguments)
+            parameters.noop.set(false)
         }
 
     }

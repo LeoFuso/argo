@@ -9,10 +9,15 @@ import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 import java.lang.reflect.InvocationTargetException
 
-
 abstract class ColumbaWorkAction : WorkAction<ColumbaWorkParameters> {
 
     override fun execute() {
+
+        if (parameters.noop.isPresent && parameters.noop.get()) {
+            NoopColumbaInvoker()
+                .invoke(parameters.arguments.get(), parameters.classpath)
+            return
+        }
 
         try {
 

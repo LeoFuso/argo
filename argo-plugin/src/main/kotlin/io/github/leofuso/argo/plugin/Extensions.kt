@@ -7,8 +7,6 @@ import org.apache.avro.generic.GenericData.StringType
 import org.apache.avro.specific.SpecificData
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.util.PatternFilterable
-import org.gradle.api.tasks.util.PatternSet
 import java.io.File
 
 fun SpecificCompiler.getCharacterEncoding(): String {
@@ -51,13 +49,11 @@ fun SpecificCompiler.getConverters(): List<Conversion<*>> {
 fun Protocol.path(): String =
     namespace.replace(NAMESPACE_SEPARATOR, File.separator) + File.separator + name + EXTENSION_SEPARATOR + PROTOCOL_EXTENSION
 
-fun SourceSet.configurationNameOf(base: String) =
-    this.javaClass.getMethod("configurationNameOf", String::class.java)
-        .let {
-            it.isAccessible = true
-            it.invoke(this, base) as String
-        }
-
+fun SourceSet.configurationNameOf(base: String) = this.javaClass.getMethod("configurationNameOf", String::class.java)
+    .let {
+        it.isAccessible = true
+        it.invoke(this, base) as String
+    }
 
 fun Project.addCompileOnlyConfiguration(name: String, description: String, source: SourceSet) =
     this.configurations.findByName(source.compileOnlyConfigurationName)?.let {

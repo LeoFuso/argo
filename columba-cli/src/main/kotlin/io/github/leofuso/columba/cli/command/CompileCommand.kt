@@ -45,7 +45,7 @@ class CompileCommand : CliktCommand(
 
     val outputEncoding by option(
         "-o",
-        "--output-enconding",
+        "--output-encoding",
         help = "Encoding for the generated classes."
     )
         .default("UTF-8")
