@@ -16,6 +16,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.enum
 import io.github.leofuso.columba.cli.ConsoleLogger.*
 import io.github.leofuso.columba.cli.command.CompileCommand
+import io.github.leofuso.columba.cli.command.GenerateProtocolCommand
 import java.io.PrintStream
 
 class CommandRunner(private val out: PrintStream, private val err: PrintStream) : CliktCommand(
@@ -108,5 +109,5 @@ class CommandRunner(private val out: PrintStream, private val err: PrintStream) 
 fun main(args: Array<String>) = main(args, System.out, System.err)
 
 fun main(args: Array<String>, out: PrintStream, err: PrintStream) = CommandRunner(out, err)
-    .subcommands(CompileCommand())
+    .subcommands(CompileCommand(), GenerateProtocolCommand())
     .main(args)
