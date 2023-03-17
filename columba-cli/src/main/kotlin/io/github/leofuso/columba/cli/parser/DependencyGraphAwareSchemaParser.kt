@@ -40,7 +40,7 @@ interface DependencyGraphAwareSchemaParser {
         val classifier = getClassifier()
         val emptyResolution = Resolution(schemas = mapOf(), protocol = mapOf())
 
-        val classification= classifier.classify(sources)
+        val classification = classifier.classify(sources)
         return classification.map { entry ->
             when (entry.key) {
                 SchemaFileClassifier.FileClassification.Schema -> {

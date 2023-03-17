@@ -8,14 +8,10 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.arguments.unique
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.file
 import io.github.leofuso.columba.cli.*
-import io.github.leofuso.columba.cli.parser.SpecificCompilerRunner
-import org.apache.avro.compiler.idl.Idl
-import java.io.File
-import java.nio.file.Files
+import io.github.leofuso.columba.cli.generate.IDLProtocolGenerator
 
 class GenerateProtocolCommand : CliktCommand(
     name = "generate-protocol",
@@ -47,30 +43,26 @@ class GenerateProtocolCommand : CliktCommand(
     private val dest by argument()
         .file(canBeFile = false)
 
+    private val classpath by option(
+        "--classpath",
+        "-c",
+        help = """
+          
+           Use this option to add additional IDLs to the classpath 
+           by passing its paths, separated by ';'.
+           
+        """
+    )
+        .file(mustExist = true, mustBeReadable = true, canBeDir = false)
+        .split(";")
+        .default(listOf())
+        .unique()
+
     override fun run() {
         logger.lifecycle("Generating protocol from $sources on $dest.")
-
-        val parsed = mutableSetOf<String>()
-        sources.forEach {
-
-            val idl = Idl(it)
-            val protocol = idl.CompilationUnit()
-            val content = protocol.toString(true)
-            val path = protocol.path()
-
-            if (parsed.contains(path)) {
-                throw
-                    IllegalStateException(
-                        "Invalid Protocol [$path]. There's already another Protocol defined in the classpath with the same name."
-                    )
+        IDLProtocolGenerator(classpath, logger)
+            .use {
+                it.generate(sources, dest)
             }
-
-            logger.lifecycle("Writing Protocol($PROTOCOL_EXTENSION) to ['$path'].")
-            val output = File(dest, path)
-            Files.createDirectories(output.parentFile.toPath())
-            Files.createFile(output.toPath())
-            output.writeText(content)
-            parsed.add(path)
-        }
     }
 }
