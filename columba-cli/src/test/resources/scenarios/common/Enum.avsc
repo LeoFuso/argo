@@ -1,0 +1,10 @@
+{
+    "name": "Enum",
+    "namespace": "io.github.leofuso.argo.plugin.parser",
+    "type": "enum",
+    "symbols": [
+        "FIRST",
+        "Second",
+        "third"
+    ]
+}

@@ -1,0 +1,30 @@
+{
+    "name": "UseRecordWithArray",
+    "namespace": "io.github.leofuso.argo.plugin.parser",
+    "type": "record",
+    "fields": [
+        {
+            "name": "firstField",
+            "type": {
+                "type": "array",
+                "items": "Record"
+            }
+        },
+        {
+            "name": "secondField",
+            "type": {
+                "type": "array",
+                "items": "Enum"
+            }
+        },
+        {
+            "name": "thirdField",
+            "type": {
+                "type": "array",
+                "items": {
+                    "type": "Fixed"
+                }
+            }
+        }
+    ]
+}

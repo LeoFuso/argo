@@ -1,4 +1,4 @@
-package io.github.leofuso.columba.cli.runner
+package io.github.leofuso.columba.cli.parser
 
 import io.github.leofuso.columba.cli.command.CompileCommand
 import io.github.leofuso.columba.cli.configurer.SpecificCompilerConfigurer

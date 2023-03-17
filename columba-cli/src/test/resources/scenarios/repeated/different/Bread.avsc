@@ -1,0 +1,11 @@
+{
+    "name": "Breed",
+    "namespace": "io.github.leofuso.argo.plugin.parser",
+    "type": "record",
+    "fields": [
+        {
+            "name": "type",
+            "type": "string"
+        }
+    ]
+}

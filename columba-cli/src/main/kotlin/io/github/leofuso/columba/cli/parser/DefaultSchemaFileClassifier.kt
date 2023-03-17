@@ -1,23 +1,16 @@
-package io.github.leofuso.columba.cli.runner
+package io.github.leofuso.columba.cli.parser
 
-import io.github.leofuso.columba.cli.IDL_EXTENSION
-import io.github.leofuso.columba.cli.PROTOCOL_EXTENSION
-import io.github.leofuso.columba.cli.SCHEMA_EXTENSION
-import io.github.leofuso.columba.cli.command.CompileCommand
+import io.github.leofuso.columba.cli.*
 import java.io.File
 
-class DefaultSchemaFileClassifier(runner: CompileCommand) : SchemaFileClassifier {
+class DefaultSchemaFileClassifier(private val sources: Collection<File>, private val logger: ConsoleLogger) : SchemaFileClassifier {
 
-    private val logger = runner.logger
-
-    private val sources = runner.source
     private val schemaQueue = mutableListOf<File>()
     private val protocolQueue = mutableListOf<File>()
 
     override fun dequeue(): Map<SchemaFileClassifier.FileClassification, Collection<File>> {
 
         sources.forEach(::visitFile)
-
         val queue = mapOf(
             SchemaFileClassifier.FileClassification.Schema to schemaQueue.toList(),
             SchemaFileClassifier.FileClassification.Protocol to protocolQueue.toList()

@@ -1,0 +1,24 @@
+{
+    "name": "Person",
+    "namespace": "example",
+    "type": "record",
+    "fields": [
+        { "name": "name", "type": "string" },
+        {
+            "name": "gender",
+            "type": {
+                "name": "Gender",
+                "type": "enum",
+                "symbols": [ "MALE", "FEMALE" ]
+            }
+        },
+        {
+            "name": "order",
+            "type": {
+                "name": "Order",
+                "type": "enum",
+                "symbols": [ "FIRST", "SECOND" ]
+            }
+        }
+    ]
+}

@@ -11,10 +11,10 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
-import io.github.leofuso.columba.cli.CommandRunner
+import io.github.leofuso.columba.cli.ConsoleLogger
 import io.github.leofuso.columba.cli.PROTOCOL_EXTENSION
 import io.github.leofuso.columba.cli.SCHEMA_EXTENSION
-import io.github.leofuso.columba.cli.runner.SpecificCompilerRunner
+import io.github.leofuso.columba.cli.parser.SpecificCompilerRunner
 
 class CompileCommand : CliktCommand(
     name = "compile",
@@ -36,7 +36,7 @@ class CompileCommand : CliktCommand(
         }
     }
 
-    val logger by requireObject<CommandRunner.SimpleLogger>()
+    val logger by requireObject<ConsoleLogger>()
 
     val fields by FieldOptions()
     val accessors by AccessorOptions()

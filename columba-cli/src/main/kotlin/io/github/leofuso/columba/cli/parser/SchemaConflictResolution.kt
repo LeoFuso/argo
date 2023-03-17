@@ -1,6 +1,6 @@
-package io.github.leofuso.columba.cli.runner
+package io.github.leofuso.columba.cli.parser
 
-import io.github.leofuso.columba.cli.CommandRunner.SimpleLogger
+import io.github.leofuso.columba.cli.ConsoleLogger
 import io.github.leofuso.columba.cli.SCHEMA_EXTENSION
 import io.github.leofuso.columba.cli.exceptions.NonDeterministicSchemaResolutionException
 import org.apache.avro.Schema
@@ -8,7 +8,7 @@ import org.apache.avro.SchemaParseException
 import java.io.File
 import java.util.regex.Pattern
 
-class SchemaConflictResolution(private val logger: SimpleLogger, private val pattern: Pattern, discoveredTypes: Map<String, Schema>) {
+class SchemaConflictResolution(private val logger: ConsoleLogger, private val pattern: Pattern, discoveredTypes: Map<String, Schema>) {
 
     private val types: MutableMap<String, Schema> = mutableMapOf()
 

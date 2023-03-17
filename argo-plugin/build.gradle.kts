@@ -9,9 +9,6 @@ version = Versions.ARGO
 
 dependencies {
     implementation(libs.compiler)
-    implementation("org.slf4j:slf4j-api:2.0.6")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.20.0")
-    implementation("org.apache.logging.log4j:log4j-iostreams:2.20.0")
     testRuntimeOnly(libs.junitLauncher)
     testImplementation(libs.bundles.junit)
     testImplementation(libs.assertj)

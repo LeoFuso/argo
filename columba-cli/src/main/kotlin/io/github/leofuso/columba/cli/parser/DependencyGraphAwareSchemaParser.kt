@@ -1,6 +1,6 @@
-package io.github.leofuso.columba.cli.runner
+package io.github.leofuso.columba.cli.parser
 
-import io.github.leofuso.columba.cli.CommandRunner
+import io.github.leofuso.columba.cli.ConsoleLogger
 import io.github.leofuso.columba.cli.command.CompileCommand
 import org.apache.avro.Protocol
 import org.apache.avro.Schema
@@ -11,7 +11,7 @@ import java.util.function.Supplier
  * A [Supplier] for a [DependencyGraphAwareSchemaParser].
  */
 class SchemaParserSupplier(private val command: CompileCommand) : Supplier<DependencyGraphAwareSchemaParser> {
-    override fun get(): DependencyGraphAwareSchemaParser = DefaultSchemaParser(command)
+    override fun get(): DependencyGraphAwareSchemaParser = DefaultSchemaParser(command.source, command.logger)
 }
 
 /**
@@ -80,7 +80,7 @@ interface DependencyGraphAwareSchemaParser {
     /**
      * Accessor to underlying [logger] implementation.
      */
-    fun logger(): CommandRunner.SimpleLogger
+    fun logger(): ConsoleLogger
 
     /**
      * A wrapper Schema(.avsc) files.

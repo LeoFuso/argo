@@ -1,18 +1,18 @@
-package io.github.leofuso.columba.cli.runner
+package io.github.leofuso.columba.cli.parser
 
+import io.github.leofuso.columba.cli.ConsoleLogger
 import io.github.leofuso.columba.cli.SCHEMA_EXTENSION
-import io.github.leofuso.columba.cli.command.CompileCommand
 import org.apache.avro.Schema
 import org.apache.avro.SchemaParseException
 import java.io.File
 import java.util.regex.Pattern
 
-class DefaultSchemaParser(private val runner: CompileCommand) : DependencyGraphAwareSchemaParser {
-
-    private val logger = runner.logger
+class DefaultSchemaParser(sources: Collection<File>, private val logger: ConsoleLogger) : DependencyGraphAwareSchemaParser {
 
     private val undefinedPattern = Pattern.compile("(?i).*(undefined name|not a defined name|type not supported).*")
     private val duplicatedPattern = Pattern.compile("Can't redefine: (.*)")
+
+    private val classifier = DefaultSchemaFileClassifier(sources, logger)
 
     override fun doParse(schemas: DependencyGraphAwareSchemaParser.Schemas): Map<String, Schema> {
 
@@ -68,7 +68,7 @@ class DefaultSchemaParser(private val runner: CompileCommand) : DependencyGraphA
         return definitions.toMap()
     }
 
-    override fun getClassifier() = DefaultSchemaFileClassifier(runner)
+    override fun getClassifier() = classifier
 
     private fun findSchema(parser: Schema.Parser, source: File, queue: ArrayDeque<File>): Map<String, Schema>? {
         val conflictResolution = SchemaConflictResolution(logger, duplicatedPattern, parser.types)

@@ -14,21 +14,14 @@ import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.enum
+import io.github.leofuso.columba.cli.ConsoleLogger.*
 import io.github.leofuso.columba.cli.command.CompileCommand
-import org.slf4j.helpers.MessageFormatter
 import java.io.PrintStream
 
 class CommandRunner(private val out: PrintStream, private val err: PrintStream) : CliktCommand(
     name = "Columba",
     printHelpOnEmptyArgs = true
 ) {
-
-    /**
-     * The log levels supported by Gradle.
-     */
-    enum class LogLevel {
-        DEBUG, INFO, LIFECYCLE, WARN, QUIET, ERROR
-    }
 
     private val logLevel by mutuallyExclusiveOptions(
         option(
@@ -80,52 +73,34 @@ class CommandRunner(private val out: PrintStream, private val err: PrintStream) 
     /**
      * Exposes a limited Logger-like instance.
      */
-    @Suppress("MemberVisibilityCanBePrivate", "unused")
-    inner class SimpleLogger {
+    inner class SimpleLogger : ConsoleLogger {
 
         private val command = this@CommandRunner
 
-        private fun format(message: String?, vararg args: Any?): String? {
-            if (args.size > 1) {
-                return MessageFormatter.arrayFormat(message, args).message
-            }
-            return MessageFormatter.format(message, args[0]).message
+        private val lineSeparator
+            get() = command.currentContext.console.lineSeparator
+
+        override fun getLogLevel(): LogLevel = command.logLevel
+
+        override fun lifecycle(message: String?) = if (isLifecycleEnabled()) {
+            command.echo(message, true, false, lineSeparator)
+        } else {
+            Unit
         }
 
-        fun getLogLevel(): LogLevel = command.logLevel
+        override fun info(message: String?) = if (isInfoEnabled()) {
+            command.echo(message, true, false, lineSeparator)
+        } else {
+            Unit
+        }
 
-        private fun isLogEnabled(target: LogLevel) = command.logLevel.ordinal <= target.ordinal
+        override fun warn(message: String?) = if (isWarnEnabled()) {
+            command.echo("\u001B[33m$message\u001B[0m", true, false, lineSeparator)
+        } else {
+            Unit
+        }
 
-        fun isInfoEnabled() = isLogEnabled(LogLevel.INFO)
-
-        fun isLifecycleEnabled() = isLogEnabled(LogLevel.LIFECYCLE)
-
-        fun isWarnEnabled() = isLogEnabled(LogLevel.WARN)
-
-        fun isQuietEnabled() = isLogEnabled(LogLevel.QUIET)
-
-        fun lifecycle(message: String?, vararg arguments: Any?) = lifecycle(format(message, *arguments))
-
-        fun info(message: String?, vararg arguments: Any?) = info(format(message, *arguments))
-
-        fun warn(message: String?, vararg arguments: Any?) = warn(format(message, *arguments))
-
-        fun error(message: String?, vararg arguments: Any?) = error(format(message, *arguments))
-
-        fun lifecycle(
-            message: String?,
-            trailingNewline: Boolean = true,
-            lineSeparator: String = command.currentContext.console.lineSeparator
-        ) = if (isLifecycleEnabled()) command.echo(message, trailingNewline, false, lineSeparator) else Unit
-
-        fun info(message: String?, trailingNewline: Boolean = true, lineSeparator: String = command.currentContext.console.lineSeparator) =
-            if (isInfoEnabled()) command.echo(message, trailingNewline, false, lineSeparator) else Unit
-
-        fun warn(message: String?, trailingNewline: Boolean = true, lineSeparator: String = command.currentContext.console.lineSeparator) =
-            if (isWarnEnabled()) command.echo("\u001B[33m$message\u001B[0m", trailingNewline, false, lineSeparator) else Unit
-
-        fun error(message: String?, trailingNewline: Boolean = true, lineSeparator: String = command.currentContext.console.lineSeparator) =
-            command.echo(message, trailingNewline, true, lineSeparator)
+        override fun error(message: String?) = command.echo(message, true, true, lineSeparator)
     }
 
 }

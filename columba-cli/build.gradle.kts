@@ -49,6 +49,7 @@ dependencies {
 
     testRuntimeOnly(libs.junitLauncher)
     testRuntimeOnly(libs.compiler)
+    testRuntimeOnly(libs.slf4j.simple) { because("libs.compiler depends on SLF4J.") }
     testImplementation(libs.bundles.junit)
     testImplementation(libs.assertj)
     testImplementation(libs.combinatorics)
