@@ -11,7 +11,7 @@ import java.util.function.Supplier
  * A [Supplier] for a [DependencyGraphAwareSchemaParser].
  */
 class SchemaParserSupplier(private val command: CompileCommand) : Supplier<DependencyGraphAwareSchemaParser> {
-    override fun get(): DependencyGraphAwareSchemaParser = DefaultSchemaParser(command.source, command.logger)
+    override fun get(): DependencyGraphAwareSchemaParser = DefaultSchemaParser(command.logger)
 }
 
 /**
@@ -33,15 +33,15 @@ interface DependencyGraphAwareSchemaParser {
     /**
      * Parse all definition schemas from the provided sources, returning all successful resolutions.
      */
-    fun parse(): Resolution {
+    fun parse(sources: Collection<File>): Resolution {
 
         logger().lifecycle("Commencing Source file parsing.")
 
         val classifier = getClassifier()
         val emptyResolution = Resolution(schemas = mapOf(), protocol = mapOf())
 
-        val queue = classifier.dequeue()
-        return queue.map { entry ->
+        val classification= classifier.classify(sources)
+        return classification.map { entry ->
             when (entry.key) {
                 SchemaFileClassifier.FileClassification.Schema -> {
                     logger().lifecycle("Found {} Schema's definition files to be resolved.", entry.value.size)
@@ -106,9 +106,9 @@ interface SchemaFileClassifier {
     enum class FileClassification { Schema, Protocol }
 
     /**
-     * Dequeue all found definitions.
+     * Classify all found definition files.
      */
-    fun dequeue(): Map<FileClassification, Collection<File>>
+    fun classify(files: Collection<File>): Map<FileClassification, Collection<File>>
 }
 
 private sealed class SomeResolution(val schema: Map<String, Schema>, val protocol: Map<String, Protocol>)

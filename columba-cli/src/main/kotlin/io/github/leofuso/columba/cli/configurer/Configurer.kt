@@ -6,7 +6,7 @@ import org.apache.avro.Schema
 import org.apache.avro.compiler.specific.SpecificCompiler
 import java.io.File
 
-class SpecificCompilerConfigurer(private val command: CompileCommand) {
+internal class Configurer(private val command: CompileCommand) {
 
     private val logger = command.logger
 

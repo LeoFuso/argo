@@ -50,7 +50,7 @@ class CompileCommand : CliktCommand(
     )
         .default("UTF-8")
 
-    val source by argument()
+    val sources by argument()
         .file(mustExist = true, mustBeReadable = true, canBeDir = false)
         .multiple()
         .unique()
@@ -59,7 +59,7 @@ class CompileCommand : CliktCommand(
         .file(canBeFile = false)
 
     override fun run() {
-        logger.lifecycle("Compiling $source to $dest.")
+        logger.lifecycle("Compiling $sources to $dest.")
         SpecificCompilerRunner(this)
             .run()
 

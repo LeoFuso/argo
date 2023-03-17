@@ -11,13 +11,13 @@ import org.junit.jupiter.api.Test
 @DisplayName("ProtocolParser: Unit tests related to handling Protocol type definitions.")
 class ProtocolParserTest {
 
-    private val logger = object : ConsoleLogger {
+    private val subject = DefaultSchemaParser(object : ConsoleLogger {
         override fun getLogLevel() = ConsoleLogger.LogLevel.INFO
         override fun lifecycle(message: String?) = println(message)
         override fun info(message: String?) = println(message)
         override fun warn(message: String?) = println(message)
         override fun error(message: String?) = println(message)
-    }
+    })
 
     @Test
     @DisplayName(
@@ -31,12 +31,9 @@ class ProtocolParserTest {
         /* Given */
         val resource = loadResource("scenarios/protocol/mail.avpr")
         val source = listOf(resource)
-        val subject = DefaultSchemaParser(
-            source,
-            logger
-        )
+
         /* When */
-        val resolution = subject.parse()
+        val resolution = subject.parse(source)
 
         /* Then */
         assertThat(resolution)

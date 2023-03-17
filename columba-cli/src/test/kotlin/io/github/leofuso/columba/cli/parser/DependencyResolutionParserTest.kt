@@ -18,13 +18,13 @@ import java.util.*
 @DisplayName("SchemaParser: Unit tests related to dependency resolution of type definitions.")
 class DependencyResolutionParserTest {
 
-    private val logger = object : ConsoleLogger {
+    private val subject = DefaultSchemaParser(object : ConsoleLogger {
         override fun getLogLevel() = ConsoleLogger.LogLevel.INFO
         override fun lifecycle(message: String?) = println(message)
         override fun info(message: String?) = println(message)
         override fun warn(message: String?) = println(message)
         override fun error(message: String?) = println(message)
-    }
+    })
 
     @Test
     @DisplayName(
@@ -38,10 +38,9 @@ class DependencyResolutionParserTest {
 
         /* Given */
         val resource = loadResource("scenarios/common/Record.avsc")
-        val subject = DefaultSchemaParser(listOf(resource), logger)
 
         /* When */
-        val resolution = subject.parse()
+        val resolution = subject.parse(listOf(resource))
 
         /* Then */
         assertThat(resolution)
@@ -72,11 +71,8 @@ class DependencyResolutionParserTest {
 
                 DynamicTest.dynamicTest("Scenario ${permutation.key}") {
 
-                    /* Given */
-                    val subject = DefaultSchemaParser(permutation.value, logger)
-
                     /* When */
-                    val resolution = subject.parse()
+                    val resolution = subject.parse(permutation.value)
 
                     /* Then */
                     assertThat(resolution)
@@ -104,11 +100,8 @@ class DependencyResolutionParserTest {
     )
     fun t2() = scenarios("scenarios/missing/leaf") {
 
-        /* Given */
-        val subject = DefaultSchemaParser(it, logger)
-
         /* When */
-        val resolution = subject.parse()
+        val resolution = subject.parse(it)
 
         /* Then */
         assertThat(resolution)
@@ -127,11 +120,8 @@ class DependencyResolutionParserTest {
     )
     fun t3() = scenarios("scenarios/missing/root") {
 
-        /* Given */
-        val subject = DefaultSchemaParser(it, logger)
-
         /* When */
-        val resolution = subject.parse()
+        val resolution = subject.parse(it)
 
         /* Then */
         assertThat(resolution)
@@ -158,11 +148,8 @@ class DependencyResolutionParserTest {
     )
     fun t4() = scenarios("scenarios/missing/middle") {
 
-        /* Given */
-        val subject = DefaultSchemaParser(it, logger)
-
         /* When */
-        val resolution = subject.parse()
+        val resolution = subject.parse(it)
 
         /* Then */
         assertThat(resolution)
@@ -189,10 +176,9 @@ class DependencyResolutionParserTest {
 
         /* Given */
         val source = listOf(loadResource("scenarios/inline/obs.receipt.avsc"))
-        val subject = DefaultSchemaParser(source, logger)
 
         /* When */
-        val resolution = subject.parse()
+        val resolution = subject.parse(source)
 
         /* Then */
         assertThat(resolution)
@@ -220,11 +206,8 @@ class DependencyResolutionParserTest {
     )
     fun t6() = scenarios("scenarios/reference/chain") {
 
-        /* Given */
-        val subject = DefaultSchemaParser(it, logger)
-
         /* When */
-        val resolution = subject.parse()
+        val resolution = subject.parse(it)
 
         /* Then */
         assertThat(resolution)

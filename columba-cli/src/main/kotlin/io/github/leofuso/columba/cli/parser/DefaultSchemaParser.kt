@@ -7,12 +7,12 @@ import org.apache.avro.SchemaParseException
 import java.io.File
 import java.util.regex.Pattern
 
-class DefaultSchemaParser(sources: Collection<File>, private val logger: ConsoleLogger) : DependencyGraphAwareSchemaParser {
+class DefaultSchemaParser(private val logger: ConsoleLogger) : DependencyGraphAwareSchemaParser {
 
     private val undefinedPattern = Pattern.compile("(?i).*(undefined name|not a defined name|type not supported).*")
     private val duplicatedPattern = Pattern.compile("Can't redefine: (.*)")
 
-    private val classifier = DefaultSchemaFileClassifier(sources, logger)
+    private val classifier = DefaultSchemaFileClassifier(logger)
 
     override fun doParse(schemas: DependencyGraphAwareSchemaParser.Schemas): Map<String, Schema> {
 

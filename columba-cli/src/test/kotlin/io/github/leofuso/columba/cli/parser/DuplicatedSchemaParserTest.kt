@@ -21,13 +21,13 @@ import org.junit.jupiter.api.TestFactory
 @DisplayName("SchemaParser: Unit tests related to handling of duplicate type definitions.")
 class DuplicatedSchemaParserTest {
 
-    private val logger = object : ConsoleLogger {
+    private val subject = DefaultSchemaParser(object : ConsoleLogger {
         override fun getLogLevel() = ConsoleLogger.LogLevel.INFO
         override fun lifecycle(message: String?) = println(message)
         override fun info(message: String?) = println(message)
         override fun warn(message: String?) = println(message)
         override fun error(message: String?) = println(message)
-    }
+    })
 
     @Test
     @DisplayName(
@@ -43,7 +43,7 @@ class DuplicatedSchemaParserTest {
         val source = listOf(loadResource("scenarios/repeated/SingleFile.avsc"))
 
         /* When then */
-        assertThatThrownBy { DefaultSchemaParser(source, logger).parse() }
+        assertThatThrownBy { subject.parse(source) }
             .isInstanceOf(NonDeterministicSchemaResolutionException::class.java)
             .hasMessageContaining("[io.github.leofuso.argo.plugin.parser.Date]")
     }
@@ -62,7 +62,7 @@ class DuplicatedSchemaParserTest {
         val source = listOf(loadResource("scenarios/repeated/SingleFileDifferent.avsc"))
 
         /* When then */
-        assertThatThrownBy { DefaultSchemaParser(source, logger).parse() }
+        assertThatThrownBy { subject.parse(source) }
             .isInstanceOf(NonDeterministicSchemaResolutionException::class.java)
             .hasMessageContaining("[io.github.leofuso.argo.plugin.parser.Date]")
     }
@@ -77,11 +77,8 @@ class DuplicatedSchemaParserTest {
     )
     fun t2() = scenarios("scenarios/repeated/equal") {
 
-        /* Given */
-        val subject = DefaultSchemaParser(it, logger)
-
         /* When */
-        val resolution = subject.parse()
+        val resolution = subject.parse(it)
 
         /* Then */
         assertThat(resolution)
@@ -103,7 +100,7 @@ class DuplicatedSchemaParserTest {
     )
     fun t3() = scenarios("scenarios/repeated/different") {
         /* When then */
-        assertThatThrownBy { DefaultSchemaParser(it, logger).parse() }
+        assertThatThrownBy { subject.parse(it) }
             .isInstanceOf(NonDeterministicSchemaResolutionException::class.java)
             .hasMessageContaining("[io.github.leofuso.argo.plugin.parser.Breed]")
     }
@@ -118,11 +115,8 @@ class DuplicatedSchemaParserTest {
     )
     fun t4() = scenarios("scenarios/repeated/nested/equal") {
 
-        /* Given */
-        val subject = DefaultSchemaParser(it, logger)
-
         /* When */
-        val resolution = subject.parse()
+        val resolution = subject.parse(it)
 
         /* Then */
         assertThat(resolution)
@@ -146,7 +140,7 @@ class DuplicatedSchemaParserTest {
     )
     fun t5() = scenarios("scenarios/repeated/nested/different") {
         /* When Then */
-        assertThatThrownBy { DefaultSchemaParser(it, logger).parse() }
+        assertThatThrownBy { subject.parse(it) }
             .isInstanceOf(NonDeterministicSchemaResolutionException::class.java)
             .hasMessageContaining("[example.Gender]")
     }
@@ -169,11 +163,8 @@ class DuplicatedSchemaParserTest {
 
                 DynamicTest.dynamicTest("Scenario ${permutation.key}") {
 
-                    /* Given */
-                    val subject = DefaultSchemaParser(permutation.value, logger)
-
                     /* When */
-                    val resolution = subject.parse()
+                    val resolution = subject.parse(permutation.value)
 
                     /* Then */
                     assertThat(resolution)
@@ -207,7 +198,7 @@ class DuplicatedSchemaParserTest {
 
                 DynamicTest.dynamicTest("Scenario ${permutation.key}") {
                     /* When then */
-                    assertThatThrownBy { DefaultSchemaParser(permutation.value, logger).parse() }
+                    assertThatThrownBy { subject.parse(permutation.value) }
                         .isInstanceOf(NonDeterministicSchemaResolutionException::class.java)
                         .hasMessageContaining("[example.Picture]")
                 }
