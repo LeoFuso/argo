@@ -50,7 +50,12 @@ class IDLProtocolTaskTest {
                 id 'java'
                 id 'io.github.leofuso.argo' apply false
             }
-            
+
+            repositories {
+                mavenLocal()
+                mavenCentral()
+            }
+                        
             configurations {
                 shared {
                     canBeConsumed = false
@@ -116,11 +121,16 @@ class IDLProtocolTaskTest {
                 id 'java'
                 id 'io.github.leofuso.argo' apply false
             }
-            
+
+            repositories {
+                mavenLocal()
+                mavenCentral()
+            }
+                        
             def sharedIDLJar = tasks.register('sharedIDLJar', Jar) {
                 from 'src/shared'
             }.get()
-            
+
             dependencies {
                 runtimeOnly sharedIDLJar.outputs.files
             }
@@ -176,8 +186,13 @@ class IDLProtocolTaskTest {
                 id 'io.github.leofuso.argo' apply false
             }
             
-            dependencies {
+            repositories {
+                mavenLocal()
+                mavenCentral()
+            }
             
+            dependencies {
+
             }
             
             tasks.register('generateProtocol', IDLProtocolTask) {
@@ -231,8 +246,13 @@ class IDLProtocolTaskTest {
                 id 'io.github.leofuso.argo' apply false
             }
             
-            dependencies {
+            repositories {
+                mavenLocal()
+                mavenCentral()
+            }
             
+            dependencies {
+                
             }
             
             tasks.register('generateProtocol', IDLProtocolTask) {
@@ -288,6 +308,7 @@ class IDLProtocolTaskTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -301,7 +322,7 @@ class IDLProtocolTaskTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
         """

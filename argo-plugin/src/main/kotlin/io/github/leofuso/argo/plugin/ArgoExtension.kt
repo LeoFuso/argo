@@ -1,7 +1,5 @@
 package io.github.leofuso.argo.plugin
 
-import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
-import org.apache.avro.generic.GenericData.StringType
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
@@ -51,6 +49,8 @@ abstract class ColumbaOptions(@Inject val project: Project, @Inject val javaTool
 
     abstract fun getCompiler(): Property<String>
 
+    abstract fun getVersion(): Property<String>
+
     abstract fun getExcluded(): ListProperty<String>
 
     abstract fun getOutputEncoding(): Property<String>
@@ -67,11 +67,33 @@ abstract class ColumbaOptions(@Inject val project: Project, @Inject val javaTool
 
     abstract fun getAdditionalVelocityTools(): ListProperty<String>
 
+    /**
+     * Add a Velocity Tool to the additional velocity tools collection.
+     * @param tool the fully qualified name of the velocity tool to be added.
+     */
+    @Suppress("unused")
+    fun velocityTool(tool: String) = getAdditionalVelocityTools().add(tool)
+
     abstract fun getVelocityTemplateDirectory(): DirectoryProperty
 
     abstract fun getAdditionalLogicalTypeFactories(): MapProperty<String, String>
 
+    /**
+     * Add a Logical Type Factory to the additional logical type factory collection.
+     * @param name the name of the factory to be added.
+     * @param reference the fully qualified name of the logical type factory to be added.
+     */
+    @Suppress("unused")
+    fun logicalTypeFactory(name: String, reference: String) = getAdditionalLogicalTypeFactories().put(name, reference)
+
     abstract fun getAdditionalConverters(): ListProperty<String>
+
+    /**
+     * Add a Converter to the additional converter collection.
+     * @param converter the fully qualified name of the converter to be added.
+     */
+    @Suppress("unused")
+    fun converter(converter: String) = getAdditionalConverters().add(converter)
 
     @Internal
     fun applyConventions(): ColumbaOptions {
@@ -81,6 +103,7 @@ abstract class ColumbaOptions(@Inject val project: Project, @Inject val javaTool
         launcher.convention(defaultLauncher)
 
         getCompiler().convention(DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY)
+        getVersion().convention(DEFAULT_COLUMBA_CLI_DEPENDENCY)
         getExcluded().convention(listOf())
         getOutputEncoding().convention("UTF-8")
         getAdditionalVelocityTools().convention(listOf())
@@ -89,8 +112,8 @@ abstract class ColumbaOptions(@Inject val project: Project, @Inject val javaTool
         getAdditionalLogicalTypeFactories().convention(mapOf())
 
         fields {
-            it.getStringType().convention(StringType.CharSequence)
-            it.getVisibility().convention(FieldVisibility.PRIVATE)
+            it.getStringType().convention("CharSequence")
+            it.getVisibility().convention("PRIVATE")
             it.useDecimalTypeProperty.convention(true)
         }
 
@@ -117,9 +140,9 @@ abstract class ColumbaFieldOptions(@Inject val project: Project) {
         get() = _useDecimalTypeProperty.get()
         set(value) = _useDecimalTypeProperty.set(value)
 
-    abstract fun getStringType(): Property<StringType>
+    abstract fun getStringType(): Property<String>
 
-    abstract fun getVisibility(): Property<FieldVisibility>
+    abstract fun getVisibility(): Property<String>
 }
 
 abstract class ColumbaAccessorOptions(@Inject val project: Project) {

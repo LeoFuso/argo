@@ -1,7 +1,5 @@
 package io.github.leofuso.argo.plugin.columba.arguments
 
-import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
-import org.apache.avro.generic.GenericData.StringType
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.LogLevel
@@ -42,6 +40,7 @@ const val USE_OPTIONAL_GETTERS_NULL_ONLY_ARGS = "--use-optional-getters-for-null
  * Miscellaneous
  */
 const val OUTPUT_ENCODING_ARG = "--output-encoding"
+const val CLASSPATH_ARG = "--classpath"
 const val LOG_ARG = "--log"
 
 internal sealed interface CliArgument {
@@ -90,17 +89,17 @@ internal data class UseDecimalTypeArgument(val active: Property<Boolean>) : CliA
     }
 }
 
-internal data class FieldVisibilityArgument(val visibility: Property<FieldVisibility>) : CliArgument {
+internal data class FieldVisibilityArgument(val visibility: Property<String>) : CliArgument {
     override fun args() = if (visibility.isPresent) {
-        listOf(FIELD_VISIBILITY_ARGS, visibility.get().name)
+        listOf(FIELD_VISIBILITY_ARGS, visibility.get())
     } else {
         emptyList()
     }
 }
 
-internal data class StringTypeArgument(val type: Property<StringType>) : CliArgument {
+internal data class StringTypeArgument(val type: Property<String>) : CliArgument {
     override fun args() = if (type.isPresent) {
-        listOf(STRING_TYPE_ARGS, type.get().name)
+        listOf(STRING_TYPE_ARGS, type.get())
     } else {
         emptyList()
     }
@@ -160,4 +159,20 @@ internal data class OutputArgument(val directory: DirectoryProperty) : CliArgume
     } else {
         emptyList()
     }
+}
+
+internal object CompileArgument : CliArgument {
+    override fun args() = listOf("compile")
+}
+
+internal data class ClasspathArgument(val files: FileCollection) : CliArgument {
+    override fun args() = if (!files.isEmpty) {
+        listOf(CLASSPATH_ARG, files.joinToString(";") { f -> f.absolutePath })
+    } else {
+        emptyList()
+    }
+}
+
+internal object GenerateProtocolArgument : CliArgument {
+    override fun args() = listOf("generate-protocol")
 }

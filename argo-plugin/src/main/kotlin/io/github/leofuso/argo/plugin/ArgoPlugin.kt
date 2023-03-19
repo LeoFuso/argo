@@ -6,30 +6,34 @@ import io.github.leofuso.argo.plugin.tasks.getSpecificRecordCompileBuildDirector
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME
-import org.gradle.api.plugins.JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.ide.idea.GenerateIdeaModule
+import org.gradle.util.GradleVersion
 
+@Suppress("unused")
 abstract class ArgoPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
+
+        if (GradleVersion.current().baseVersion < GradleVersion.version("7.6")) {
+            throw RuntimeException("${ArgoPlugin::class.simpleName} needs Gradle version 7.6 or higher.")
+        }
 
         project.plugins.withType<JavaPlugin> {
             val extension = ArgoExtensionSupplier.get(project)
             project.logger.info("Using Gradle ${project.gradle.gradleVersion}.")
 
             /* Columba Setup */
-            // addApacheAvroCompilerDependencyConfiguration(project, extension.getColumba())
             project.extensions.getByType<SourceSetContainer>()
                 .configureEach { source ->
                     configureColumbaTasks(project, extension.getColumba(), source)
@@ -38,87 +42,55 @@ abstract class ArgoPlugin : Plugin<Project> {
 
     }
 
-    private fun addApacheAvroCompilerDependencyConfiguration(project: Project, extension: ColumbaOptions) {
-
-        val description = """
-            |Compiler needed to generate code from Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) source files.
-        """.trimMargin()
-
-        project.configurations.create("apacheAvroCompiler") {
-
-            it.isVisible = true
-            it.isCanBeResolved = true
-            it.isCanBeConsumed = false
-            it.description = description
-
-            val cliDependency = project.dependencies.create("io.github.leofuso.columba:columba-cli:0.1.2-SNAPSHOT")
-            val compilerDependency = project.dependencies.create(extension.getCompiler().get())
-            val jacksonDependency = project.dependencies.create(DEFAULT_JACKSON_DATABIND_DEPENDENCY)
-
-            project.logger.lifecycle("Using 'org.apache.avro-compiler' version: '{}'.", compilerDependency.version)
-            project.logger.lifecycle("Using 'io.github.leofuso.columba:columba-cli' version: '{}'.", cliDependency.version)
-
-            it.defaultDependencies { default ->
-                default.add(cliDependency)
-                default.add(compilerDependency)
-                default.add(jacksonDependency)
-            }
-
-            it.extendsFrom(project.configurations.findByName(IMPLEMENTATION_CONFIGURATION_NAME))
-        }
-
-        project.configurations.findByName(RUNTIME_ONLY_CONFIGURATION_NAME)
-    }
-
     private fun configureColumbaTasks(project: Project, extension: ColumbaOptions, sourceSet: SourceSet) {
 
-        /* extra configs */
-        val javaTaskName = sourceSet.getCompileTaskName("apacheAvroJava")
-        project.addCompileOnlyConfiguration(
-            javaTaskName,
-            "Class(.$CLASS_EXTENSION) files needed by the SpecificCompiler.",
-            sourceSet
+        /* Columba config */
+        val columba = CONFIGURATION_COLUMBA + if(sourceSet.name == "main") "" else sourceSet.name.capitalized()
+        project.addColumbaConfiguration(
+            columba,
+            "Needed dependencies to generate SpecificRecord Java source files in isolation.",
+            extension
         )
 
-        project.configurations.findByName(sourceSet.runtimeClasspathConfigurationName)
-            ?.defaultDependencies {
-                val cli = project.dependencies.create("io.github.leofuso.columba:columba-cli:0.1.2-SNAPSHOT")
-                val compiler = project.dependencies.create(extension.getCompiler().get())
-                val jackson = project.dependencies.create(DEFAULT_JACKSON_DATABIND_DEPENDENCY)
-                it.add(cli)
-                it.add(compiler)
-                it.add(jackson)
-            }
+        /* extra configs */
+        val specificCompilerTaskName = sourceSet.getCompileTaskName("apacheAvroJava")
+        project.addCustomColumbaConfiguration(
+            specificCompilerTaskName,
+            "Additional Classes(.$CLASS_EXTENSION) needed for SpecificRecord Java source file generation."
+        )
 
-        val javaTaskSourcesName = "${javaTaskName}Sources"
-        project.addCompileOnlyConfiguration(
-            javaTaskSourcesName,
-            "Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) source files to be compiled.",
-            sourceSet
+        val specificCompilerSourcesName = "${specificCompilerTaskName}Sources"
+        project.addCustomColumbaConfiguration(
+            specificCompilerSourcesName,
+            "Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) source files to be compiled."
         )
 
         val protocolTaskName = sourceSet.getTaskName("generate", "apacheAvroProtocol")
-        project.addCompileOnlyConfiguration(
+        project.addCustomColumbaConfiguration(
             protocolTaskName,
-            "IDL(.$IDL_EXTENSION) source files needed for Protocol(.$PROTOCOL_EXTENSION) resolution.",
-            sourceSet
+            "IDL(.$IDL_EXTENSION) source files needed for Protocol(.$PROTOCOL_EXTENSION) resolution."
         )
 
         val taskContainer: TaskContainer = project.tasks
         val protocolTaskProvider = taskContainer.register<IDLProtocolTask>(protocolTaskName) {
-            project.configurations.findByName(protocolTaskName)?.let { configurableClasspath.from(it) }
-            project.configurations.findByName(sourceSet.runtimeClasspathConfigurationName)?.let { configurableClasspath.from(it) }
-            configureSourceSet(sourceSet)
+            configurableClasspath.from(
+                project.configurations.getAt(columba),
+                project.configurations.getAt(protocolTaskName)
+            )
+            configureAt(sourceSet)
         }
 
         val javaTaskProvider: TaskProvider<SpecificRecordCompilerTask> =
-            taskContainer.register<SpecificRecordCompilerTask>(javaTaskName) {
-                project.configurations.findByName(javaTaskSourcesName)?.let { source(it) }
-                project.configurations.findByName(javaTaskName)?.let { configurableClasspath.from(it) }
-                project.configurations.findByName(sourceSet.runtimeClasspathConfigurationName)?.let { configurableClasspath.from(it) }
-
+            taskContainer.register<SpecificRecordCompilerTask>(specificCompilerTaskName) {
+                configurableClasspath.from(
+                    project.configurations.getAt(columba),
+                    project.configurations.getAt(specificCompilerTaskName)
+                )
+                source(
+                    project.configurations.getAt(specificCompilerSourcesName)
+                )
                 withExtension(extension)
-                configureSourceSet(sourceSet)
+                configureAt(sourceSet)
                 dependsOn(protocolTaskProvider)
             }
 

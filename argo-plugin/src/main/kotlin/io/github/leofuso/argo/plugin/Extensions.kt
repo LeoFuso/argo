@@ -1,53 +1,7 @@
 package io.github.leofuso.argo.plugin
 
-import org.apache.avro.Conversion
-import org.apache.avro.Protocol
-import org.apache.avro.compiler.specific.SpecificCompiler
-import org.apache.avro.generic.GenericData.StringType
-import org.apache.avro.specific.SpecificData
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
-import java.io.File
-
-fun SpecificCompiler.getCharacterEncoding(): String {
-    val field = SpecificCompiler::class.java.getDeclaredField("outputCharacterEncoding")
-    field.isAccessible = true
-    return field.get(this) as String
-}
-
-fun SpecificCompiler.getStringType(): String {
-    val field = SpecificCompiler::class.java.getDeclaredField("stringType")
-    field.isAccessible = true
-    return (field.get(this) as StringType).name
-}
-
-fun SpecificCompiler.enableDecimalLogicalType(): Boolean {
-    val field = SpecificCompiler::class.java.getDeclaredField("enableDecimalLogicalType")
-    field.isAccessible = true
-    return field.getBoolean(this)
-}
-
-fun SpecificCompiler.getAdditionalVelocityTools(): List<Any?> {
-    val field = SpecificCompiler::class.java.getDeclaredField("additionalVelocityTools")
-    field.isAccessible = true
-    return field.get(this) as List<Any?>
-}
-
-fun SpecificCompiler.getTemplateDirectory(): String {
-    val field = SpecificCompiler::class.java.getDeclaredField("templateDir")
-    field.isAccessible = true
-    return field.get(this) as String
-}
-
-fun SpecificCompiler.getConverters(): List<Conversion<*>> {
-    val field = SpecificCompiler::class.java.getDeclaredField("specificData")
-    field.isAccessible = true
-    val data = field.get(this) as SpecificData
-    return data.conversions.map { it }
-}
-
-fun Protocol.path(): String =
-    namespace.replace(NAMESPACE_SEPARATOR, File.separator) + File.separator + name + EXTENSION_SEPARATOR + PROTOCOL_EXTENSION
 
 fun SourceSet.configurationNameOf(base: String) = this.javaClass.getMethod("configurationNameOf", String::class.java)
     .let {
@@ -55,12 +9,41 @@ fun SourceSet.configurationNameOf(base: String) = this.javaClass.getMethod("conf
         it.invoke(this, base) as String
     }
 
-fun Project.addCompileOnlyConfiguration(name: String, description: String, source: SourceSet) =
-    this.configurations.findByName(source.compileOnlyConfigurationName)?.let {
-        val configuration = project.configurations.maybeCreate(name)
-        configuration.isVisible = true
-        configuration.isCanBeResolved = true
-        configuration.isCanBeConsumed = false
-        configuration.description = description
-        configuration.extendsFrom(it)
+fun Project.addColumbaConfiguration(name: String, description: String, extension: ColumbaOptions) {
+    this.configurations.create(name) { config ->
+        config.description = description
+        config.isVisible = false
+        config.isTransitive = false
+        config.isCanBeResolved = true
+        config.isCanBeConsumed = false
+        config.defaultDependencies { dependencySet ->
+
+            val columba = dependencies.create(extension.getVersion().get())
+            columba.because("A command line interface responsible for running the SpecificCompiler with process isolation.")
+            dependencySet.add(columba)
+
+            val compiler = dependencies.create(extension.getCompiler().get())
+            compiler.because(
+                "Compiler needed to generate code from Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) source files."
+            )
+            dependencySet.add(compiler)
+
+            val jackson = dependencies.create(DEFAULT_JACKSON_DATABIND_DEPENDENCY)
+            jackson.because("Fixes a vulnerability within 'org.apache.avro-compiler'.")
+            dependencySet.add(jackson)
+
+            logger.info("Using 'org.apache.avro-compiler' version: '{}' at {}.", compiler.version, name)
+            logger.info("Using 'io.github.leofuso.columba:columba-cli' version: '{}' at {}.", columba.version, name)
+        }
     }
+}
+
+fun Project.addCustomColumbaConfiguration(name: String, description: String) =
+    configurations.maybeCreate(name).let { config ->
+        config.isVisible = false
+        config.isTransitive = true
+        config.isCanBeResolved = true
+        config.isCanBeConsumed = false
+        config.description = description
+    }
+

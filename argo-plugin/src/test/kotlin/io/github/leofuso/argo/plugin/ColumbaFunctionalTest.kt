@@ -56,6 +56,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -65,7 +66,7 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             

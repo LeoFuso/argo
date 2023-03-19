@@ -5,6 +5,11 @@ const val KOTLIN_LANGUAGE_NAME = "kotlin"
 
 const val ARGO_EXTENSION = "argo"
 
+/**
+ * Columba config
+ */
+const val CONFIGURATION_COLUMBA = "columba"
+
 const val GROUP_SOURCE_GENERATION = "Source Generation"
 
 /**
@@ -27,20 +32,6 @@ const val ZIP_EXTENSION = "zip"
 /**
 * Default dependencies
 */
+const val DEFAULT_COLUMBA_CLI_DEPENDENCY = "io.github.leofuso.columba:columba-cli:0.1.2-SNAPSHOT"
 const val DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY = "org.apache.avro:avro-compiler:1.11.1"
-const val DEFAULT_JACKSON_DATABIND_DEPENDENCY = "com.fasterxml.jackson.core:jackson-databind:2.14.1"
-
-/**
- * The namespace separator.
- */
-const val NAMESPACE_SEPARATOR = "."
-
-/**
- * The extension separator.
- */
-const val EXTENSION_SEPARATOR = "."
-
-/**
- * The Unix separator.
- */
-const val UNIX_SEPARATOR = "/"
+const val DEFAULT_JACKSON_DATABIND_DEPENDENCY = "com.fasterxml.jackson.core:jackson-databind:2.14.2"

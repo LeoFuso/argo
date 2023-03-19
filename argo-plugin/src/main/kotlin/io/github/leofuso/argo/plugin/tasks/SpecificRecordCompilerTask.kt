@@ -8,8 +8,6 @@ import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
 import io.github.leofuso.argo.plugin.ZIP_EXTENSION
 import io.github.leofuso.argo.plugin.columba.arguments.*
 import io.github.leofuso.argo.plugin.columba.invoker.ColumbaWorkAction
-import org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility
-import org.apache.avro.generic.GenericData.StringType
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
@@ -107,26 +105,25 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
 
     @get:Internal
     internal val arguments
-        get() =
-            LoggerArgument(logger).args() +
-                listOf("compile") +
-                listOf(
-                    SourceArgument(getSources()),
-                    OutputArgument(getOutputDir()),
-                    OutputEncodingArgument(getEncoding()),
-                    VelocityTemplateArgument(getVelocityTemplateDirectory()),
-                    VelocityToolsArgument(getAdditionalVelocityTools()),
-                    ConverterArgument(getAdditionalConverters()),
-                    LogicalTypeFactoryArgument(getAdditionalLogicalTypeFactories()),
-                    StringTypeArgument(getStringType()),
-                    FieldVisibilityArgument(getFieldVisibility()),
-                    AllowSettersArgument(noSetters.map { it.not() }),
-                    UseDecimalTypeArgument(useDecimalType),
-                    ExtraOptionalGettersArgument(addExtraOptionalGetters),
-                    UseOptionalGettersOnlyArgument(useOptionalGetters),
-                    UseOptionalGettersForNullableFieldsOnlyArgument(optionalGettersForNullableFieldsOnly)
-                )
-                    .flatMap(CliArgument::args)
+        get() = listOf(
+            LoggerArgument(logger),
+            CompileArgument,
+            SourceArgument(getSources()),
+            OutputArgument(getOutputDir()),
+            OutputEncodingArgument(getEncoding()),
+            VelocityTemplateArgument(getVelocityTemplateDirectory()),
+            VelocityToolsArgument(getAdditionalVelocityTools()),
+            ConverterArgument(getAdditionalConverters()),
+            LogicalTypeFactoryArgument(getAdditionalLogicalTypeFactories()),
+            StringTypeArgument(getStringType()),
+            FieldVisibilityArgument(getFieldVisibility()),
+            AllowSettersArgument(noSetters.map { it.not() }),
+            UseDecimalTypeArgument(useDecimalType),
+            ExtraOptionalGettersArgument(addExtraOptionalGetters),
+            UseOptionalGettersOnlyArgument(useOptionalGetters),
+            UseOptionalGettersForNullableFieldsOnlyArgument(optionalGettersForNullableFieldsOnly)
+        )
+            .flatMap(CliArgument::args)
 
     @OutputDirectory
     abstract fun getOutputDir(): DirectoryProperty
@@ -185,11 +182,11 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
 
     @Input
     @Optional
-    abstract fun getStringType(): Property<StringType>
+    abstract fun getStringType(): Property<String>
 
     @Input
     @Optional
-    abstract fun getFieldVisibility(): Property<FieldVisibility>
+    abstract fun getFieldVisibility(): Property<String>
 
     @Input
     @Optional
@@ -233,6 +230,9 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
 
         val queue = executor.processIsolation { spec ->
             spec.classpath.from(classpath)
+            spec.forkOptions { options ->
+                options.maxHeapSize = "64m"
+            }
         }
 
         project.logging.captureStandardOutput(LogLevel.LIFECYCLE)
@@ -267,7 +267,7 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
         optionalGettersForNullableFieldsOnly.set(accessors.optionalGettersForNullableFieldsOnlyProperty)
     }
 
-    fun configureSourceSet(source: SourceSet) {
+    fun configureAt(source: SourceSet) {
         val buildDirectory = getSpecificRecordCompileBuildDirectory(project, source)
         getOutputDir().set(buildDirectory)
         source.java { it.srcDir(buildDirectory) }
