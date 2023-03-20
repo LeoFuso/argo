@@ -40,7 +40,7 @@ publishing {
             version = '0.0.1-SNAPSHOT'
             pom {
                 name = group + ':custom-tools'
-                description = 'Custom Tools for use with Argo.'
+                description = 'Custom Tools for use with Argo use-cases.'
                 packaging 'jar'
             }
         }

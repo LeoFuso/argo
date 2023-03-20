@@ -45,10 +45,7 @@ class ColumbaFunctionalTest {
 
         /* Given */
         build append """
-            
-            import org.apache.avro.compiler.specific.SpecificCompiler
-            import org.apache.avro.generic.GenericData
-            
+                        
             plugins {
                 id 'java'
                 id 'idea'
@@ -75,9 +72,9 @@ class ColumbaFunctionalTest {
                     compiler = 'org.apache.avro:avro-compiler:1.11.0'
                     outputEncoding = 'UTF-8'
                     fields {
-                        visibility = SpecificCompiler.FieldVisibility.PRIVATE
+                        visibility = 'PRIVATE'
                         useDecimalType = true
-                        stringType = GenericData.StringType.CharSequence
+                        stringType = 'CharSequence'
                     }
                     accessors {
                         noSetters = false
@@ -160,6 +157,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -169,7 +167,7 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -213,7 +211,7 @@ class ColumbaFunctionalTest {
 """
     )
     @ParameterizedTest(name = "{index} ==> StringType ''{0}''")
-    @ValueSource(strings = ["CharSequence", "String", "Utf8"])
+    @ValueSource(strings = ["CharSequence", "charsequence", "String", "Utf8", "utf8", "string", "CHARSEQUENCE"])
     fun t2(config: String) {
 
         /* Given */
@@ -229,6 +227,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -238,14 +237,14 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
             argo {
                 columba {
                     fields {
-                        stringType = GenericData.StringType.$config
+                        stringType = '$config'
                     }
                 }
             }
@@ -268,8 +267,12 @@ class ColumbaFunctionalTest {
 
         val stringClass = when (config) {
             "String" -> "java.lang.String"
+            "string" -> "java.lang.String"
             "CharSequence" -> "java.lang.CharSequence"
+            "charsequence" -> "java.lang.CharSequence"
+            "CHARSEQUENCE" -> "java.lang.CharSequence"
             "Utf8" -> "org.apache.avro.util.Utf8"
+            "utf8" -> "org.apache.avro.util.Utf8"
             else -> "???"
         }
 
@@ -288,7 +291,7 @@ class ColumbaFunctionalTest {
 """
     )
     @ParameterizedTest(name = "{index} ==> FieldVisibility ''{0}''")
-    @ValueSource(strings = ["PUBLIC", "PRIVATE"])
+    @ValueSource(strings = ["PUBLIC", "public", "PRIVATE", "private"])
     fun t3(config: String) {
 
         /* Given */
@@ -304,6 +307,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -313,14 +317,14 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
             argo {
                 columba {
                     fields {
-                        visibility = SpecificCompiler.FieldVisibility.$config
+                        visibility = '$config'
                     }
                 }
             }
@@ -376,6 +380,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -385,7 +390,7 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -457,6 +462,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -466,7 +472,7 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -544,6 +550,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -553,7 +560,7 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -632,6 +639,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -641,7 +649,7 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -706,6 +714,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -715,7 +724,7 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -774,16 +783,18 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
             dependencies {
+                implementation 'org.apache.avro:avro:1.11.1'
                 compileApacheAvroJava files($classpath)
             }
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -839,8 +850,6 @@ class ColumbaFunctionalTest {
 
         /* Given */
         build append """
-             
-            import org.apache.avro.generic.GenericData
                                   
             plugins {
                 id 'java'
@@ -849,17 +858,18 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
             dependencies {
-                implementation files($classpath)
+                implementation 'org.apache.avro:avro:1.11.1'
                 compileApacheAvroJava files($classpath)
             }
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -868,7 +878,7 @@ class ColumbaFunctionalTest {
                     additionalLogicalTypeFactories.put('timezone', 'io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory')
                     additionalConverters.add('io.github.leofuso.argo.custom.TimeZoneConversion')
                     fields {
-                        stringType = GenericData.StringType.$stringType
+                        stringType = '$stringType'
                     }
                 }
             }
@@ -912,8 +922,6 @@ class ColumbaFunctionalTest {
 
         /* Given */
         build append """
-             
-            import org.apache.avro.generic.GenericData
                                   
             plugins {
                 id 'java'
@@ -922,17 +930,18 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
             dependencies {
-                implementation files($classpath)
+                implementation 'org.apache.avro:avro:1.11.1'
                 compileApacheAvroJava files($classpath)
             }
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -941,7 +950,7 @@ class ColumbaFunctionalTest {
                     additionalLogicalTypeFactories.put('timezone', 'io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory')
                     additionalConverters.add('io.github.leofuso.argo.custom.TimeZoneConversion')
                     fields {
-                        stringType = GenericData.StringType.$stringType
+                        stringType = '$stringType'
                     }
                 }
             }

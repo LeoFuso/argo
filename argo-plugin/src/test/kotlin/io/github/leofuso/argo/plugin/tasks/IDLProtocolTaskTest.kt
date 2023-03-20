@@ -239,11 +239,9 @@ class IDLProtocolTaskTest {
         /* Given */
         build append """
             
-            import io.github.leofuso.argo.plugin.tasks.IDLProtocolTask
-
             plugins {
                 id 'java'
-                id 'io.github.leofuso.argo' apply false
+                id 'io.github.leofuso.argo'
             }
             
             repositories {
@@ -255,12 +253,6 @@ class IDLProtocolTaskTest {
                 
             }
             
-            tasks.register('generateProtocol', IDLProtocolTask) {
-                pattern.include('**/*.avdl')
-                source(file('src/main/avro'))
-                classpath = configurations.runtimeClasspath
-                outputDir = file('build/protocol')
-            }
             
         """
             .trimIndent()
@@ -272,10 +264,10 @@ class IDLProtocolTaskTest {
         v2 append loadResource("tasks/protocol/namespace/v1.avdl").readText()
 
         /* When */
-        val result = buildGradleRunnerAndFail("build", "generateProtocol")
+        val result = buildGradleRunnerAndFail("build", "generateApacheAvroProtocol")
 
         /* Then */
-        val generateProtocol = result.task(":generateProtocol")
+        val generateProtocol = result.task(":generateApacheAvroProtocol")
         assertThat(generateProtocol)
             .isNotNull
             .extracting { it?.outcome }
@@ -297,9 +289,6 @@ class IDLProtocolTaskTest {
 
         /* Given */
         build append """
-                   
-            import org.apache.avro.compiler.specific.SpecificCompiler
-            import org.apache.avro.generic.GenericData
             
             plugins {
                 id 'java'

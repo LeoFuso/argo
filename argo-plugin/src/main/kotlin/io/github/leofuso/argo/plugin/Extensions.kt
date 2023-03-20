@@ -38,12 +38,28 @@ fun Project.addColumbaConfiguration(name: String, description: String, extension
     }
 }
 
-fun Project.addCustomColumbaConfiguration(name: String, description: String) =
-    configurations.maybeCreate(name).let { config ->
-        config.isVisible = false
-        config.isTransitive = true
-        config.isCanBeResolved = true
-        config.isCanBeConsumed = false
-        config.description = description
-    }
+fun Project.addCustomColumbaConfiguration(name: String, description: String) = configurations.maybeCreate(name).let { config ->
+    config.isVisible = false
+    config.isTransitive = true
+    config.isCanBeResolved = true
+    config.isCanBeConsumed = false
+    config.description = description
+}
 
+fun Project.addCompileApacheAvroJavaConfiguration(sourceSet: SourceSet) =
+    configurations.maybeCreate(sourceSet.getCompileTaskName("apacheAvroJava"))
+        .let { config ->
+            config.isVisible = false
+            config.isTransitive = true
+            config.isCanBeResolved = true
+            config.isCanBeConsumed = false
+            config.description = "Additional Classes(.$CLASS_EXTENSION) needed for SpecificRecord Java source file generation."
+
+            afterEvaluate {
+                configurations
+                    .getAt(sourceSet.implementationConfigurationName)
+                    .extendsFrom(config)
+            }
+
+            config
+        }

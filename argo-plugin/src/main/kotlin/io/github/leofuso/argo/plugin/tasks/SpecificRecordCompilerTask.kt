@@ -2,18 +2,13 @@ package io.github.leofuso.argo.plugin.tasks
 
 import io.github.leofuso.argo.plugin.ColumbaOptions
 import io.github.leofuso.argo.plugin.GROUP_SOURCE_GENERATION
-import io.github.leofuso.argo.plugin.JAR_EXTENSION
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
-import io.github.leofuso.argo.plugin.ZIP_EXTENSION
 import io.github.leofuso.argo.plugin.columba.arguments.*
 import io.github.leofuso.argo.plugin.columba.invoker.ColumbaWorkAction
-import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileType
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.ListProperty
@@ -22,22 +17,14 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
-import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.util.PatternFilterable
-import org.gradle.api.tasks.util.PatternSet
 import org.gradle.kotlin.dsl.property
-import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
 import org.gradle.workers.WorkerExecutor
 import java.io.File
@@ -49,7 +36,7 @@ fun getSpecificRecordCompileBuildDirectory(project: Project, source: SourceSet):
 
 @CacheableTask
 @Suppress("TooManyFunctions")
-abstract class SpecificRecordCompilerTask @Inject constructor(private val executor: WorkerExecutor) : DefaultTask() {
+abstract class SpecificRecordCompilerTask @Inject constructor(private val executor: WorkerExecutor) : CodeGenerationTask() {
 
     init {
 
@@ -60,16 +47,6 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
 
         group = GROUP_SOURCE_GENERATION
     }
-
-    private val _sources: ConfigurableFileCollection = project.objects.fileCollection()
-    private val _pattern = PatternSet()
-    private val _compressedPattern: PatternFilterable = PatternSet()
-        .include(
-            "**${File.separator}*.$JAR_EXTENSION",
-            "**${File.separator}*.$ZIP_EXTENSION"
-        )
-
-    private val _classpath: ConfigurableFileCollection = project.objects.fileCollection()
 
     @get:Input
     val useDecimalType = project.objects.property<Boolean>()
@@ -85,23 +62,6 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
 
     @get:Input
     abstract val optionalGettersForNullableFieldsOnly: Property<Boolean>
-
-    @get:Internal
-    var pattern: PatternFilterable
-        get() = _pattern
-        set(value) {
-            _pattern.copyFrom(value)
-        }
-
-    @get:Classpath
-    @get:InputFiles
-    var classpath: FileCollection
-        get() = _classpath
-        set(value) = _classpath.setFrom(value)
-
-    @get:Internal
-    internal val configurableClasspath: ConfigurableFileCollection
-        get() = _classpath
 
     @get:Internal
     internal val arguments
@@ -124,48 +84,6 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
             UseOptionalGettersForNullableFieldsOnlyArgument(optionalGettersForNullableFieldsOnly)
         )
             .flatMap(CliArgument::args)
-
-    @OutputDirectory
-    abstract fun getOutputDir(): DirectoryProperty
-
-    @InputFiles
-    @Incremental
-    @IgnoreEmptyDirectories
-    @PathSensitive(PathSensitivity.RELATIVE)
-    fun getSources(): FileCollection = _sources.asFileTree
-        .matching(_compressedPattern)
-        .map {
-            runCatching {
-                project.zipTree(it)
-                    .asFileTree
-                    .matching(_pattern)
-                    .files
-            }.onFailure { throwable ->
-                logger.error("Task '${this.name}' is unable to extract sources from File[${it.path}].", throwable)
-            }
-        }
-        .filter { it.isSuccess }
-        .flatMap { it.getOrThrow() }
-        .let {
-
-            if (it.isNotEmpty()) {
-                logger.lifecycle("Found '${it.size}' definition files in the classpath.")
-                if (logger.isInfoEnabled) {
-                    logger.info("Applying source(${it.joinToString(", ") { file -> "'${File.separator}${file.name}'" }}).")
-                }
-            }
-
-            _sources.from(it)
-                .asFileTree
-                .matching(_pattern)
-        }
-
-    /**
-     * Adds some source to this task. The given source objects will be evaluated in accordance with [org.gradle.api.Project.files].
-     *
-     * @param sources The source to add
-     */
-    open fun source(vararg sources: Any): ConfigurableFileCollection = _sources.from(*sources)
 
     @Input
     @Optional
@@ -196,6 +114,24 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
     @Optional
     abstract fun getAdditionalConverters(): ListProperty<String>
 
+    internal fun configureAt(source: SourceSet) {
+        val buildDirectory = getSpecificRecordCompileBuildDirectory(project, source)
+        getOutputDir().set(buildDirectory)
+        source.java { it.srcDir(buildDirectory) }
+
+        val sourceDirectory = run {
+            val classpath = "src${File.separator}${source.name}${File.separator}avro"
+            val path = Path(classpath)
+            project.files(path).asPath
+        }
+        source(sourceDirectory)
+    }
+
+    internal fun dependsOn(task: TaskProvider<IDLProtocolTask>) {
+        source(task)
+        super.dependsOn(task)
+    }
+
     @TaskAction
     fun process(inputChanges: InputChanges) {
 
@@ -219,7 +155,7 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
             changes.forEach { change -> logger.lifecycle("\t{}", change.normalizedPath) }
         }
 
-        val exclusion = _pattern.excludes
+        val exclusion = pattern.excludes
         if (exclusion.isNotEmpty()) {
             logger.lifecycle("Excluded sources {}", exclusion)
         }
@@ -244,11 +180,11 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
     }
 
     fun withExtension(options: ColumbaOptions) {
-        _pattern.include(
+        pattern.include(
             "**${File.separator}*.$SCHEMA_EXTENSION",
             "**${File.separator}*.$PROTOCOL_EXTENSION"
         )
-        _pattern.exclude(options.getExcluded().get())
+        pattern.exclude(options.getExcluded().get())
         getEncoding().set(options.getOutputEncoding())
         getAdditionalVelocityTools().set(options.getAdditionalVelocityTools())
         getAdditionalLogicalTypeFactories().set(options.getAdditionalLogicalTypeFactories())
@@ -265,23 +201,5 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
         addExtraOptionalGetters.set(accessors.addExtraOptionalGettersProperty)
         useOptionalGetters.set(accessors.useOptionalGettersProperty)
         optionalGettersForNullableFieldsOnly.set(accessors.optionalGettersForNullableFieldsOnlyProperty)
-    }
-
-    fun configureAt(source: SourceSet) {
-        val buildDirectory = getSpecificRecordCompileBuildDirectory(project, source)
-        getOutputDir().set(buildDirectory)
-        source.java { it.srcDir(buildDirectory) }
-
-        val sourceDirectory = run {
-            val classpath = "src${File.separator}${source.name}${File.separator}avro"
-            val path = Path(classpath)
-            project.files(path).asPath
-        }
-        _sources.from(sourceDirectory)
-    }
-
-    fun dependsOn(task: TaskProvider<IDLProtocolTask>) {
-        _sources.from(task)
-        super.dependsOn(task)
     }
 }

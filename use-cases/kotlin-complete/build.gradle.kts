@@ -7,12 +7,9 @@ plugins {
 
 dependencies {
 
-    implementation("io.github.leofuso.argo:custom-tools:0.0.1-SNAPSHOT")
-    implementation("io.github.leofuso.argo:custom-tools:0.0.1-SNAPSHOT")
     implementation("org.apache.avro:avro:1.11.1")
-
-    compileApacheAvroJava("io.github.leofuso.argo:custom-tools:0.0.1-SNAPSHOT")
-    compileApacheAvroJavaSources("io.github.leofuso.argo:custom-tools:0.0.1-SNAPSHOT")
+    compileApacheAvroJava(project(":external-tools"))
+    compileApacheAvroJavaSources(project(":external-tools"))
 }
 
 kotlin {

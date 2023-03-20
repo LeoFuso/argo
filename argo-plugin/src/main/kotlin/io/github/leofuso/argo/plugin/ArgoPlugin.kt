@@ -45,7 +45,7 @@ abstract class ArgoPlugin : Plugin<Project> {
     private fun configureColumbaTasks(project: Project, extension: ColumbaOptions, sourceSet: SourceSet) {
 
         /* Columba config */
-        val columba = CONFIGURATION_COLUMBA + if(sourceSet.name == "main") "" else sourceSet.name.capitalized()
+        val columba = CONFIGURATION_COLUMBA + if (sourceSet.name == "main") "" else sourceSet.name.capitalized()
         project.addColumbaConfiguration(
             columba,
             "Needed dependencies to generate SpecificRecord Java source files in isolation.",
@@ -53,11 +53,8 @@ abstract class ArgoPlugin : Plugin<Project> {
         )
 
         /* extra configs */
-        val specificCompilerTaskName = sourceSet.getCompileTaskName("apacheAvroJava")
-        project.addCustomColumbaConfiguration(
-            specificCompilerTaskName,
-            "Additional Classes(.$CLASS_EXTENSION) needed for SpecificRecord Java source file generation."
-        )
+        val compileApacheAvroJavaConfiguration = project.addCompileApacheAvroJavaConfiguration(sourceSet)
+        val specificCompilerTaskName = compileApacheAvroJavaConfiguration.name
 
         val specificCompilerSourcesName = "${specificCompilerTaskName}Sources"
         project.addCustomColumbaConfiguration(
@@ -80,7 +77,7 @@ abstract class ArgoPlugin : Plugin<Project> {
             configureAt(sourceSet)
         }
 
-        val javaTaskProvider: TaskProvider<SpecificRecordCompilerTask> =
+        val specificCompilerTaskProvider: TaskProvider<SpecificRecordCompilerTask> =
             taskContainer.register<SpecificRecordCompilerTask>(specificCompilerTaskName) {
                 configurableClasspath.from(
                     project.configurations.getAt(columba),
@@ -97,13 +94,13 @@ abstract class ArgoPlugin : Plugin<Project> {
         /* Adding task dependency to JavaCompile task */
         taskContainer.named<JavaCompile>(sourceSet.compileJavaTaskName)
             .configure {
-                it.source(javaTaskProvider)
-                it.dependsOn(javaTaskProvider)
+                it.source(specificCompilerTaskProvider)
+                it.dependsOn(specificCompilerTaskProvider)
             }
 
         /* Adding task dependency to every task that generates a Jar */
         taskContainer.matching(sourceSet.sourcesJarTaskName::equals)
-            .configureEach { it.dependsOn(javaTaskProvider) }
+            .configureEach { it.dependsOn(specificCompilerTaskProvider) }
 
         /*
          * Adding a task dependency to Idea module,
@@ -115,7 +112,7 @@ abstract class ArgoPlugin : Plugin<Project> {
                 val buildDirectoryFile = buildDirectory.get().asFile
                 project.mkdir(buildDirectoryFile)
                 it.module.generatedSourceDirs.plusAssign(buildDirectoryFile)
-                it.dependsOn(javaTaskProvider)
+                it.dependsOn(specificCompilerTaskProvider)
             }
 
         /* Adding task dependency to Kotlin */
@@ -123,8 +120,8 @@ abstract class ArgoPlugin : Plugin<Project> {
             taskContainer.withType<SourceTask>()
                 .matching(sourceSet.getCompileTaskName(KOTLIN_LANGUAGE_NAME)::equals)
                 .configureEach {
-                    it.source(javaTaskProvider)
-                    it.dependsOn(javaTaskProvider)
+                    it.source(specificCompilerTaskProvider)
+                    it.dependsOn(specificCompilerTaskProvider)
                 }
         }
     }
