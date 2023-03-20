@@ -24,7 +24,7 @@ gradle.rootProject {
     version = System.getProperty("global.version")
     extra["local.description"] =
         """
-            A command line interface that supports code generation for JSON schema declaration files(.avsc),
-            JSON protocol declaration files(.avpr), and Avro IDL(.avdl) files.
+            A command line interface that supports Java code generation from JSON schema declaration files(.avsc),
+            JSON protocol declaration files(.avpr), and Avro IDL(.avdl) source files.
         """.trimIndent()
 }
