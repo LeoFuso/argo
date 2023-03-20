@@ -17,6 +17,7 @@ import com.github.ajalt.clikt.parameters.types.enum
 import io.github.leofuso.columba.cli.ConsoleLogger.*
 import io.github.leofuso.columba.cli.command.CompileCommand
 import io.github.leofuso.columba.cli.command.GenerateProtocolCommand
+import org.apache.avro.compiler.specific.SpecificCompiler
 import java.io.PrintStream
 
 class CommandRunner(private val out: PrintStream, private val err: PrintStream) : CliktCommand(
@@ -69,6 +70,7 @@ class CommandRunner(private val out: PrintStream, private val err: PrintStream) 
     override fun run() {
         /* Lazy property */
         check(logger.getLogLevel() == logLevel)
+        logger.info("Using 'org.apache.avro:avro-compiler:${SpecificCompiler::class.java.`package`.implementationVersion}'")
     }
 
     /**

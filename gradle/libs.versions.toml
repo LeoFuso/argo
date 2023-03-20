@@ -7,12 +7,12 @@ publish = "1.1.0"
 
 kotlin = "1.8.10"
 compiler = "1.11.1"
-jackson = "2.14.1"
+jackson = "2.14.2"
 clikt = "3.5.2"
 slf4j = "1.7.36"
 log4j = "2.20.0"
 junit = "5.9.2"
-junitLauncher = "1.9.2"
+junit-launcher = "1.9.2"
 assertj = "3.24.2"
 
 [plugins]
@@ -38,9 +38,9 @@ log4j-slf4j-adapter = { group = "org.apache.logging.log4j", name = "log4j-slf4j-
 slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4j" }
 
 compiler = { group = "org.apache.avro", name = "avro-compiler", version.ref = "compiler" }
-jacksonDatabind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 
-junitLauncher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitLauncher" }
+junit-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit-launcher" }
 junit-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }

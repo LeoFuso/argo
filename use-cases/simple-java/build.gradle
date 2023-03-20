@@ -23,7 +23,7 @@ java {
 
 argo {
     columba {
-        compiler = 'org.apache.avro:avro-compiler:1.11.0'
+        compilerVersion = '1.11.0'
         outputEncoding = 'UTF-8'
         fields {
             visibility = 'PRIVATE'

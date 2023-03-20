@@ -8,7 +8,9 @@ plugins {
 dependencies {
 
     implementation("org.apache.avro:avro:1.11.1")
-    compileApacheAvroJava(project(":external-tools"))
+    compileApacheAvroJava(project(":external-tools")) {
+        isTransitive = false
+    }
     compileApacheAvroJavaSources(project(":external-tools"))
 }
 
@@ -19,7 +21,6 @@ kotlin {
 argo {
     columba {
 
-        getCompiler().set("org.apache.avro:avro-compiler:1.11.1")
         getOutputEncoding().set("UTF-8")
         getExcluded().add("**/*Json.avsc")
 

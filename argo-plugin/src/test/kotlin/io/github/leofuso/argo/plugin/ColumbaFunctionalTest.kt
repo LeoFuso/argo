@@ -69,7 +69,7 @@ class ColumbaFunctionalTest {
             
             argo {
                 columba {
-                    compiler = 'org.apache.avro:avro-compiler:1.11.0'
+                    compilerVersion = '1.11.1'
                     outputEncoding = 'UTF-8'
                     fields {
                         visibility = 'PRIVATE'
@@ -217,8 +217,6 @@ class ColumbaFunctionalTest {
         /* Given */
         build append """
             
-            import org.apache.avro.compiler.specific.SpecificCompiler
-            import org.apache.avro.generic.GenericData
 
             plugins {
                 id 'java'

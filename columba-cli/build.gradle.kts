@@ -41,13 +41,12 @@ artifacts {
 dependencies {
 
     api(libs.clikt) { because("Facilitate CLI implementation.") }
-
     implementation(libs.compiler) { because("Decoupling the runtime environment. A user can choose the compiler version.") }
-    implementation(libs.jacksonDatabind) { because("The version of the compiler has a security issue associated with this dependency.") }
+    implementation(libs.jackson.databind) { because("The version of the compiler has a security issue associated with this dependency.") }
 
     runtimeOnly(libs.slf4j.simple) { because("libs.compiler depends on SLF4J.") }
 
-    testRuntimeOnly(libs.junitLauncher)
+    testRuntimeOnly(libs.junit.launcher)
     testRuntimeOnly(libs.compiler)
     testImplementation(libs.bundles.junit)
     testImplementation(libs.assertj)
@@ -61,12 +60,13 @@ tasks.jar {
     group = "build"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-    archiveClassifier.set("uber")
-    from(sourceSets.main.get().output)
-    dependsOn(configurations.runtimeClasspath)
-    from({
-        configurations.runtimeClasspath.get()
-            .filter { it.name.endsWith("jar") }
-            .map { zipTree(it) }
-    })
+//    archiveClassifier.set("uber")
+//    from(sourceSets.main.get().output)
+//    dependsOn(configurations.runtimeClasspath)
+//    from({
+//        configurations.runtimeClasspath.get()
+//            .filter { it.name.endsWith("jar") }
+//            .map { zipTree(it) }
+//    })
+//}
 }

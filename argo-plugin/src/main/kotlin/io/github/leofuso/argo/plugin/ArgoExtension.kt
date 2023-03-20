@@ -47,9 +47,9 @@ abstract class ColumbaOptions(@Inject val project: Project, @Inject val javaTool
     @get:Nested
     abstract val launcher: Property<JavaLauncher>
 
-    abstract fun getCompiler(): Property<String>
-
     abstract fun getVersion(): Property<String>
+
+    abstract fun getCompilerVersion(): Property<String>
 
     abstract fun getExcluded(): ListProperty<String>
 
@@ -102,8 +102,6 @@ abstract class ColumbaOptions(@Inject val project: Project, @Inject val javaTool
         val defaultLauncher = javaToolchainService.launcherFor(toolchain)
         launcher.convention(defaultLauncher)
 
-        getCompiler().convention(DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY)
-        getVersion().convention(DEFAULT_COLUMBA_CLI_DEPENDENCY)
         getExcluded().convention(listOf())
         getOutputEncoding().convention("UTF-8")
         getAdditionalVelocityTools().convention(listOf())

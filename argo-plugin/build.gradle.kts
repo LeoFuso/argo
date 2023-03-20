@@ -8,7 +8,7 @@ group = ARGO_GROUP
 version = Versions.ARGO
 
 dependencies {
-    testRuntimeOnly(libs.junitLauncher)
+    testRuntimeOnly(libs.junit.launcher)
     testImplementation(libs.compiler)
     testImplementation(libs.bundles.junit)
     testImplementation(libs.assertj)
