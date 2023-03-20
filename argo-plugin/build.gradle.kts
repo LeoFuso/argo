@@ -24,7 +24,7 @@ gradlePlugin {
             implementationClass = "io.github.leofuso.argo.plugin.ArgoPlugin"
             displayName = "Argo"
             description = """
-                A command line interface that supports Java code generation from JSON schema declaration files(.avsc),
+                A Gradle plugin that supports Java code generation from JSON schema declaration files(.avsc),
                 JSON protocol declaration files(.avpr), and Avro IDL(.avdl) source files
             """.trimIndent()
             tags.set(
