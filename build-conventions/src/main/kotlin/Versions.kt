@@ -1,8 +1,8 @@
 object Versions {
 
-    const val ARGO: String = "0.1.2-SNAPSHOT"
+    /**
+     * Needed until one can access `libs.version`
+     * from inside a code-convetions structure.
+     */
     const val DETEKT: String = "1.22.0"
-    const val COMPILER: String = "1.11.1"
-
-    fun isSnapshot() = ARGO.endsWith("SNAPSHOT")
 }

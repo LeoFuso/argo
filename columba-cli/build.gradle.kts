@@ -14,11 +14,8 @@ plugins {
     id("argo.artifact-conventions")
 }
 
-group = "$MAIN_GROUP.columba"
-version = Versions.ARGO
-
 application {
-    mainClass.set("$MAIN_GROUP.columba.cli.MainKt")
+    mainClass.set("io.github.leofuso.columba.cli.MainKt")
 }
 
 val internal: Configuration by configurations.creating {
@@ -34,10 +31,6 @@ val internal: Configuration by configurations.creating {
     }
 }
 
-artifacts {
-    add("internal", tasks.jar)
-}
-
 dependencies {
 
     api(libs.clikt) { because("Facilitate CLI implementation.") }
@@ -51,22 +44,39 @@ dependencies {
     testImplementation(libs.bundles.junit)
     testImplementation(libs.assertj)
     testImplementation(libs.combinatorics)
+
 }
 
 tasks.jar {
     manifest {
-        attributes["Main-Class"] = "$MAIN_GROUP.columba.cli.MainKt"
+        attributes["Main-Class"] = "io.github.leofuso.columba.cli.MainKt"
     }
     group = "build"
+}
+
+tasks.register<Jar>("uberJar") {
+
+    manifest {
+        attributes["Main-Class"] = "io.github.leofuso.columba.cli.MainKt"
+    }
+
+    group = "build"
+    description = "Generates a .jar containing all needed dependencies."
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-//    archiveClassifier.set("uber")
-//    from(sourceSets.main.get().output)
-//    dependsOn(configurations.runtimeClasspath)
-//    from({
-//        configurations.runtimeClasspath.get()
-//            .filter { it.name.endsWith("jar") }
-//            .map { zipTree(it) }
-//    })
-//}
+    archiveClassifier.set("uber")
+    from(sourceSets.main.get().output)
+    dependsOn(configurations.runtimeClasspath)
+    from({
+        configurations.runtimeClasspath.get()
+            .filter { it.name.endsWith("jar") }
+            .map { zipTree(it) }
+    })
+}
+
+artifacts {
+    add("internal", tasks.jar)
+    tasks.findByName("uberJar")?.let { task ->
+        add("internal", task)
+    }
 }

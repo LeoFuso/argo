@@ -4,14 +4,15 @@ import java.util.Base64
 
 
 plugins {
+    id("argo.signing-conventions")
     `maven-publish`
-    signing
 }
 
 publishing {
     repositories {
 
-        if (Versions.isSnapshot()) {
+        val isSnapshot = System.getProperty("global.version").endsWith("SNAPSHOT")
+        if (isSnapshot) {
             maven {
                 name = "sonatypeSnapshot"
                 url = uri("https://oss.sonatype.org/content/repositories/snapshots")
@@ -27,17 +28,12 @@ publishing {
     }
 
     publications.register<MavenPublication>("Sonatype") {
-        groupId = COLUMBA_GROUP
         artifactId = project.name
+        groupId = project.group.toString()
+        version = project.version.toString()
         from(components["java"])
-        version = Versions.ARGO
         pom {
-            description.set(
-                """
-                    A command line interface that supports Java code generation from JSON schema declaration files(.avsc)
-                    and JSON protocol declaration files(.avpr).
-                """
-            )
+            description.set(extra["local.description"] as String)
             name.set("$groupId:${project.name}")
             url.set("https://github.com/leofuso/argo")
             licenses {
