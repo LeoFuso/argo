@@ -12,7 +12,6 @@ import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
@@ -45,62 +44,48 @@ abstract class ArgoPlugin : Plugin<Project> {
     private fun configureColumbaTasks(project: Project, extension: ColumbaOptions, sourceSet: SourceSet) {
 
         /* Columba config */
-        val columba = CONFIGURATION_COLUMBA + if (sourceSet.name == "main") "" else sourceSet.name.capitalized()
-        project.addColumbaConfiguration(
-            columba,
-            "Needed dependencies to generate SpecificRecord Java source files in isolation.",
-            extension
-        )
-
-        /* extra configs */
+        val columbaConfiguration = project.addColumbaConfiguration(sourceSet, extension)
         val compileApacheAvroJavaConfiguration = project.addCompileApacheAvroJavaConfiguration(sourceSet)
-        val specificCompilerTaskName = compileApacheAvroJavaConfiguration.name
 
-        val specificCompilerSourcesName = "${specificCompilerTaskName}Sources"
-        project.addCustomColumbaConfiguration(
+        /* Source configs */
+        val specificCompilerSourcesName = "${compileApacheAvroJavaConfiguration.name}Sources"
+        val compileApacheAvroJavaSourcesConfiguration = project.addSourcesConfiguration(
             specificCompilerSourcesName,
             "Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) source files to be compiled."
         )
 
-        val protocolTaskName = sourceSet.getTaskName("generate", "apacheAvroProtocol")
-        project.addCustomColumbaConfiguration(
-            protocolTaskName,
+        val generateApacheAvroProtocolTaskName = sourceSet.getTaskName("generate", "apacheAvroProtocol")
+        val generateApacheAvroProtocolConfiguration = project.addSourcesConfiguration(
+            generateApacheAvroProtocolTaskName,
             "IDL(.$IDL_EXTENSION) source files needed for Protocol(.$PROTOCOL_EXTENSION) resolution."
         )
 
         val taskContainer: TaskContainer = project.tasks
-        val protocolTaskProvider = taskContainer.register<IDLProtocolTask>(protocolTaskName) {
-            configurableClasspath.from(
-                project.configurations.getAt(columba),
-                project.configurations.getAt(protocolTaskName)
-            )
-            configureAt(sourceSet)
-        }
+        val generateApacheAvroProtocol =
+            taskContainer.register<IDLProtocolTask>(generateApacheAvroProtocolConfiguration.name) {
+                configurableClasspath.from(columbaConfiguration, generateApacheAvroProtocolConfiguration)
+                configureAt(sourceSet)
+            }
 
-        val specificCompilerTaskProvider: TaskProvider<SpecificRecordCompilerTask> =
-            taskContainer.register<SpecificRecordCompilerTask>(specificCompilerTaskName) {
-                configurableClasspath.from(
-                    project.configurations.getAt(columba),
-                    project.configurations.getAt(specificCompilerTaskName)
-                )
-                source(
-                    project.configurations.getAt(specificCompilerSourcesName)
-                )
+        val compileApacheAvroJava: TaskProvider<SpecificRecordCompilerTask> =
+            taskContainer.register<SpecificRecordCompilerTask>(compileApacheAvroJavaConfiguration.name) {
+                configurableClasspath.from(columbaConfiguration, compileApacheAvroJavaConfiguration)
+                source(compileApacheAvroJavaSourcesConfiguration)
                 withExtension(extension)
                 configureAt(sourceSet)
-                dependsOn(protocolTaskProvider)
+                dependsOn(generateApacheAvroProtocol)
             }
 
         /* Adding task dependency to JavaCompile task */
         taskContainer.named<JavaCompile>(sourceSet.compileJavaTaskName)
             .configure {
-                it.source(specificCompilerTaskProvider)
-                it.dependsOn(specificCompilerTaskProvider)
+                it.source(compileApacheAvroJava)
+                it.dependsOn(compileApacheAvroJava)
             }
 
         /* Adding task dependency to every task that generates a Jar */
         taskContainer.matching(sourceSet.sourcesJarTaskName::equals)
-            .configureEach { it.dependsOn(specificCompilerTaskProvider) }
+            .configureEach { it.dependsOn(compileApacheAvroJava) }
 
         /*
          * Adding a task dependency to Idea module,
@@ -112,7 +97,7 @@ abstract class ArgoPlugin : Plugin<Project> {
                 val buildDirectoryFile = buildDirectory.get().asFile
                 project.mkdir(buildDirectoryFile)
                 it.module.generatedSourceDirs.plusAssign(buildDirectoryFile)
-                it.dependsOn(specificCompilerTaskProvider)
+                it.dependsOn(compileApacheAvroJava)
             }
 
         /* Adding task dependency to Kotlin */
@@ -120,8 +105,8 @@ abstract class ArgoPlugin : Plugin<Project> {
             taskContainer.withType<SourceTask>()
                 .matching(sourceSet.getCompileTaskName(KOTLIN_LANGUAGE_NAME)::equals)
                 .configureEach {
-                    it.source(specificCompilerTaskProvider)
-                    it.dependsOn(specificCompilerTaskProvider)
+                    it.source(compileApacheAvroJava)
+                    it.dependsOn(compileApacheAvroJava)
                 }
         }
     }

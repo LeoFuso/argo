@@ -1,17 +1,15 @@
 package io.github.leofuso.argo.plugin
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
+import org.gradle.configurationcache.extensions.capitalized
 
-fun SourceSet.configurationNameOf(base: String) = this.javaClass.getMethod("configurationNameOf", String::class.java)
-    .let {
-        it.isAccessible = true
-        it.invoke(this, base) as String
-    }
+fun SourceSet.getColumbaConfigurationName() = CONFIGURATION_COLUMBA + if (name == "main") "" else name.capitalized()
 
-fun Project.addColumbaConfiguration(name: String, description: String, extension: ColumbaOptions) {
-    this.configurations.create(name) { config ->
-        config.description = description
+fun Project.addColumbaConfiguration(sourceSet: SourceSet, extension: ColumbaOptions): Configuration {
+    return configurations.create(sourceSet.getColumbaConfigurationName()) { config ->
+        config.description = "Needed dependencies to generate SpecificRecord Java source files in isolation."
         config.isVisible = false
         config.isTransitive = false
         config.isCanBeResolved = true
@@ -38,13 +36,15 @@ fun Project.addColumbaConfiguration(name: String, description: String, extension
     }
 }
 
-fun Project.addCustomColumbaConfiguration(name: String, description: String) = configurations.maybeCreate(name).let { config ->
-    config.isVisible = false
-    config.isTransitive = true
-    config.isCanBeResolved = true
-    config.isCanBeConsumed = false
-    config.description = description
-}
+fun Project.addSourcesConfiguration(name: String, description: String) = configurations.maybeCreate(name)
+    .let { config ->
+        config.isVisible = false
+        config.isTransitive = true
+        config.isCanBeResolved = true
+        config.isCanBeConsumed = false
+        config.description = description
+        config
+    }
 
 fun Project.addCompileApacheAvroJavaConfiguration(sourceSet: SourceSet) =
     configurations.maybeCreate(sourceSet.getCompileTaskName("apacheAvroJava"))
