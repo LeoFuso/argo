@@ -8,17 +8,13 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.DisabledOnOs
-import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.io.File
-import kotlin.io.path.Path
 import kotlin.io.path.readText
 
-@DisabledOnOs(OS.WINDOWS)
 @DisplayName("Columba: Functional tests related to Columba Plugin.")
 class ColumbaFunctionalTest {
 
@@ -119,20 +115,20 @@ class ColumbaFunctionalTest {
         val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record"
         assertThat(
             listOf(
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Details.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Ratio.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/ReceiptLine.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Source.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/StatementLine.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Department.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Operation.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Receipt.java"),
-                Path("$buildPath/org/apache/avro/Node.java"),
-                Path("$buildPath/org/apache/avro/InteropProtocol.java"),
-                Path("$buildPath/org/apache/avro/Interop.java"),
-                Path("$buildPath/org/apache/avro/Kind.java"),
-                Path("$buildPath/org/apache/avro/Foo.java"),
-                Path("$buildPath/org/apache/avro/MD5.java")
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Details.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Ratio.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/ReceiptLine.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Source.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/StatementLine.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Department.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Operation.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Receipt.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Node.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/InteropProtocol.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Interop.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Kind.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Foo.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/MD5.java")
             )
         ).allSatisfy { assertThat(it).exists() }
     }
@@ -187,7 +183,7 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
             .exists()
             .content()
             .asString()
@@ -274,7 +270,7 @@ class ColumbaFunctionalTest {
             else -> "???"
         }
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
             .exists()
             .content()
             .asString()
@@ -340,7 +336,7 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
             .exists()
             .content()
             .asString()
@@ -414,13 +410,13 @@ class ColumbaFunctionalTest {
             .isSameAs(TaskOutcome.SUCCESS)
 
         if (accessible) {
-            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
                 .asString()
                 .contains("public void setName(java.lang.CharSequence value)")
         } else {
-            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
                 .asString()
@@ -496,13 +492,13 @@ class ColumbaFunctionalTest {
             .isSameAs(TaskOutcome.SUCCESS)
 
         if (shouldContainExtraOptional) {
-            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
                 .asString()
                 .contains("public Optional<java.lang.Integer> getOptionalFavoriteNumber()")
         } else {
-            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
                 .asString()
@@ -584,7 +580,8 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        val sourceCode = Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java").readText()
+        val sourceCode =
+            platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java").readText()
 
         if (hasGetter && onlyNullable) {
             assertThat(sourceCode)
@@ -673,14 +670,14 @@ class ColumbaFunctionalTest {
             .isSameAs(TaskOutcome.SUCCESS)
 
         if (useDecimalType) {
-            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
                 .asString()
                 .contains("public java.math.BigDecimal getSalary()")
                 .doesNotContain("public java.nio.ByteBuffer getSalary()")
         } else {
-            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
                 .asString()
@@ -725,7 +722,7 @@ class ColumbaFunctionalTest {
             
             argo {
                 columba {
-                    velocityTemplateDirectory = file('templates/custom/')
+                    velocityTemplateDirectory = file('templates${File.separator}custom${File.separator}')
                 }
             }
             
@@ -748,7 +745,7 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
             .exists()
             .content()
             .asString()
@@ -822,7 +819,7 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
             .exists()
             .content()
             .asString()
@@ -894,7 +891,7 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/test/Event.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/test/Event.java"))
             .exists()
             .content()
             .asString()
@@ -966,7 +963,7 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/test/Event.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/test/Event.java"))
             .exists()
             .content()
             .asString()
@@ -1084,10 +1081,12 @@ class ColumbaFunctionalTest {
         val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record"
         assertThat(
             listOf(
-                Path("$buildPath/com/example/shared/SomethingShared.java"),
-                Path("$buildPath/com/example/dependent/DependentProtocol.java"),
-                Path("$buildPath/com/example/dependent/ThisDependsOnTemporal.java"),
-                Path("${rootDir.absolutePath}/build/generated-main-avro-protocol/com/example/dependent/DependentProtocol.avpr")
+                platformAgnosticPath("$buildPath/com/example/shared/SomethingShared.java"),
+                platformAgnosticPath("$buildPath/com/example/dependent/DependentProtocol.java"),
+                platformAgnosticPath("$buildPath/com/example/dependent/ThisDependsOnTemporal.java"),
+                platformAgnosticPath(
+                    "${rootDir.absolutePath}/build/generated-main-avro-protocol/com/example/dependent/DependentProtocol.avpr"
+                )
             )
         ).allSatisfy { assertThat(it).exists() }
 

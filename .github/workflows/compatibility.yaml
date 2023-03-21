@@ -14,8 +14,8 @@ jobs:
     timeout-minutes: 10
     strategy:
       matrix:
-        os: [ macos-12, windows-2022 ]
-        java: [ '11.0.18', '17.0.6' ]
+        os: [ ubuntu-22.04, macos-12, windows-2022 ]
+        java: [ '17.0.6' ]
         gradle: [ '7.5', '7.5.1', '7.6' ]
     runs-on: ${{ matrix.os }}
     env:

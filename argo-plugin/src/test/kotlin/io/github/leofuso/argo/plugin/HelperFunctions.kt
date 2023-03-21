@@ -4,15 +4,21 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
+
+fun String.asPlatformAgnosticPath() = this.replace("\\", File.separator)
+
+fun platformAgnosticPath(path: String): Path = Paths.get(path.asPlatformAgnosticPath())
 
 infix fun File.append(content: String) = this.writeText(content)
     .let { this }
 
 infix fun File.tmkdirs(child: String) = run {
-    val file = File(this, child)
+    val file = File(this, child.asPlatformAgnosticPath())
     Files.createDirectories(file.parentFile.toPath())
     Files.createFile(file.toPath())
     file
@@ -38,6 +44,7 @@ inline fun <reified T> readTestClasspath(): String {
         .filter { it.endsWith("java/main") }
         .map { it.replace("java/main", "java/test") }
         .joinToString(", ") { "\"$it\"" }
+        .asPlatformAgnosticPath()
 }
 
 inline fun <reified T : Any> T.buildGradleRunner(vararg args: String = arrayOf("build")): BuildResult = DefaultGradleRunner.create()
