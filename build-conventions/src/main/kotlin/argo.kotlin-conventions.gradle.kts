@@ -8,6 +8,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jmailen.kotlinter")
     id("io.gitlab.arturbosch.detekt")
+    id("org.sonarqube")
 }
 
 val versionCatalog = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
@@ -71,6 +72,7 @@ tasks {
             html.required.set(true)
         }
         dependsOn(tasks.test)
+        finalizedBy(tasks.sonar)
     }
 
     test {
@@ -105,3 +107,17 @@ detekt {
     config = files("..${File.separator}gradle${File.separator}detekt.yml")
 }
 
+sonar {
+    properties {
+        property("sonar.projectName", project.name)
+        property("sonar.projectKey", project.group)
+        property("sonar.projectDescription", extra["local.description"] as String)
+        property("sonar.organization", "leofuso")
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.links.scm", "https://github.com/LeoFuso/argo")
+        property("sonar.sourceEncoding", "UTF-8")
+    }
+    if (System.getenv("SONAR_TOKEN") == null) {
+        isSkipProject = true
+    }
+}

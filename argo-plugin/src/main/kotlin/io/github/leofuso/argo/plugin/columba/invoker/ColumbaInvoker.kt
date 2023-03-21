@@ -12,8 +12,6 @@ interface ColumbaInvoker {
 internal class DefaultColumbaInvoker : ColumbaInvoker {
 
     override fun invoke(arguments: List<String>, classpath: FileCollection) {
-
-        // val classloader = classloaderFactory.produce(classpath)
         val main = Class.forName("io.github.leofuso.columba.cli.MainKt")
         val mainMethod = main.getMethod(
             "main",
@@ -21,7 +19,6 @@ internal class DefaultColumbaInvoker : ColumbaInvoker {
             PrintStream::class.java,
             PrintStream::class.java
         )
-
         mainMethod.invoke(null, arguments.toTypedArray(), System.out, System.err)
     }
 }

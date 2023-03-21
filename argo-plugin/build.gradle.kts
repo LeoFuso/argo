@@ -34,3 +34,12 @@ gradlePlugin {
         }
     }
 }
+
+tasks.test {
+    dependsOn(
+        projects.columbaCli
+            .dependencyProject
+            .tasks
+            .publishToMavenLocal
+    )
+}

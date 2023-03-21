@@ -13,14 +13,13 @@ rootProject.name = ("argo")
 includeBuild("build-conventions")
 include("argo-plugin")
 include("columba-cli")
-include("code-coverage-report")
 
 plugins {
     `gradle-enterprise`
 }
 
 gradleEnterprise {
-    if (System.getenv("CI") != null) {
+    if (System.getenv("CI") != null || gradle.startParameter.isBuildScan) {
         buildScan {
             termsOfServiceUrl = "https://gradle.com/terms-of-service"
             termsOfServiceAgree = "yes"
