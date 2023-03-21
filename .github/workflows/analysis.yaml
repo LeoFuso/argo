@@ -11,7 +11,7 @@ on:
 jobs:
   analysis:
     name: '${{ matrix.os }}(${{ matrix.java }}-zulu, v${{ matrix.gradle }})'
-    timeout-minutes: 10
+    timeout-minutes: 30
     strategy:
       matrix:
         os: [ 'ubuntu-22.04' ]
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: zulu
-          java-version: '17.0.6'
+          java-version: ${{ matrix.java }}
 
       - name: Cache SonarCloud packages
         uses: actions/cache@v3

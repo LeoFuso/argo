@@ -1,6 +1,7 @@
 plugins {
     base
     idea
+    id("argo.release-conventions")
 }
 
 tasks {
@@ -13,11 +14,11 @@ tasks {
 
     register("publish-cli") {
         group = "publishing"
-        description = "Publiches 'columba-cli' to Sonatype and releases it."
+        description = "Publishes 'columba-cli' to Sonatype and releases it."
         dependsOn(
             ":columba-cli:clean",
             ":columba-cli:publishToSonatype",
-            ":columba-cli:closeAndReleaseSonatypeStagingRepository"
+            ":closeAndReleaseSonatypeStagingRepository"
         )
     }
 

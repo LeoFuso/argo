@@ -14,13 +14,13 @@ publishing {
         val isSnapshot = System.getProperty("global.version").endsWith("SNAPSHOT")
         if (isSnapshot) {
             maven {
-                name = "sonatypeSnapshot"
+                name = "SonatypeSnapshot"
                 url = uri("https://oss.sonatype.org/content/repositories/snapshots")
                 credentials(PasswordCredentials::class.java)
             }
         } else {
             maven {
-                name = "mavenCentral"
+                name = "SonatypeRelease"
                 url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
                 credentials(PasswordCredentials::class.java)
             }
@@ -65,12 +65,16 @@ publishing {
 
 if (System.getenv("CI") != null) {
     signing {
+
+        sign { publishing.publications }
+
         val signingKeyId: String? by project
         val signingKey: String? by project
         val signingPassword: String? by project
         useInMemoryPgpKeys(signingKeyId, base64Decode(signingKey), signingPassword)
     }
 }
+
 
 fun base64Decode(secret: String?) =
     secret?.let {

@@ -6,7 +6,7 @@ on:
     types: [created]
 
 jobs:
-  publish:
+  publish-plugin:
     name: 'argo'
     timeout-minutes: 10
     runs-on: ubuntu-22.04
@@ -30,3 +30,28 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: publish-plugin
+
+  publish-columba-cli:
+    name: 'columba-cli'
+    timeout-minutes: 10
+    runs-on: ubuntu-22.04
+    environment: Portal
+    env:
+      ORG_GRADLE_PROJECT_SonatypeReleaseUsername: ${{ secrets.SONATYPE_USERNAME }}
+      ORG_GRADLE_PROJECT_SonatypeReleasePassword: ${{ secrets.SONATYPE_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
+      ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_PK }}
+      ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
+    steps:
+
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: zulu
+          java-version: 17.0.6
+
+      - name: Performs 'publish-cli' task.
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: publish-cli
