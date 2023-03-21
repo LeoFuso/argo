@@ -54,6 +54,21 @@ tasks.jar {
     group = "build"
 }
 
+tasks.register("buildCacheDir") {
+    group = "build setup"
+    doLast {
+        val cache = File(project.projectDir.parentFile, ".gradle${File.separator}cache")
+        if(!cache.exists()) {
+            cache.mkdirs()
+        }
+
+        copy {
+            from(configurations.compileClasspath, tasks.jar)
+            into("$cache${File.separator}libs")
+        }
+    }
+}
+
 tasks.register<Jar>("uberJar") {
 
     manifest {

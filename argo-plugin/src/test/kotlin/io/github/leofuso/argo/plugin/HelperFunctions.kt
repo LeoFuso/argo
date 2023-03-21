@@ -22,7 +22,7 @@ infix fun String.sh(other: String) = this + File.separator + other
 
 infix fun String.slash(target: String) = this.replace(target, File.separator)
 
-inline fun <reified T> readPluginClasspath(): String {
+inline fun <reified T> readTestClasspath(): String {
     val resource = T::class.java.getResourceAsStream("/plugin-under-test-metadata.properties")
     checkNotNull(resource) {
         "Did not find plugin classpath resource, run `testClasses` build task."
@@ -33,7 +33,7 @@ inline fun <reified T> readPluginClasspath(): String {
 
     /* So that there's no need to assume the classpath */
     return properties.getProperty("implementation-classpath")
-        .split(":")
+        .split(File.pathSeparator)
         .map { it.replace("\\", "\\\\") }
         .filter { it.endsWith("java/main") }
         .map { it.replace("java/main", "java/test") }
@@ -56,9 +56,7 @@ inline fun <reified T : Any> T.buildGradleRunner(vararg args: String = arrayOf("
     .withArguments(
         *args,
         "--stacktrace",
-        "--info",
-        // GradleRunner was throwing SunCertPathBuilderException... idk
-        "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
+        "--info"
     )
     .forwardOutput()
     .withDebug(true)
@@ -80,11 +78,7 @@ inline fun <reified T : Any> T.buildGradleRunnerAndFail(vararg args: String = ar
     .withArguments(
         *args,
         "--stacktrace",
-        "--info",
-        "-Porg.gradle.daemon=false",
-        "-Porg.gradle.daemon.idletimeout=5000",
-        // GradleRunner was throwing SunCertPathBuilderException... idk
-        "-Djavax.net.ssl.trustStore=${System.getenv("JAVA_HOME")}/lib/security/cacerts"
+        "--info"
     )
     .forwardOutput()
     .withDebug(true)

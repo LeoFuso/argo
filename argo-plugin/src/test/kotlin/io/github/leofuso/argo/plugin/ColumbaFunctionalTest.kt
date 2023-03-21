@@ -294,9 +294,6 @@ class ColumbaFunctionalTest {
 
         /* Given */
         build append """
-            
-            import org.apache.avro.compiler.specific.SpecificCompiler
-            import org.apache.avro.generic.GenericData
 
             plugins {
                 id 'java'
@@ -768,7 +765,7 @@ class ColumbaFunctionalTest {
     )
     fun t8() {
 
-        val classpath = readPluginClasspath<ColumbaFunctionalTest>()
+        val classpath = readTestClasspath<ColumbaFunctionalTest>()
 
         /* Given */
         build append """
@@ -844,7 +841,7 @@ class ColumbaFunctionalTest {
     @ValueSource(strings = ["String", "CharSequence", "Utf8"])
     fun t9(stringType: String) {
 
-        val classpath = readPluginClasspath<ColumbaFunctionalTest>()
+        val classpath = readTestClasspath<ColumbaFunctionalTest>()
 
         /* Given */
         build append """
@@ -916,7 +913,7 @@ class ColumbaFunctionalTest {
     @ValueSource(strings = ["String", "CharSequence", "Utf8"])
     fun t10(stringType: String) {
 
-        val classpath = readPluginClasspath<ColumbaFunctionalTest>()
+        val classpath = readTestClasspath<ColumbaFunctionalTest>()
 
         /* Given */
         build append """
@@ -975,5 +972,124 @@ class ColumbaFunctionalTest {
             .asString()
             .contains("java.time.Instant start;")
             .contains("java.util.TimeZone timezone;")
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given a build with IDLs with runtime classpath input having the same type, in the same namespace,
+ when building,
+ then should fail with correct output.
+"""
+    )
+    fun t11() {
+
+        /* Given */
+        build append """
+            
+            plugins {
+                id 'java'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenLocal()
+                mavenCentral()
+            }
+            
+            dependencies {
+                
+            }
+            
+            
+        """
+            .trimIndent()
+
+        val v1 = rootDir tmkdirs "src/main/avro/v1/test.avdl"
+        v1 append loadResource("tasks/protocol/namespace/v1.avdl").readText()
+
+        val v2 = rootDir tmkdirs "src/main/avro/v1/test_same_protocol.avdl"
+        v2 append loadResource("tasks/protocol/namespace/v1.avdl").readText()
+
+        /* When */
+        val result = buildGradleRunnerAndFail("build", "generateApacheAvroProtocol")
+
+        /* Then */
+        val generateProtocol = result.task(":generateApacheAvroProtocol")
+        assertThat(generateProtocol)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.FAILED)
+
+        assertThat(result.output)
+            .contains("There's already another Protocol defined in the classpath with the same name.")
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given a build with external IDL source files ― and 'generateApacheAvroProtocol' configured,
+ when building,
+ then should produce the necessary IDL, Protocol and Java files.
+"""
+    )
+    fun t12() {
+
+        /* Given */
+        build append """
+            
+            plugins {
+                id 'java'
+                id 'idea'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenLocal()
+                mavenCentral()
+            }
+            
+            def sharedIDLJar = tasks.register('sharedIDLJar', Jar) {
+                from 'src/shared'
+            }.get()
+            
+            dependencies {
+                generateApacheAvroProtocol sharedIDLJar.outputs.files
+            }
+            
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(17)
+                }
+            }
+        """
+            .trimIndent()
+
+        val shared = rootDir tmkdirs "src/shared/shared.avdl"
+        shared append loadResource("tasks/protocol/shared.avdl").readText()
+
+        val dependent = rootDir tmkdirs "src/main/avro/dependent.avdl"
+        dependent append loadResource("tasks/protocol/dependent.avdl").readText()
+
+        /* When */
+        val result = buildGradleRunner("build", "sharedIDLJar")
+
+        /* Then */
+        val generateProtocol = result.task(":generateApacheAvroProtocol")
+        assertThat(generateProtocol)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record"
+        assertThat(
+            listOf(
+                Path("$buildPath/com/example/shared/SomethingShared.java"),
+                Path("$buildPath/com/example/dependent/DependentProtocol.java"),
+                Path("$buildPath/com/example/dependent/ThisDependsOnTemporal.java"),
+                Path("${rootDir.absolutePath}/build/generated-main-avro-protocol/com/example/dependent/DependentProtocol.avpr")
+            )
+        ).allSatisfy { assertThat(it).exists() }
+
     }
 }
