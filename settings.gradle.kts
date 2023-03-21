@@ -8,16 +8,12 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = ("argo-project")
+rootProject.name = ("argo")
 
 includeBuild("build-conventions")
-includeBuild("argo-plugin")
-includeBuild("columba-cli")
-
-/* Unecessary build */
-if (System.getenv("CI") == null) {
-    includeBuild("use-cases")
-}
+include("argo-plugin")
+include("columba-cli")
+include("code-coverage-report")
 
 plugins {
     `gradle-enterprise`

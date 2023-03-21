@@ -21,7 +21,7 @@ kotlin = { id = "org.jetbrains.kotlin.jvm" }
 jacoco = { id = "org.gradle.jacoco" }
 klint = { id = "org.jmailen.kotlinter" }
 detekt = { id = "io.gitlab.arturbosch.detekt" }
-sonarqube = { id = "org.sonarqube" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
 publish = { id = "com.gradle.plugin-publish" }
 
 [libraries]

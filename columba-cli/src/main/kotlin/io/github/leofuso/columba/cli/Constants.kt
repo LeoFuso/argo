@@ -12,12 +12,6 @@ const val JAVA_EXTENSION = "java"
 const val AVRO_EXTENSION_NAME = "avro"
 
 /**
- * Compreesed extensions
- */
-const val JAR_EXTENSION = "jar"
-const val ZIP_EXTENSION = "zip"
-
-/**
  * The namespace separator.
  */
 const val NAMESPACE_SEPARATOR = "."
@@ -26,8 +20,3 @@ const val NAMESPACE_SEPARATOR = "."
  * The extension separator.
  */
 const val EXTENSION_SEPARATOR = "."
-
-/**
- * The Unix separator.
- */
-const val UNIX_SEPARATOR = "/"

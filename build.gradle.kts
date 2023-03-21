@@ -1,50 +1,23 @@
 plugins {
+    base
     idea
 }
 
 tasks {
 
-    register("clean") {
-        group = "build"
-        description = "Delegates task-action to all included builds."
-
-        val cleanTasks = gradle.includedBuilds.map { it.task(":clean") }.toTypedArray()
-        dependsOn(cleanTasks)
-    }
-
-    register("build") {
-        group = "build"
-        description = "Delegates task-action to relevant included builds."
-        dependsOn(
-            gradle.includedBuild("columba-cli").task(":build"),
-            gradle.includedBuild("argo-plugin").task(":build")
-        )
-    }
-
-    register("check") {
-        group = "verification"
-        description = "Delegates task-action to relevant included builds."
-        dependsOn(
-            gradle.includedBuild("argo-plugin").task(":pluginUnderTestMetadata"),
-            gradle.includedBuild("argo-plugin").task(":validatePlugins"),
-            gradle.includedBuild("argo-plugin").task(":check"),
-            gradle.includedBuild("columba-cli").task(":check")
-        )
-    }
-
     register("publish-plugin") {
         group = "publishing"
-        description = "Delegates task-action to argo-plugin build."
-        dependsOn(gradle.includedBuild("argo-plugin").task(":publishPlugins"))
+        description = "Publishes 'argo' to the Gradle Plugin Portal."
+        dependsOn(":argo-plugin:publishPlugins")
     }
 
     register("publish-cli") {
         group = "publishing"
-        description = "Delegates task-action to columba-cli build."
+        description = "Publiches 'columba-cli' to Sonatype and releases it."
         dependsOn(
-            gradle.includedBuild("columba-cli").task(":clean"),
-            gradle.includedBuild("columba-cli").task(":publishToSonatype"),
-            gradle.includedBuild("columba-cli").task(":closeAndReleaseSonatypeStagingRepository"),
+            ":columba-cli:clean",
+            ":columba-cli:publishToSonatype",
+            ":columba-cli:closeAndReleaseSonatypeStagingRepository"
         )
     }
 
@@ -52,3 +25,31 @@ tasks {
         distributionType = Wrapper.DistributionType.ALL
     }
 }
+
+project(":columba-cli")
+    .beforeEvaluate {
+
+        group = "io.github.leofuso.columba"
+        version = System.getProperty("global.version")
+        extra["local.description"] =
+            """
+            A command line interface that supports Java code generation from JSON schema declaration files(.avsc),
+            JSON protocol declaration files(.avpr), and Avro IDL(.avdl) source files.
+        """.trimIndent()
+
+    }
+
+project(":argo-plugin")
+    .beforeEvaluate {
+
+        group = "io.github.leofuso.argo"
+        version = System.getProperty("global.version")
+        extra["local.description"] =
+            """
+                A Gradle Plugin that supports Java code generation from JSON schema declaration files(.avsc),
+                JSON protocol declaration files(.avpr), and Avro IDL(.avdl) source files
+            """.trimIndent()
+
+    }
+
+

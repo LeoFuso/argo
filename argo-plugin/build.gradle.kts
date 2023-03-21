@@ -4,9 +4,6 @@ plugins {
     id("argo.plugin-conventions")
 }
 
-group = "io.github.leofuso.argo"
-version = System.getProperty("global.version")
-
 dependencies {
     testRuntimeOnly(libs.junit.launcher)
     testImplementation(libs.compiler)
@@ -20,13 +17,10 @@ gradlePlugin {
     vcsUrl.set("https://github.com/LeoFuso/argo")
     plugins {
         create("argo") {
-            id = "io.github.leofuso.argo"
-            implementationClass = "io.github.leofuso.argo.plugin.ArgoPlugin"
             displayName = "Argo"
-            description = """
-                A Gradle plugin that supports Java code generation from JSON schema declaration files(.avsc),
-                JSON protocol declaration files(.avpr), and Avro IDL(.avdl) source files
-            """.trimIndent()
+            id = project.group.toString()
+            description = project.extra["local.description"] as String
+            implementationClass = "io.github.leofuso.argo.plugin.ArgoPlugin"
             tags.set(
                 listOf(
                     "avro",

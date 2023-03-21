@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
@@ -6,17 +8,19 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jmailen.kotlinter")
     id("io.gitlab.arturbosch.detekt")
-    id("org.sonarqube")
 }
+
+val versionCatalog = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
+val detektVersion = versionCatalog.findVersion("detekt").get().requiredVersion
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${Versions.DETEKT}")
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-libraries:${Versions.DETEKT}")
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-ruleauthors:${Versions.DETEKT}")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-libraries:$detektVersion")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-ruleauthors:$detektVersion")
 }
 
 java {
@@ -67,7 +71,6 @@ tasks {
             html.required.set(true)
         }
         dependsOn(tasks.test)
-        finalizedBy(tasks.sonar)
     }
 
     test {
@@ -99,16 +102,6 @@ kotlinter {
 }
 
 detekt {
-    config = files("${rootDir.parentFile.absolutePath}/build-conventions/detekt.yml")
+    config = files("..${File.separator}gradle${File.separator}detekt.yml")
 }
 
-sonar {
-    properties {
-        property("sonar.projectKey", "io.github.leofuso.argo")
-        property("sonar.organization", "leofuso")
-        property("sonar.host.url", "https://sonarcloud.io")
-    }
-    if (System.getenv("SONAR_TOKEN") == null) {
-        isSkipProject = true
-    }
-}
