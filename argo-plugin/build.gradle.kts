@@ -1,5 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
+
 plugins {
     id("argo.plugin-conventions")
 }
@@ -42,4 +43,16 @@ tasks.test {
             .tasks
             .publishToMavenLocal
     )
+}
+
+sonar {
+    properties {
+        property(
+            "sonar.exclusions",
+            """
+                **/src/**/ColumbaInvoker.kt,
+                **/src/**/ColumbaWorkAction.kt
+            """.trimIndent().replace("\n", "")
+        )
+    }
 }
