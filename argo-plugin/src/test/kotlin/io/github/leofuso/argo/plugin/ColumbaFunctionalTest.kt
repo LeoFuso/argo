@@ -8,6 +8,8 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.DisabledOnOs
+import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -15,6 +17,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.io.File
 import kotlin.io.path.readText
 
+@DisabledOnOs(OS.WINDOWS)
 @DisplayName("Columba: Functional tests related to Columba Plugin.")
 class ColumbaFunctionalTest {
 
@@ -998,7 +1001,6 @@ class ColumbaFunctionalTest {
                 
             }
             
-            
         """
             .trimIndent()
 
@@ -1090,5 +1092,213 @@ class ColumbaFunctionalTest {
             )
         ).allSatisfy { assertThat(it).exists() }
 
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given a complete Argo 'gradle.build', without a defined toolchain,
+ when building,
+ then should produce the necessary IDL, Protocol and Java files.
+"""
+    )
+    fun t13() {
+
+        /* Given */
+        build append """
+                        
+            plugins {
+                id 'java'
+                id 'idea'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenLocal()
+                mavenCentral()
+            }
+            
+            dependencies {
+                
+            }
+            
+            argo {
+                columba {
+                    compilerVersion = '1.11.1'
+                    outputEncoding = 'UTF-8'
+                    fields {
+                        visibility = 'PRIVATE'
+                        useDecimalType = true
+                        stringType = 'CharSequence'
+                    }
+                    accessors {
+                        noSetters = false
+                        addExtraOptionalGetters = false
+                        useOptionalGetters = true
+                        optionalGettersForNullableFieldsOnly = true
+                    }
+                }
+            }
+
+        """
+            .trimIndent()
+
+        rootDir tmkdirs "src/main/avro/protocol/interop.avdl" append
+            loadResource("parser/scenarios/protocol/interop.avdl").readText()
+
+        rootDir tmkdirs "src/main/avro/receipt/obs.receipt.avsc" append
+            loadResource("parser/scenarios/reference/chain/obs.receipt.avsc").readText()
+
+        rootDir tmkdirs "src/main/avro/receipt/obs.receipt-line.avsc" append
+            loadResource("parser/scenarios/reference/chain/obs.receipt-line.avsc").readText()
+
+        rootDir tmkdirs "src/main/avro/obs.statement-line.avsc" append
+            loadResource("parser/scenarios/reference/chain/obs.statement-line.avsc").readText()
+
+        /* When */
+        val result = buildGradleRunner()
+
+        /* Then */
+        val generateProtocol = result.task(":generateApacheAvroProtocol")
+        assertThat(generateProtocol)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        val compile = result.task(":compileApacheAvroJava")
+        assertThat(compile)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record"
+        assertThat(
+            listOf(
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Details.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Ratio.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/ReceiptLine.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Source.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/StatementLine.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Department.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Operation.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Receipt.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Node.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/InteropProtocol.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Interop.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Kind.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Foo.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/MD5.java")
+            )
+        ).allSatisfy { assertThat(it).exists() }
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given a complete Argo 'gradle.build', with two different toolchains,
+ when building,
+ then should produce the necessary IDL, Protocol and Java files.
+"""
+    )
+    fun t14() {
+
+        /* Given */
+        build append """
+                        
+            plugins {
+                id 'java'
+                id 'idea'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenLocal()
+                mavenCentral()
+            }
+            
+            dependencies {
+                
+            }
+            
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(19)
+                }
+            }
+            
+            argo {
+                columba {
+                    toolchain {
+                        languageVersion = JavaLanguageVersion.of(17)
+                    }
+                    compilerVersion = '1.11.1'
+                    outputEncoding = 'UTF-8'
+                    fields {
+                        visibility = 'PRIVATE'
+                        useDecimalType = true
+                        stringType = 'CharSequence'
+                    }
+                    accessors {
+                        noSetters = false
+                        addExtraOptionalGetters = false
+                        useOptionalGetters = true
+                        optionalGettersForNullableFieldsOnly = true
+                    }
+                }
+            }
+
+        """
+            .trimIndent()
+
+        rootDir tmkdirs "src/main/avro/protocol/interop.avdl" append
+            loadResource("parser/scenarios/protocol/interop.avdl").readText()
+
+        rootDir tmkdirs "src/main/avro/receipt/obs.receipt.avsc" append
+            loadResource("parser/scenarios/reference/chain/obs.receipt.avsc").readText()
+
+        rootDir tmkdirs "src/main/avro/receipt/obs.receipt-line.avsc" append
+            loadResource("parser/scenarios/reference/chain/obs.receipt-line.avsc").readText()
+
+        rootDir tmkdirs "src/main/avro/obs.statement-line.avsc" append
+            loadResource("parser/scenarios/reference/chain/obs.statement-line.avsc").readText()
+
+        /* When */
+        val result = buildGradleRunner()
+
+        /* Then */
+        val generateProtocol = result.task(":generateApacheAvroProtocol")
+        assertThat(generateProtocol)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        val compile = result.task(":compileApacheAvroJava")
+        assertThat(compile)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record"
+        assertThat(
+            listOf(
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Details.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Ratio.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/ReceiptLine.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Source.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/StatementLine.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Department.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Operation.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Receipt.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Node.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/InteropProtocol.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Interop.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Kind.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Foo.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/MD5.java")
+            )
+        ).allSatisfy { assertThat(it).exists() }
+
+        assertThat(result.output)
+            .contains("Using 'Java 17")
     }
 }

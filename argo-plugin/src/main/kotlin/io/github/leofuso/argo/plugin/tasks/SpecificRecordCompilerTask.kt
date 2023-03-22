@@ -5,12 +5,9 @@ import io.github.leofuso.argo.plugin.GROUP_SOURCE_GENERATION
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
 import io.github.leofuso.argo.plugin.columba.arguments.*
-import io.github.leofuso.argo.plugin.columba.invoker.ColumbaWorkAction
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.FileType
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
@@ -25,10 +22,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.property
-import org.gradle.work.InputChanges
-import org.gradle.workers.WorkerExecutor
 import java.io.File
-import javax.inject.Inject
 import kotlin.io.path.Path
 
 fun getSpecificRecordCompileBuildDirectory(project: Project, source: SourceSet): Provider<Directory> =
@@ -36,7 +30,7 @@ fun getSpecificRecordCompileBuildDirectory(project: Project, source: SourceSet):
 
 @CacheableTask
 @Suppress("TooManyFunctions")
-abstract class SpecificRecordCompilerTask @Inject constructor(private val executor: WorkerExecutor) : CodeGenerationTask() {
+abstract class SpecificRecordCompilerTask : CodeGenerationTask() {
 
     init {
 
@@ -64,7 +58,7 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
     abstract val optionalGettersForNullableFieldsOnly: Property<Boolean>
 
     @get:Internal
-    internal val arguments
+    override val arguments
         get() = listOf(
             LoggerArgument(logger),
             CompileArgument,
@@ -133,50 +127,17 @@ abstract class SpecificRecordCompilerTask @Inject constructor(private val execut
     }
 
     @TaskAction
-    fun process(inputChanges: InputChanges) {
-
+    fun process() {
         val sources = getSources()
-        if (sources.files.isEmpty()) {
-            logger.lifecycle("Skipping task '${this.name}': No sources.")
-            return
-        }
-
-        if (inputChanges.isIncremental) {
-
-            val changes = inputChanges.getFileChanges(sources)
-                .filter { it.fileType != FileType.DIRECTORY }
-
-            val anyChanges = changes.any()
-            if (!anyChanges) {
-                return
-            }
-
-            logger.lifecycle("Generating SpecificRecord Java sources from:")
-            changes.forEach { change -> logger.lifecycle("\t{}", change.normalizedPath) }
-        }
+        logger.lifecycle("Generating SpecificRecord Java sources from {} definition files.", sources.files.size)
 
         val exclusion = pattern.excludes
         if (exclusion.isNotEmpty()) {
             logger.lifecycle("Excluded sources {}", exclusion)
         }
 
-        if (inputChanges.isIncremental.not()) {
-            logger.lifecycle("Generating SpecificRecord Java sources from all sources.")
-        }
-
-        val queue = executor.processIsolation { spec ->
-            spec.classpath.from(classpath)
-            spec.forkOptions { options ->
-                options.maxHeapSize = "64m"
-            }
-        }
-
-        project.logging.captureStandardOutput(LogLevel.LIFECYCLE)
-        queue.submit(ColumbaWorkAction::class.java) { parameters ->
-            parameters.arguments.set(arguments)
-            parameters.noop.set(false)
-        }
-
+        doRunInIsolation()
+        didWork = true
     }
 
     fun withExtension(options: ColumbaOptions) {

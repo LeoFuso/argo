@@ -64,6 +64,7 @@ abstract class ArgoPlugin : Plugin<Project> {
         val generateApacheAvroProtocol =
             taskContainer.register<IDLProtocolTask>(generateApacheAvroProtocolConfiguration.name) {
                 configurableClasspath.from(columbaConfiguration, generateApacheAvroProtocolConfiguration)
+                launcher.set(extension.getLauncher())
                 configureAt(sourceSet)
             }
 
@@ -72,6 +73,7 @@ abstract class ArgoPlugin : Plugin<Project> {
                 configurableClasspath.from(columbaConfiguration, compileApacheAvroJavaConfiguration)
                 source(compileApacheAvroJavaSourcesConfiguration)
                 withExtension(extension)
+                launcher.set(extension.getLauncher())
                 configureAt(sourceSet)
                 dependsOn(generateApacheAvroProtocol)
             }

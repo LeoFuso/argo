@@ -9,21 +9,15 @@ import io.github.leofuso.argo.plugin.columba.arguments.GenerateProtocolArgument
 import io.github.leofuso.argo.plugin.columba.arguments.LoggerArgument
 import io.github.leofuso.argo.plugin.columba.arguments.OutputArgument
 import io.github.leofuso.argo.plugin.columba.arguments.SourceArgument
-import io.github.leofuso.argo.plugin.columba.invoker.ColumbaWorkAction
-import org.gradle.api.file.FileType
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
-import org.gradle.work.InputChanges
-import org.gradle.workers.WorkerExecutor
 import java.io.File
-import javax.inject.Inject
 import kotlin.io.path.Path
 
 @CacheableTask
-abstract class IDLProtocolTask @Inject constructor(private val executor: WorkerExecutor) : CodeGenerationTask() {
+abstract class IDLProtocolTask : CodeGenerationTask() {
 
     init {
         description = "Generates Avro Protocol(.$PROTOCOL_EXTENSION) source files from Avro IDL(.$IDL_EXTENSION) source files."
@@ -32,7 +26,7 @@ abstract class IDLProtocolTask @Inject constructor(private val executor: WorkerE
     }
 
     @get:Internal
-    internal val arguments
+    override val arguments
         get() = listOf(
             LoggerArgument(logger),
             GenerateProtocolArgument,
@@ -41,9 +35,6 @@ abstract class IDLProtocolTask @Inject constructor(private val executor: WorkerE
             ClasspathArgument(classpath)
         )
             .flatMap(CliArgument::args)
-
-//    @get:Nested
-//    abstract val launcher: Property<JavaLauncher>
 
     open fun configureAt(sourceSet: SourceSet) {
         val buildDirectory = project.layout.buildDirectory.dir("generated-${sourceSet.name}-avro-protocol")
@@ -57,43 +48,16 @@ abstract class IDLProtocolTask @Inject constructor(private val executor: WorkerE
     }
 
     @TaskAction
-    fun process(inputChanges: InputChanges) {
-
+    fun process() {
         val sources = getSources()
-        if (inputChanges.isIncremental) {
-
-            val changes = inputChanges.getFileChanges(sources)
-                .filter { it.fileType != FileType.DIRECTORY }
-                .filter { it.file.extension == IDL_EXTENSION }
-
-            val anyChanges = changes.any()
-            if (!anyChanges) {
-                return
-            }
-
-            logger.lifecycle("Generating Avro Protocol(.$PROTOCOL_EXTENSION) from:")
-            changes.forEach { change -> logger.lifecycle("\t{}", change.normalizedPath) }
-        }
+        logger.lifecycle("Generating Avro Protocol(.$PROTOCOL_EXTENSION) from {} source files.", sources.files.size)
 
         val exclusion = pattern.excludes
         if (exclusion.isNotEmpty()) {
             logger.lifecycle("Excluding sources from {}", exclusion)
         }
 
-        val queue = executor.processIsolation { spec ->
-            spec.classpath.from(classpath)
-            spec.forkOptions { options ->
-                options.maxHeapSize = "64m"
-            }
-        }
-
-        project.logging.captureStandardOutput(LogLevel.LIFECYCLE)
-        queue.submit(ColumbaWorkAction::class.java) { parameters ->
-            parameters.arguments.set(arguments)
-            parameters.noop.set(false)
-        }
-
+        doRunInIsolation()
         didWork = true
     }
-
 }

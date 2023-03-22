@@ -1,6 +1,7 @@
 package io.github.leofuso.argo.plugin
 
 const val KOTLIN_PLUGIN_ID = "org.jetbrains.kotlin.jvm"
+const val JAVA_BASE_PLUGIN_ID = "java-base"
 const val KOTLIN_LANGUAGE_NAME = "kotlin"
 
 const val ARGO_EXTENSION = "argo"

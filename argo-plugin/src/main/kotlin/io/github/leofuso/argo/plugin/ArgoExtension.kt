@@ -7,10 +7,13 @@ import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.jvm.toolchain.JavaToolchainService
+import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.invoke
@@ -42,10 +45,19 @@ abstract class ArgoExtension {
 interface NavisOptions
 
 @Suppress("TooManyFunctions", "MemberVisibilityCanBePrivate")
-abstract class ColumbaOptions(@Inject val project: Project, @Inject val javaToolchainService: JavaToolchainService) {
+abstract class ColumbaOptions(@Inject val project: Project) {
 
-    @get:Nested
-    abstract val launcher: Property<JavaLauncher>
+    private val _toolchain = project.extensions.getByType<JavaPluginExtension>().toolchain
+
+    @Internal
+    fun getLauncher(): Provider<JavaLauncher> {
+        val defaultToolchain = CurrentJvmToolchainSpec(project.objects)
+        val toolchainService = project.extensions.getByType<JavaToolchainService>()
+        return toolchainService.launcherFor(_toolchain)
+            .orElse(toolchainService.launcherFor(defaultToolchain))
+    }
+
+    fun toolchain(action: Action<in JavaToolchainSpec>) = action.invoke(_toolchain)
 
     abstract fun getVersion(): Property<String>
 
@@ -97,10 +109,6 @@ abstract class ColumbaOptions(@Inject val project: Project, @Inject val javaTool
 
     @Internal
     fun applyConventions(): ColumbaOptions {
-
-        val toolchain = project.extensions.getByType<JavaPluginExtension>().toolchain
-        val defaultLauncher = javaToolchainService.launcherFor(toolchain)
-        launcher.convention(defaultLauncher)
 
         getExcluded().convention(listOf())
         getOutputEncoding().convention("UTF-8")

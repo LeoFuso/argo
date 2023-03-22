@@ -14,15 +14,17 @@ abstract class ColumbaWorkAction : WorkAction<ColumbaWorkParameters> {
     override fun execute() {
 
         if (parameters.noop.isPresent && parameters.noop.get()) {
-            NoopColumbaInvoker()
-                .invoke(parameters.arguments.get(), parameters.classpath)
+
+            NoopColumbaInvoker(parameters.classpath)
+                .invoke(parameters.arguments.get())
+
             return
         }
 
         try {
 
             DefaultColumbaInvoker()
-                .invoke(parameters.arguments.get(), parameters.classpath)
+                .invoke(parameters.arguments.get())
 
         } catch (ex: InvocationTargetException) {
             val message = ex.targetException.message

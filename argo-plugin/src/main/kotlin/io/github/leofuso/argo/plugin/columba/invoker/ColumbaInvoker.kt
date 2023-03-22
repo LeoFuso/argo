@@ -5,13 +5,13 @@ import java.io.PrintStream
 
 interface ColumbaInvoker {
 
-    fun invoke(arguments: List<String>, classpath: FileCollection)
+    fun invoke(arguments: List<String>)
 
 }
 
 internal class DefaultColumbaInvoker : ColumbaInvoker {
 
-    override fun invoke(arguments: List<String>, classpath: FileCollection) {
+    override fun invoke(arguments: List<String>) {
         val main = Class.forName("io.github.leofuso.columba.cli.MainKt")
         val mainMethod = main.getMethod(
             "main",
@@ -23,9 +23,9 @@ internal class DefaultColumbaInvoker : ColumbaInvoker {
     }
 }
 
-internal class NoopColumbaInvoker : ColumbaInvoker {
+internal class NoopColumbaInvoker(private val classpath: FileCollection) : ColumbaInvoker {
 
-    override fun invoke(arguments: List<String>, classpath: FileCollection) {
+    override fun invoke(arguments: List<String>) {
         println("NO-OP cli invokation.")
         println(
             "\tArgs: ${

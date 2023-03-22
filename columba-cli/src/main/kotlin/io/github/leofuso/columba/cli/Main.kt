@@ -14,7 +14,7 @@ import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.enum
-import io.github.leofuso.columba.cli.ConsoleLogger.*
+import io.github.leofuso.columba.cli.ConsoleLogger.LogLevel
 import io.github.leofuso.columba.cli.command.CompileCommand
 import io.github.leofuso.columba.cli.command.GenerateProtocolCommand
 import org.apache.avro.compiler.specific.SpecificCompiler
@@ -70,6 +70,8 @@ class CommandRunner(private val out: PrintStream, private val err: PrintStream) 
     override fun run() {
         /* Lazy property */
         check(logger.getLogLevel() == logLevel)
+        val runtimeVersion = Runtime.version()
+        logger.info("Using 'Java $runtimeVersion'.")
         logger.info("Using 'org.apache.avro:avro-compiler:${SpecificCompiler::class.java.`package`.implementationVersion}'")
     }
 
