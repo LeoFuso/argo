@@ -1,6 +1,7 @@
 package io.github.leofuso.columba.cli.command
 
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
+import com.github.ajalt.clikt.parameters.options.check
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.split
@@ -8,6 +9,7 @@ import com.github.ajalt.clikt.parameters.options.unique
 import com.github.ajalt.clikt.parameters.types.path
 import io.github.leofuso.columba.cli.CLASS_EXTENSION
 import io.github.leofuso.columba.cli.VELOCITY_TEMPLATE_EXTENSION
+import javax.lang.model.SourceVersion
 
 class VelocityOptions : OptionGroup(
     name = "Velocity Options",
@@ -35,6 +37,9 @@ class VelocityOptions : OptionGroup(
             mustExist = true,
             canBeFile = false
         )
+        .check(
+            "SpecificCompiler needs this path to contain at least some VelocityTemplates(.$VELOCITY_TEMPLATE_EXTENSION)."
+        ) { input -> input.toFile().listFiles()?.any { f -> f.extension == VELOCITY_TEMPLATE_EXTENSION } ?: false }
 
     val additionalVelocityTools by option(
         "--velocity-tools",
@@ -49,4 +54,5 @@ class VelocityOptions : OptionGroup(
         .split(";")
         .default(listOf())
         .unique()
+        .check("For each item, the class name must be in the fully qualified form.") { input -> input.all(SourceVersion::isName) }
 }

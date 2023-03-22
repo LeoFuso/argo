@@ -9,6 +9,7 @@ const val PROTOCOL_EXTENSION = "avpr"
 const val VELOCITY_TEMPLATE_EXTENSION = "vm"
 const val IDL_EXTENSION = "avdl"
 const val JAVA_EXTENSION = "java"
+const val JAR_EXTENSION = "jar"
 const val AVRO_EXTENSION_NAME = "avro"
 
 /**

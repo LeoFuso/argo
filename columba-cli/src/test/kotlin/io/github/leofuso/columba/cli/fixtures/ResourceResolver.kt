@@ -10,8 +10,8 @@ fun loadResource(path: String): File {
     val callerClass = walker.callerClass
     val classLoader = callerClass.classLoader
 
-    val resource = classLoader.getResource(path)
-        ?: throw IllegalArgumentException("Unnable to resolve the resource at [$path]")
+    val resource = classLoader.getResource(path.toSysPath())
+        ?: throw IllegalArgumentException("Unnable to resolve the resource at [${path.toSysPath()}]")
 
     val uri = resource.toURI()
     return File(uri)

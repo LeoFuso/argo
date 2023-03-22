@@ -5,6 +5,7 @@ import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.output.CliktHelpFormatter
 import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.arguments.check
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.arguments.unique
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
@@ -54,15 +55,16 @@ class CompileCommand : CliktCommand(
         .file(mustExist = true, mustBeReadable = true, canBeDir = false)
         .multiple()
         .unique()
+        .check("Accepts only Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) definition files as input.") { input ->
+            input.all { file -> file.extension == SCHEMA_EXTENSION || file.extension == PROTOCOL_EXTENSION }
+        }
 
     val dest by argument()
-        .file(canBeFile = false)
+        .file(mustExist = true, mustBeReadable = true, mustBeWritable = true, canBeFile = false)
 
     override fun run() {
-        logger.lifecycle("Compiling $sources to $dest.")
+        logger.lifecycle("Compiling $sources to ${dest.absolutePath}.")
         SpecificCompilerRunner(this)
             .run()
-
     }
-
 }

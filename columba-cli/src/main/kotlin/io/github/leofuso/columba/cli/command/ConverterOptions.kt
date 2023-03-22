@@ -2,10 +2,12 @@ package io.github.leofuso.columba.cli.command
 
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.associate
+import com.github.ajalt.clikt.parameters.options.check
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.split
 import com.github.ajalt.clikt.parameters.options.unique
+import javax.lang.model.SourceVersion
 
 class ConverterOptions : OptionGroup(
     name = "Converter Options",
@@ -29,14 +31,17 @@ class ConverterOptions : OptionGroup(
            Example:
            
             ```
-            ---logical-type-factories timezone=io.github.leofuso.tools.TimeZoneLogicalTypeFactory
-            ---logical-type-factories other=io.github.leofuso.tools.OtherLogicalTypeFactory
+            --logical-type-factories timezone=io.github.leofuso.tools.TimeZoneLogicalTypeFactory
+            --logical-type-factories other=io.github.leofuso.tools.OtherLogicalTypeFactory
             -f other-one=io.github.leofuso.tools.OtherOneLogicalTypeFactory
             ```
             
         """
     )
         .associate()
+        .check("For each item, the factory name must not be blank, and the class name must be in the fully qualified form.") { input ->
+            input.all { (key, value) -> key.isNotBlank() && SourceVersion.isName(value) }
+        }
 
     val additionalConverters by option(
         "--converters",
@@ -54,4 +59,5 @@ class ConverterOptions : OptionGroup(
         .split(";")
         .default(listOf())
         .unique()
+        .check("For each item, the class name must be in the fully qualified form.") { input -> input.all(SourceVersion::isName) }
 }
