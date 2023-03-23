@@ -5,6 +5,7 @@ detekt = "1.22.0"
 sonarqube = "4.0.0.2929"
 publish = "1.1.0"
 nexus = "1.3.0"
+foojay = "0.4.0"
 
 kotlin = "1.8.10"
 argo = "0.1.4"
@@ -30,6 +31,7 @@ klint = { id = "org.jmailen.kotlinter" }
 detekt = { id = "io.gitlab.arturbosch.detekt" }
 sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
 publish = { id = "com.gradle.plugin-publish" }
+foojay = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay" }
 
 [libraries]
 kotlin = { group = "org.jetbrains.kotlin.jvm", name = "org.jetbrains.kotlin.jvm.gradle.plugin", version.ref = "kotlin" }
@@ -38,6 +40,7 @@ detekt = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin",
 sonarqube = { group = "org.sonarsource.scanner.gradle", name = "sonarqube-gradle-plugin", version.ref = "sonarqube" }
 publish = { group = "com.gradle.publish", name = "plugin-publish-plugin", version.ref = "publish" }
 nexus = { group = "io.github.gradle-nexus", name = "publish-plugin", version.ref = "nexus" }
+foojay = { group = "org.gradle.toolchains", name = "foojay-resolver", version.ref = "foojay" }
 
 clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "clikt" }
 log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }

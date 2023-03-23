@@ -12,7 +12,7 @@ plugins {
 }
 
 val versionCatalog = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
-val detektVersion = versionCatalog.findVersion("detekt").get().requiredVersion
+val detektVersion: String = versionCatalog.findVersion("detekt").get().requiredVersion
 
 repositories {
     mavenCentral()
