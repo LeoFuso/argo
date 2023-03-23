@@ -23,6 +23,8 @@ class CompileCommandTest {
     private lateinit var dest: File
 
     private val source = loadResource("scenarios/common/Record.avsc")
+    private val customConversion = loadResource("compiler/custom-conversion.avsc")
+    private val protocol = loadResource("compiler/mail.avpr")
     private val invalidSource = loadResource("scenarios/protocol/shared.avdl")
 
     private val subject =
@@ -326,6 +328,70 @@ class CompileCommandTest {
         assertThatNoException()
             .isThrownBy {
                 subject.parse(arrayOf("compile", source.absolutePath, dest.absolutePath))
+            }
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given a fully costumized compilation,
+ when parsing,
+ then should compile without default options.
+"""
+    )
+    fun t13() {
+
+        /* When Then */
+        assertThatNoException()
+            .isThrownBy {
+                subject.parse(
+                    arrayOf(
+                        "-i",
+                        "compile",
+                        customConversion.absolutePath,
+                        dest.absolutePath,
+                        "--use-decimal-type",
+                        "--add-extra-optional-getters",
+                        "--use-optional-getters-for-nullable-fields-only",
+                        "--allow-setters",
+                        "--field-visibility",
+                        "pUbLiC",
+                        "--string-type",
+                        "utf8",
+                        "--velocity-template",
+                        loadResource("compiler/").absolutePath,
+                        "-f",
+                        "timezone=io.github.leofuso.custom.tools.TimeZoneLogicalTypeFactory",
+                        "-c",
+                        "io.github.leofuso.custom.tools.TimeZoneConversion",
+                        "-v",
+                        "io.github.leofuso.custom.tools.CommentGenerator;io.github.leofuso.custom.tools.TimestampGenerator"
+                    )
+                )
+            }
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given a protocol compilation,
+ when parsing,
+ then should compile with default options.
+"""
+    )
+    fun t14() {
+
+        /* When Then */
+        assertThatNoException()
+            .isThrownBy {
+                subject.parse(
+                    arrayOf(
+                        "-i",
+                        "compile",
+                        protocol.absolutePath,
+                        dest.absolutePath
+                    )
+                )
             }
     }
 }
