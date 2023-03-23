@@ -89,6 +89,5 @@ fun Project.addCompileApacheAvroJavaConfiguration(sourceSet: SourceSet) =
                     .getAt(sourceSet.implementationConfigurationName)
                     .extendsFrom(config)
             }
-
             config
         }

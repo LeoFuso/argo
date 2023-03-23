@@ -3,8 +3,14 @@ package io.github.leofuso.argo.plugin.columba.invoker
 import org.gradle.api.file.FileCollection
 import java.io.PrintStream
 
+/**
+ * A component in which delegates the task action by invoking a command-line-application.
+ */
 interface ColumbaInvoker {
 
+    /**
+     * Invoke a command based upon its [arguments].
+     */
     fun invoke(arguments: List<String>)
 
 }
@@ -28,24 +34,20 @@ internal class NoopColumbaInvoker(private val classpath: FileCollection) : Colum
     override fun invoke(arguments: List<String>) {
         println("NO-OP cli invokation.")
         println(
-            "\tArgs: ${
-            arguments.joinToString(
+            "\tArgs: ${arguments.joinToString(
                 "\n",
                 "[\n",
                 "\n\t ]",
                 transform = { "\t\t$it" }
-            )
-            }"
+            )}"
         )
         println(
-            "\tClasspath: ${
-            classpath.files.joinToString(
+            "\tClasspath: ${classpath.files.joinToString(
                 "\n",
                 "[\n",
                 "\n\t ]",
                 transform = { "\t\t${it.path}" }
-            )
-            }"
+            )}"
         )
     }
 }

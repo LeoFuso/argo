@@ -57,7 +57,7 @@ abstract class IDLProtocolTask : CodeGenerationTask() {
             logger.lifecycle("Excluding sources from {}", exclusion)
         }
 
-        doRunInIsolation()
+        doProcessInIsolation()
         didWork = true
     }
 }

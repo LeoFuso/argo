@@ -57,6 +57,10 @@ abstract class ColumbaOptions(@Inject val project: Project) {
             .orElse(toolchainService.launcherFor(defaultToolchain))
     }
 
+    /**
+     * Customizes the default [JavaToolchainSpec].
+     */
+    @Suppress("unused")
     fun toolchain(action: Action<in JavaToolchainSpec>) = action.invoke(_toolchain)
 
     abstract fun getVersion(): Property<String>

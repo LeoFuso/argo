@@ -136,7 +136,7 @@ abstract class SpecificRecordCompilerTask : CodeGenerationTask() {
             logger.lifecycle("Excluded sources {}", exclusion)
         }
 
-        doRunInIsolation()
+        doProcessInIsolation()
         didWork = true
     }
 

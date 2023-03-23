@@ -86,6 +86,11 @@ abstract class CodeGenerationTask : DefaultTask() {
      */
     open fun source(vararg sources: Any): ConfigurableFileCollection = _sources.from(*sources)
 
+    /**
+     * Adds some source to this task. The given source object will be extracted in accordance with [org.gradle.api.Project.zipTree].
+     *
+     * @param source The source to extract and add.
+     */
     open fun source(source: Configuration): ConfigurableFileCollection = source.asFileTree
         .matching(
             PatternSet()
@@ -105,7 +110,7 @@ abstract class CodeGenerationTask : DefaultTask() {
         .flatMap { it.getOrThrow() }
         .let { _sources.from(it) }
 
-    protected fun doRunInIsolation() {
+    protected fun doProcessInIsolation() {
         val executor = getWorkerExecutor()
         val queue = executor.processIsolation { spec ->
             spec.classpath.from(classpath)

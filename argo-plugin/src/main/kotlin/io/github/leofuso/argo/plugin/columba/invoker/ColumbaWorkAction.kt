@@ -11,19 +11,17 @@ import java.lang.reflect.InvocationTargetException
 
 abstract class ColumbaWorkAction : WorkAction<ColumbaWorkParameters> {
 
+    private fun buildInvoker() = if (parameters.noop.isPresent && parameters.noop.get()) {
+        NoopColumbaInvoker(parameters.classpath)
+    } else {
+        DefaultColumbaInvoker()
+    }
+
     override fun execute() {
-
-        if (parameters.noop.isPresent && parameters.noop.get()) {
-
-            NoopColumbaInvoker(parameters.classpath)
-                .invoke(parameters.arguments.get())
-
-            return
-        }
 
         try {
 
-            DefaultColumbaInvoker()
+            buildInvoker()
                 .invoke(parameters.arguments.get())
 
         } catch (ex: InvocationTargetException) {
