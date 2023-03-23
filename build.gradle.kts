@@ -30,8 +30,9 @@ tasks {
 project(":columba-cli")
     .beforeEvaluate {
 
-        group = "io.github.leofuso.columba"
-        version = System.getProperty("global.version")
+        val lib = getDependency("columba-cli")
+        group = lib.group
+        version = lib.versionConstraint.toString()
         extra["local.description"] =
             """
             A command line interface that supports Java code generation from JSON schema declaration files(.avsc),
@@ -43,8 +44,9 @@ project(":columba-cli")
 project(":argo-plugin")
     .beforeEvaluate {
 
-        group = "io.github.leofuso.argo"
-        version = System.getProperty("global.version")
+        val lib = getDependency("argo")
+        group = lib.group
+        version = lib.versionConstraint.toString()
         extra["local.description"] =
             """
                 A Gradle Plugin that supports Java code generation from JSON schema declaration files(.avsc),
@@ -52,5 +54,12 @@ project(":argo-plugin")
             """.trimIndent()
 
     }
+
+fun getDependency(name: String) =
+    project.extensions.getByType<VersionCatalogsExtension>()
+    .named("libs")
+    .findLibrary(name)
+    .get()
+    .get()
 
 

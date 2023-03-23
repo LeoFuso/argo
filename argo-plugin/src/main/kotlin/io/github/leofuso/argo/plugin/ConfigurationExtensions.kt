@@ -7,6 +7,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.dependencies
+import java.util.*
 
 fun SourceSet.getColumbaConfigurationName() = CONFIGURATION_COLUMBA + if (name == "main") "" else name.capitalized()
 
@@ -20,26 +21,32 @@ fun Project.addColumbaConfiguration(sourceSet: SourceSet, extension: ColumbaOpti
 
         afterEvaluate {
 
-            dependencies {
+            val properties = Properties()
+            val resource = ArgoPlugin::class.java.classLoader.getResource("versions.properties")
+                ?: error("Could not resolve 'versions.properties'.")
 
-                val columba = dependencies.create(DEFAULT_COLUMBA_CLI_DEPENDENCY) {
+            properties.load(resource.openStream())
+
+            dependencies {
+                val dependencyNotation = properties.getProperty(COLUMBA_CLI_DEPENDENCY)
+                val columba = dependencies.create(dependencyNotation) {
                     because("A command line interface responsible for running the SpecificCompiler with process isolation.")
                     version {
                         val version = extension.getVersion()
                         if (version.isPresent) {
                             it.strictly(version.get())
                         } else {
-                            it.prefer(DEFAULT_COLUMBA_CLI_DEPENDENCY_VERSION)
+                            val versionNotation = properties.getProperty(COLUMBA_CLI_DEPENDENCY_VERSION)
+                            it.prefer(versionNotation)
                         }
                     }
                 }
-
                 add(config.name, columba)
             }
 
             dependencies.constraints { handler ->
 
-                val compiler = handler.create(DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY) { constraint ->
+                val compiler = handler.create(properties.getProperty(APACHE_AVRO_COMPILER_DEPENDENCY)) { constraint ->
                     constraint.because(
                         "Compiler needed to generate code from Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) source files."
                     )
@@ -48,19 +55,27 @@ fun Project.addColumbaConfiguration(sourceSet: SourceSet, extension: ColumbaOpti
                         if (version.isPresent) {
                             it.strictly(version.get())
                         } else {
-                            it.prefer(DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY_VERSION)
+                            it.prefer(properties.getProperty(APACHE_AVRO_COMPILER_DEPENDENCY_VERSION))
                         }
                     }
                 }
                 handler.add(config.name, compiler)
 
-                val jackson = handler.create(DEFAULT_JACKSON_DATABIND_DEPENDENCY) { constraint ->
+                val jackson = handler.create(properties.getProperty(JACKSON_DATABIND_DEPENDENCY)) { constraint ->
                     constraint.because("Fixes a vulnerability within 'org.apache.avro:avro-compiler:${compiler.version}'.")
                     constraint.version {
-                        it.prefer(DEFAULT_JACKSON_DATABIND_DEPENDENCY_VERSION)
+                        it.prefer(properties.getProperty(JACKSON_DATABIND_DEPENDENCY_VERSION))
                     }
                 }
                 handler.add(config.name, jackson)
+
+                val commons = handler.create(properties.getProperty(APACHE_COMMONS_TEXT_DEPENDENCY)) { constraint ->
+                    constraint.because("Fixes 'CVE-2022-42889' vulnerability within 'org.apache.avro:avro-compiler:${compiler.version}'.")
+                    constraint.version {
+                        it.prefer(properties.getProperty(APACHE_COMMONS_TEXT_DEPENDENCY_VERSION))
+                    }
+                }
+                handler.add(config.name, commons)
             }
         }
     }

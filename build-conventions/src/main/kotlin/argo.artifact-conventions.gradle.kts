@@ -11,7 +11,7 @@ plugins {
 publishing {
     repositories {
 
-        val isSnapshot = System.getProperty("global.version").endsWith("SNAPSHOT")
+        val isSnapshot = project.version.toString().endsWith("SNAPSHOT")
         if (isSnapshot) {
             maven {
                 name = "Sonatype"
