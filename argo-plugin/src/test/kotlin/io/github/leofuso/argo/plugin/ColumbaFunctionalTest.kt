@@ -8,8 +8,6 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.condition.DisabledOnOs
-import org.junit.jupiter.api.condition.OS
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -17,7 +15,6 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.io.File
 import kotlin.io.path.readText
 
-@DisabledOnOs(OS.WINDOWS)
 @DisplayName("Columba: Functional tests related to Columba Plugin.")
 class ColumbaFunctionalTest {
 
