@@ -1,6 +1,0 @@
-@namespace("org.example.v1")
-protocol TestProtocol {
-    record TestRecord {
-        string field1;
-    }
-}

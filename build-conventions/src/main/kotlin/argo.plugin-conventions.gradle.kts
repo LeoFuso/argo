@@ -15,11 +15,6 @@ dependencies {
     testImplementation(gradleTestKit())
 }
 
-tasks.withType<AbstractArchiveTask> {
-    isPreserveFileTimestamps = false
-    isReproducibleFileOrder = true
-}
-
 tasks {
 
     val buildVersionProperties by registering(WriteProperties::class) {

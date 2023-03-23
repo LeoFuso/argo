@@ -11,6 +11,11 @@ dependencyResolutionManagement {
 rootProject.name = ("argo")
 
 includeBuild("build-conventions")
+
+if (System.getenv("CI") == null) {
+    includeBuild("use-cases")
+}
+
 include("argo-plugin")
 include("columba-cli")
 

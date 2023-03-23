@@ -7,8 +7,9 @@ publish = "1.1.0"
 nexus = "1.3.0"
 
 kotlin = "1.8.10"
-argo = "0.1.4-SNAPSHOT"
-columba = "0.1.4-SNAPSHOT"
+argo = "0.1.4"
+argo-release = "0.1.4"
+columba = "0.1.4"
 compiler = "1.11.1"
 jackson = "2.15.0-rc1"
 apache-commons = "1.10.0"
@@ -21,6 +22,8 @@ assertj = "3.24.2"
 
 [plugins]
 idea = { id = "org.gradle.idea" }
+argo = { id = "io.github.leofuso.argo", version.ref = "argo" }
+argo-release = { id = "io.github.leofuso.argo", version.ref = "argo-release" }
 kotlin = { id = "org.jetbrains.kotlin.jvm" }
 jacoco = { id = "org.gradle.jacoco" }
 klint = { id = "org.jmailen.kotlinter" }

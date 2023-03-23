@@ -3,7 +3,7 @@
 `build.gradle`
 ```groovy
 plugins {
-    id 'io.github.leofuso.argo' version '0.1.3'   
+    id 'io.github.leofuso.argo' version '0.1.4'   
 }
 
 ```
@@ -11,16 +11,20 @@ plugins {
 `build.gradle.kts`
 ```kotlin
 plugins {
-    id("io.github.leofuso.argo") version "0.1.3"   
+    id("io.github.leofuso.argo") version "0.1.4"   
 }
 ```
 
 ## Unreleased
 
-### 0.1.4 ― ???
+### 0.1.5 ― ???
 
 
 ## Releases
+
+### 0.1.4 ― incremental release
+* Signing fix.
+* Deprecated behavior on '8.0.2' fix.
 
 ### 0.1.3 ― incremental release
 * Publication fix.
