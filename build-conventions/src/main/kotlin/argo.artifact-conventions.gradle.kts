@@ -70,8 +70,10 @@ publishing {
     }
 }
 
-signing {
-    sign(publishing.publications["Sonatype"])
+if (providers.gradleProperty("sign").isPresent) {
+    signing {
+        sign(publishing.publications["Sonatype"])
+    }
 }
 
 if (System.getenv("CI") != null) {
@@ -82,7 +84,6 @@ if (System.getenv("CI") != null) {
         useInMemoryPgpKeys(signingKeyId, base64Decode(signingKey), signingPassword)
     }
 }
-
 
 fun base64Decode(secret: String?) =
     secret?.let {
