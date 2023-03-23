@@ -37,8 +37,8 @@ jobs:
     runs-on: ubuntu-22.04
     environment: Portal
     env:
-      ORG_GRADLE_PROJECT_SonatypeReleaseUsername: ${{ secrets.SONATYPE_USERNAME }}
-      ORG_GRADLE_PROJECT_SonatypeReleasePassword: ${{ secrets.SONATYPE_PASSWORD }}
+      ORG_GRADLE_PROJECT_SonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
+      ORG_GRADLE_PROJECT_SonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
       ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
       ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_PK }}
       ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
