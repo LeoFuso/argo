@@ -67,9 +67,9 @@ class GenerateProtocolCommandTest {
     )
     fun t2() {
         /* When Then */
-        assertThatThrownBy { subject.parse(arrayOf("generate-protocol", "/arbitrary", "aaa")) }
+        assertThatThrownBy { subject.parse(arrayOf("generate-protocol", "${File.separator}arbitrary", "aaa")) }
             .isInstanceOf(BadParameterValue::class.java)
-            .hasMessageContaining("\"/arbitrary\" does not exist.")
+            .hasMessageContaining("\"${File.separator}arbitrary\" does not exist.")
     }
 
     @Test
@@ -83,9 +83,9 @@ class GenerateProtocolCommandTest {
     fun t3() {
 
         /* When Then */
-        assertThatThrownBy { subject.parse(arrayOf("generate-protocol", source.absolutePath, "/arbitrary")) }
+        assertThatThrownBy { subject.parse(arrayOf("generate-protocol", source.absolutePath, "${File.separator}arbitrary")) }
             .isInstanceOf(BadParameterValue::class.java)
-            .hasMessageContaining("\"/arbitrary\" does not exist.")
+            .hasMessageContaining("\"${File.separator}arbitrary\" does not exist.")
     }
 
     @Test
@@ -156,7 +156,7 @@ class GenerateProtocolCommandTest {
                     source.absolutePath,
                     dest.absolutePath,
                     "--classpath",
-                    "/arbitrary.avdl"
+                    "${File.separator}arbitrary.avdl"
                 )
             )
         }

@@ -69,9 +69,9 @@ class CompileCommandTest {
     )
     fun t2() {
         /* When Then */
-        assertThatThrownBy { subject.parse(arrayOf("compile", "/arbitrary", "aaa")) }
+        assertThatThrownBy { subject.parse(arrayOf("compile", "${File.separator}arbitrary", "aaa")) }
             .isInstanceOf(BadParameterValue::class.java)
-            .hasMessageContaining("\"/arbitrary\" does not exist.")
+            .hasMessageContaining("\"${File.separator}arbitrary\" does not exist.")
     }
 
     @Test
@@ -100,9 +100,9 @@ class CompileCommandTest {
     fun t3() {
 
         /* When Then */
-        assertThatThrownBy { subject.parse(arrayOf("compile", source.absolutePath, "/arbitrary")) }
+        assertThatThrownBy { subject.parse(arrayOf("compile", source.absolutePath, "${File.separator}arbitrary")) }
             .isInstanceOf(BadParameterValue::class.java)
-            .hasMessageContaining("\"/arbitrary\" does not exist.")
+            .hasMessageContaining("\"${File.separator}arbitrary\" does not exist.")
     }
 
     @Test
