@@ -792,7 +792,7 @@ class ColumbaFunctionalTest {
             
             argo {
                 columba {
-                    velocityTemplateDirectory = file('templates/custom/')
+                    velocityTemplateDirectory = file('templates${File.separator}custom${File.separator}')
                     additionalVelocityTools = [
                             'io.github.leofuso.argo.custom.TimestampGenerator',
                             'io.github.leofuso.argo.custom.CommentGenerator'
@@ -1046,7 +1046,7 @@ class ColumbaFunctionalTest {
             }
             
             def sharedIDLJar = tasks.register('sharedIDLJar', Jar) {
-                from 'src/shared'
+                from 'src${File.separator}shared'
             }.get()
             
             dependencies {

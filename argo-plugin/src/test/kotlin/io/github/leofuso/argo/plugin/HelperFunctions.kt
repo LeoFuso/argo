@@ -10,7 +10,7 @@ import java.util.*
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
-fun String.asPlatformAgnosticPath() = this.replace("\\", File.separator)
+fun String.asPlatformAgnosticPath() = this.replace("/", File.separator)
 
 fun platformAgnosticPath(path: String): Path = Paths.get(path.asPlatformAgnosticPath())
 
@@ -29,7 +29,7 @@ infix fun String.sh(other: String) = this + File.separator + other
 infix fun String.slash(target: String) = this.replace(target, File.separator)
 
 inline fun <reified T> readTestClasspath(): String {
-    val resource = T::class.java.getResourceAsStream("/plugin-under-test-metadata.properties")
+    val resource = T::class.java.getResourceAsStream("${File.separator}plugin-under-test-metadata.properties")
     checkNotNull(resource) {
         "Did not find plugin classpath resource, run `testClasses` build task."
     }
