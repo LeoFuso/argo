@@ -13,7 +13,7 @@ nexusPublishing {
     useStaging.set(isSnapshot)
 
     repositories {
-        create(if (isSnapshot) "SonatypeSnapshot" else "SonatypeRelease") {
+        create("Sonatype") {
             nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
             snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
         }

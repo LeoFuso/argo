@@ -14,13 +14,13 @@ publishing {
         val isSnapshot = System.getProperty("global.version").endsWith("SNAPSHOT")
         if (isSnapshot) {
             maven {
-                name = "SonatypeSnapshot"
+                name = "Sonatype"
                 url = uri("https://oss.sonatype.org/content/repositories/snapshots")
                 credentials(PasswordCredentials::class.java)
             }
         } else {
             maven {
-                name = "SonatypeRelease"
+                name = "Sonatype"
                 url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2")
                 credentials(PasswordCredentials::class.java)
             }

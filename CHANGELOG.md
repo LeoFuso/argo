@@ -24,7 +24,7 @@ plugins {
 
 ### 0.1.2 ― Process isolation
 * BugFixes.
-* All task actions delegates to a separate runtime now, called Columba-CLI.
+* All task actions delegate to a separate runtime now, called Columba-CLI.
 * SonarQube and JaCoCo setup for Columba-CLI
 * Columba-CLI publication setup.
 
