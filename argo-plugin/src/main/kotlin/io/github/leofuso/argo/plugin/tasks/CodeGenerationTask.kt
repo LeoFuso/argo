@@ -4,10 +4,10 @@ import io.github.leofuso.argo.plugin.JAR_EXTENSION
 import io.github.leofuso.argo.plugin.ZIP_EXTENSION
 import io.github.leofuso.argo.plugin.columba.invoker.ColumbaWorkAction
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
@@ -69,9 +69,31 @@ abstract class CodeGenerationTask : DefaultTask() {
     @SkipWhenEmpty
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
-    fun getSources() = _sources
-        .asFileTree
-        .matching(_pattern)
+    fun getSources(): FileTree {
+
+        _sources.asFileTree
+            .matching(
+                PatternSet()
+                    .include(
+                        "**${File.separator}*.$JAR_EXTENSION",
+                        "**${File.separator}*.$ZIP_EXTENSION"
+                    )
+            )
+            .map {
+                runCatching {
+                    project.zipTree(it)
+                }.onFailure { throwable ->
+                    logger.error("Task '${this.name}' is unable to extract sources from File[${it.path}].", throwable)
+                }
+            }
+            .filter { it.isSuccess }
+            .flatMap { it.getOrThrow() }
+            .let { _sources.from(it) }
+
+        return _sources
+            .asFileTree
+            .matching(_pattern)
+    }
 
     @OutputDirectory
     abstract fun getOutputDir(): DirectoryProperty
@@ -85,30 +107,6 @@ abstract class CodeGenerationTask : DefaultTask() {
      * @param sources The source to add
      */
     open fun source(vararg sources: Any): ConfigurableFileCollection = _sources.from(*sources)
-
-    /**
-     * Adds some source to this task. The given source object will be extracted in accordance with [org.gradle.api.Project.zipTree].
-     *
-     * @param source The source to extract and add.
-     */
-    open fun source(source: Configuration): ConfigurableFileCollection = source.asFileTree
-        .matching(
-            PatternSet()
-                .include(
-                    "**${File.separator}*.$JAR_EXTENSION",
-                    "**${File.separator}*.$ZIP_EXTENSION"
-                )
-        )
-        .map {
-            runCatching {
-                project.zipTree(it)
-            }.onFailure { throwable ->
-                logger.error("Task '${this.name}' is unable to extract sources from File[${it.path}].", throwable)
-            }
-        }
-        .filter { it.isSuccess }
-        .flatMap { it.getOrThrow() }
-        .let { _sources.from(it) }
 
     protected fun doProcessInIsolation() {
         val executor = getWorkerExecutor()

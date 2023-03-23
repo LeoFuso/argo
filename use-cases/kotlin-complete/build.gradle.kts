@@ -1,8 +1,10 @@
+
 plugins {
-    java
     idea
+    java
     kotlin("jvm") version "1.8.0"
-    id("io.github.leofuso.argo")
+    @Suppress("DSL_SCOPE_VIOLATION")
+    alias(libs.plugins.argo.release)
 }
 
 dependencies {
@@ -12,6 +14,7 @@ dependencies {
         isTransitive = false
     }
     compileApacheAvroJavaSources(project(":external-tools"))
+    generateApacheAvroProtocol(project(":external-tools"))
 }
 
 kotlin {

@@ -1,6 +1,5 @@
 plugins {
     id 'java-library'
-    id 'maven-publish'
 }
 
 group 'io.github.leofuso.argo'
@@ -8,7 +7,7 @@ version '0.0.1-SNAPSHOT'
 
 dependencies {
     implementation 'org.apache.avro:avro:1.11.1'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
 }
 
 java {
@@ -27,22 +26,6 @@ sourceSets {
     main {
         resources {
             srcDirs 'src/main/avro', 'src/main/resources'
-        }
-    }
-}
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.java
-            groupId = group
-            artifactId = 'custom-tools'
-            version = '0.0.1-SNAPSHOT'
-            pom {
-                name = group + ':custom-tools'
-                description = 'Custom Tools for use with Argo use-cases.'
-                packaging 'jar'
-            }
         }
     }
 }

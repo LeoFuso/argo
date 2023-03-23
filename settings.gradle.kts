@@ -11,11 +11,17 @@ dependencyResolutionManagement {
 rootProject.name = ("argo")
 
 includeBuild("build-conventions")
+
+if (System.getenv("CI") == null) {
+    includeBuild("use-cases")
+}
+
 include("argo-plugin")
 include("columba-cli")
 
 plugins {
     `gradle-enterprise`
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.4.0"
 }
 
 gradleEnterprise {

@@ -17,7 +17,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.io.File
 import kotlin.io.path.readText
 
-@DisabledOnOs(OS.WINDOWS)
+@DisabledOnOs(OS.WINDOWS) // Until https://github.com/gradle/native-platform/issues/274 is fixed.
 @DisplayName("Columba: Functional tests related to Columba Plugin.")
 class ColumbaFunctionalTest {
 
@@ -795,7 +795,7 @@ class ColumbaFunctionalTest {
             
             argo {
                 columba {
-                    velocityTemplateDirectory = file('templates/custom/')
+                    velocityTemplateDirectory = file('templates${File.separator}custom${File.separator}')
                     additionalVelocityTools = [
                             'io.github.leofuso.argo.custom.TimestampGenerator',
                             'io.github.leofuso.argo.custom.CommentGenerator'
@@ -1049,7 +1049,7 @@ class ColumbaFunctionalTest {
             }
             
             def sharedIDLJar = tasks.register('sharedIDLJar', Jar) {
-                from 'src/shared'
+                from 'src${File.separator}shared'
             }.get()
             
             dependencies {

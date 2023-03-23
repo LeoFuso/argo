@@ -29,4 +29,4 @@ jobs:
       - name: Performs 'publish-cli' task.
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: publish-cli
+          arguments: publish-cli -Psign=true -i

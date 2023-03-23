@@ -25,7 +25,7 @@ abstract class ArgoPlugin : Plugin<Project> {
     override fun apply(project: Project) {
 
         if (GradleVersion.current().baseVersion < GradleVersion.version("7.6")) {
-            throw RuntimeException("${ArgoPlugin::class.simpleName} needs Gradle version 7.6 or higher.")
+            error("${ArgoPlugin::class.simpleName} needs a Gradle version '7.6' or higher.")
         }
 
         project.plugins.withType<JavaPlugin> {

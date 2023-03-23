@@ -5,14 +5,14 @@ buildscript {
 }
 
 plugins {
-    id 'java'
     id 'idea'
-    id 'io.github.leofuso.argo'
+    id 'java'
+    alias libs.plugins.argo.release
 }
 
 dependencies {
     implementation 'org.apache.avro:avro:1.11.1'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.2'
 }
 
 java {
