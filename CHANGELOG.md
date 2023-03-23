@@ -3,7 +3,7 @@
 `build.gradle`
 ```groovy
 plugins {
-    id 'io.github.leofuso.argo' version '0.1.1'   
+    id 'io.github.leofuso.argo' version '0.1.2'   
 }
 
 ```
@@ -11,16 +11,22 @@ plugins {
 `build.gradle.kts`
 ```kotlin
 plugins {
-    id("io.github.leofuso.argo") version "0.1.1"   
+    id("io.github.leofuso.argo") version "0.1.2"   
 }
 ```
 
 ## Unreleased
 
-### 0.1.2 ― ???
+### 0.1.3 ― ???
 
 
 ## Releases
+
+### 0.1.2 ― Process isolation
+* BugFixes.
+* All task actions delegates to a separate runtime now, called Columba-CLI.
+* SonarQube and JaCoCo setup for Columba-CLI
+* Columba-CLI publication setup.
 
 ### 0.1.1 ― incremental release
 * BugFixes.
