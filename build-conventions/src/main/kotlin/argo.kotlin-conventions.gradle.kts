@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
@@ -9,14 +11,17 @@ plugins {
     id("org.sonarqube")
 }
 
+val versionCatalog = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
+val detektVersion = versionCatalog.findVersion("detekt").get().requiredVersion
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.22.0")
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-libraries:1.22.0")
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-ruleauthors:1.22.0")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-libraries:$detektVersion")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-rules-ruleauthors:$detektVersion")
 }
 
 java {
@@ -25,13 +30,12 @@ java {
 }
 
 kotlin {
-    jvmToolchain(JavaVersion.VERSION_11.ordinal)
+    jvmToolchain(17)
 }
 
 tasks {
 
     withType<Detekt>().configureEach {
-        jvmTarget = "11"
         reports {
             html.required.set(true)
             txt.required.set(true)
@@ -94,19 +98,24 @@ kotlinter {
     experimentalRules = true
     disabledRules = arrayOf(
         "no-empty-first-line-in-method-block",
-        "no-blank-line-before-rbrace"
+        "no-blank-line-before-rbrace",
+        "no-wildcard-imports"
     )
 }
 
 detekt {
-    config = files("${rootDir.parentFile.absolutePath}/build-conventions/detekt.yml")
+    config = files("..${File.separator}gradle${File.separator}detekt.yml")
 }
 
 sonar {
     properties {
-        property("sonar.projectKey", "io.github.leofuso.argo")
+        property("sonar.projectName", project.name)
+        property("sonar.projectKey", project.group)
+        property("sonar.projectDescription", extra["local.description"] as String)
         property("sonar.organization", "leofuso")
         property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.links.scm", "https://github.com/LeoFuso/argo")
+        property("sonar.sourceEncoding", "UTF-8")
     }
     if (System.getenv("SONAR_TOKEN") == null) {
         isSkipProject = true

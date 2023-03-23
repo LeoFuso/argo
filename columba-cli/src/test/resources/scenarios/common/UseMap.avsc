@@ -1,0 +1,65 @@
+{
+    "name": "UseMap",
+    "namespace": "io.github.leofuso.argo.plugin.parser",
+    "type": "record",
+    "fields": [
+        {
+            "name": "stringMap",
+            "type": {
+                "type": "map",
+                "values": "string",
+                "default": {}
+            },
+            "doc": "Just a string map.",
+            "default": {}
+        },
+        {
+            "name": "enumMap",
+            "type": {
+                "type": "map",
+                "values": "Enum"
+            }
+        },
+        {
+            "name": "fixedMap",
+            "type": {
+                "type": "map",
+                "values": "Fixed"
+            }
+        },
+        {
+            "name": "recordMap",
+            "type": {
+                "type": "map",
+                "values": "Record"
+            }
+        },
+        {
+            "name": "enumWithTypeMap",
+            "type": {
+                "type": "map",
+                "values": {
+                    "type": "Enum"
+                }
+            }
+        },
+        {
+            "name": "fixedWithTypeMap",
+            "type": {
+                "type": "map",
+                "values": {
+                    "type": "Fixed"
+                }
+            }
+        },
+        {
+            "name": "recordWithTypeMap",
+            "type": {
+                "type": "map",
+                "values": {
+                    "type": "Record"
+                }
+            }
+        }
+    ]
+}

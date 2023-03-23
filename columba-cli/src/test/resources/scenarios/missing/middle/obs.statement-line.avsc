@@ -1,0 +1,121 @@
+{
+    "doc": "A Statement Line encapsulates a financial transaction.",
+    "type": "record",
+    "namespace": "io.github.leofuso.obs.demo.events",
+    "name": "StatementLine",
+    "fields": [
+        {
+            "doc": "UUID v5 compliant identification for the transaction. Used as the primary key — composed with the source field constituents.",
+            "name": "transaction",
+            "type": {
+                "type": "string",
+                "logicalType": "uuid"
+            }
+        },
+        {
+            "doc": "Every transaction has its uniqueness guaranteed by its source, being the auditable entity responsible for posting the transaction.",
+            "name": "source",
+            "type": {
+                "name": "Source",
+                "type": "record",
+                "fields": [
+                    {
+                        "name": "namespace",
+                        "type": {
+                            "type": "string",
+                            "logicalType": "uuid"
+                        }
+                    },
+                    {
+                        "name": "domain",
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        {
+            "doc": "UUID v4 compliant identification for the Account owning the transaction.",
+            "name": "account",
+            "type": {
+                "type": "string",
+                "logicalType": "uuid"
+            }
+        },
+        {
+            "name": "details",
+            "type": {
+                "name": "Details",
+                "type": "record",
+                "fields": [
+                    {
+                        "doc": "An arbitrary string of data related to this transaction.",
+                        "name": "annotation",
+                        "type": "string"
+                    },
+                    {
+                        "doc": "Auditable party responsible for this transaction.",
+                        "name": "department",
+                        "type": {
+                            "type": "enum",
+                            "name": "Department",
+                            "symbols": [
+                                "ROUTE",
+                                "INCENTIVE",
+                                "ALLOWANCE",
+                                "SHIFT",
+                                "DEDUCTION",
+                                "DEPOSIT",
+                                "WITHDRAWAL",
+                                "CORRECTION",
+                                "UNKNOWN"
+                            ],
+                            "default": "UNKNOWN"
+                        },
+                        "default": "UNKNOWN"
+                    }
+                ]
+            }
+        },
+        {
+            "doc": "The operation behind this transaction.",
+            "name": "operation",
+            "type": {
+                "type": "enum",
+                "name": "Operation",
+                "symbols": [
+                    "CREDIT",
+                    "DEBIT"
+                ]
+            }
+        },
+        {
+            "doc": "The amount transferred in the referred transaction. It can be zero or negative.",
+            "name": "amount",
+            "type": {
+                "type": "bytes",
+                "logicalType": "decimal",
+                "precision": 15,
+                "scale": 3
+            }
+        },
+        {
+            "doc": "Competence timestamp of the referred transaction. Always behind the System timestamp.",
+            "name": "competence",
+            "type": {
+                "type": "long",
+                "logicalType": "timestamp-micros"
+            },
+            "default": 0
+        },
+        {
+            "doc": "Baggage is a context-sensitive Key-Value carrier of business-unrelated data.",
+            "name": "baggage",
+            "type": {
+                "type": "map",
+                "values": "string",
+                "default": {}
+            },
+            "default": {}
+        }
+    ]
+}

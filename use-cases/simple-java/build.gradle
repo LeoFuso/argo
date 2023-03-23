@@ -1,12 +1,6 @@
-import org.apache.avro.compiler.specific.SpecificCompiler
-import org.apache.avro.generic.GenericData
-
 buildscript {
     repositories {
         mavenCentral()
-    }
-    dependencies {
-        classpath group: 'org.apache.avro', name: 'avro', version: '1.11.0'
     }
 }
 
@@ -18,22 +12,23 @@ plugins {
 
 dependencies {
     implementation 'org.apache.avro:avro:1.11.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
 argo {
     columba {
-        compiler = 'org.apache.avro:avro-compiler:1.11.0'
+        compilerVersion = '1.11.0'
         outputEncoding = 'UTF-8'
         fields {
-            visibility = SpecificCompiler.FieldVisibility.PRIVATE
+            visibility = 'PRIVATE'
             useDecimalType = true
-            stringType = GenericData.StringType.CharSequence
+            stringType = 'CharSequence'
         }
         accessors {
             noSetters = false

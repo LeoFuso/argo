@@ -1,0 +1,55 @@
+[versions]
+jacoco = "0.8.8"
+klint = "3.13.0"
+detekt = "1.22.0"
+sonarqube = "4.0.0.2929"
+publish = "1.1.0"
+nexus = "1.3.0"
+
+kotlin = "1.8.10"
+compiler = "1.11.1"
+jackson = "2.14.2"
+clikt = "3.5.2"
+slf4j = "1.7.36"
+log4j = "2.20.0"
+junit = "5.9.2"
+junit-launcher = "1.9.2"
+assertj = "3.24.2"
+
+[plugins]
+idea = { id = "org.gradle.idea" }
+kotlin = { id = "org.jetbrains.kotlin.jvm" }
+jacoco = { id = "org.gradle.jacoco" }
+klint = { id = "org.jmailen.kotlinter" }
+detekt = { id = "io.gitlab.arturbosch.detekt" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
+publish = { id = "com.gradle.plugin-publish" }
+
+[libraries]
+kotlin = { group = "org.jetbrains.kotlin.jvm", name = "org.jetbrains.kotlin.jvm.gradle.plugin", version.ref = "kotlin" }
+klint = { group = "org.jmailen.gradle", name = "kotlinter-gradle", version.ref = "klint" }
+detekt = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
+sonarqube = { group = "org.sonarsource.scanner.gradle", name = "sonarqube-gradle-plugin", version.ref = "sonarqube" }
+publish = { group = "com.gradle.publish", name = "plugin-publish-plugin", version.ref = "publish" }
+nexus = { group = "io.github.gradle-nexus", name = "publish-plugin", version.ref = "nexus" }
+
+clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "clikt" }
+log4j-api = { group = "org.apache.logging.log4j", name = "log4j-api", version.ref = "log4j" }
+log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
+log4j-slf4j-adapter = { group = "org.apache.logging.log4j", name = "log4j-slf4j-impl", version.ref = "log4j" }
+slf4j-simple = { group = "org.slf4j", name = "slf4j-simple", version.ref = "slf4j" }
+
+compiler = { group = "org.apache.avro", name = "avro-compiler", version.ref = "compiler" }
+jackson-databind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
+
+junit-launcher = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit-launcher" }
+junit-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
+junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
+junit-params = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit" }
+assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+combinatorics = { group = "com.speedment.common", name = "combinatorics", version = "3.2.10" }
+
+
+[bundles]
+junit = ["junit-api", "junit-engine", "junit-params"]

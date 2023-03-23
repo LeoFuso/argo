@@ -15,7 +15,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import java.io.File
-import kotlin.io.path.Path
 import kotlin.io.path.readText
 
 @DisabledOnOs(OS.WINDOWS)
@@ -45,10 +44,7 @@ class ColumbaFunctionalTest {
 
         /* Given */
         build append """
-            
-            import org.apache.avro.compiler.specific.SpecificCompiler
-            import org.apache.avro.generic.GenericData
-            
+                        
             plugins {
                 id 'java'
                 id 'idea'
@@ -56,6 +52,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -65,18 +62,18 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
             argo {
                 columba {
-                    compiler = 'org.apache.avro:avro-compiler:1.11.0'
+                    compilerVersion = '1.11.1'
                     outputEncoding = 'UTF-8'
                     fields {
-                        visibility = SpecificCompiler.FieldVisibility.PRIVATE
+                        visibility = 'PRIVATE'
                         useDecimalType = true
-                        stringType = GenericData.StringType.CharSequence
+                        stringType = 'CharSequence'
                     }
                     accessors {
                         noSetters = false
@@ -121,20 +118,20 @@ class ColumbaFunctionalTest {
         val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record"
         assertThat(
             listOf(
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Details.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Ratio.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/ReceiptLine.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Source.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/StatementLine.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Department.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Operation.java"),
-                Path("$buildPath/io/github/leofuso/obs/demo/events/Receipt.java"),
-                Path("$buildPath/org/apache/avro/Node.java"),
-                Path("$buildPath/org/apache/avro/InteropProtocol.java"),
-                Path("$buildPath/org/apache/avro/Interop.java"),
-                Path("$buildPath/org/apache/avro/Kind.java"),
-                Path("$buildPath/org/apache/avro/Foo.java"),
-                Path("$buildPath/org/apache/avro/MD5.java")
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Details.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Ratio.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/ReceiptLine.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Source.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/StatementLine.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Department.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Operation.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Receipt.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Node.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/InteropProtocol.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Interop.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Kind.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Foo.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/MD5.java")
             )
         ).allSatisfy { assertThat(it).exists() }
     }
@@ -159,6 +156,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -168,7 +166,7 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -188,7 +186,7 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
             .exists()
             .content()
             .asString()
@@ -212,14 +210,12 @@ class ColumbaFunctionalTest {
 """
     )
     @ParameterizedTest(name = "{index} ==> StringType ''{0}''")
-    @ValueSource(strings = ["CharSequence", "String", "Utf8"])
+    @ValueSource(strings = ["CharSequence", "charsequence", "String", "Utf8", "utf8", "string", "CHARSEQUENCE"])
     fun t2(config: String) {
 
         /* Given */
         build append """
             
-            import org.apache.avro.compiler.specific.SpecificCompiler
-            import org.apache.avro.generic.GenericData
 
             plugins {
                 id 'java'
@@ -228,6 +224,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -237,14 +234,14 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
             argo {
                 columba {
                     fields {
-                        stringType = GenericData.StringType.$config
+                        stringType = '$config'
                     }
                 }
             }
@@ -267,12 +264,16 @@ class ColumbaFunctionalTest {
 
         val stringClass = when (config) {
             "String" -> "java.lang.String"
+            "string" -> "java.lang.String"
             "CharSequence" -> "java.lang.CharSequence"
+            "charsequence" -> "java.lang.CharSequence"
+            "CHARSEQUENCE" -> "java.lang.CharSequence"
             "Utf8" -> "org.apache.avro.util.Utf8"
+            "utf8" -> "org.apache.avro.util.Utf8"
             else -> "???"
         }
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
             .exists()
             .content()
             .asString()
@@ -287,14 +288,11 @@ class ColumbaFunctionalTest {
 """
     )
     @ParameterizedTest(name = "{index} ==> FieldVisibility ''{0}''")
-    @ValueSource(strings = ["PUBLIC", "PRIVATE"])
+    @ValueSource(strings = ["PUBLIC", "public", "PRIVATE", "private"])
     fun t3(config: String) {
 
         /* Given */
         build append """
-            
-            import org.apache.avro.compiler.specific.SpecificCompiler
-            import org.apache.avro.generic.GenericData
 
             plugins {
                 id 'java'
@@ -303,6 +301,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -312,14 +311,14 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
             argo {
                 columba {
                     fields {
-                        visibility = SpecificCompiler.FieldVisibility.$config
+                        visibility = '$config'
                     }
                 }
             }
@@ -340,7 +339,7 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
             .exists()
             .content()
             .asString()
@@ -375,6 +374,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -384,7 +384,7 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -413,13 +413,13 @@ class ColumbaFunctionalTest {
             .isSameAs(TaskOutcome.SUCCESS)
 
         if (accessible) {
-            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
                 .asString()
                 .contains("public void setName(java.lang.CharSequence value)")
         } else {
-            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
                 .asString()
@@ -456,6 +456,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -465,7 +466,7 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -494,13 +495,13 @@ class ColumbaFunctionalTest {
             .isSameAs(TaskOutcome.SUCCESS)
 
         if (shouldContainExtraOptional) {
-            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
                 .asString()
                 .contains("public Optional<java.lang.Integer> getOptionalFavoriteNumber()")
         } else {
-            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
                 .asString()
@@ -543,6 +544,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -552,7 +554,7 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -581,7 +583,8 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        val sourceCode = Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java").readText()
+        val sourceCode =
+            platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java").readText()
 
         if (hasGetter && onlyNullable) {
             assertThat(sourceCode)
@@ -631,6 +634,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -640,7 +644,7 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -669,14 +673,14 @@ class ColumbaFunctionalTest {
             .isSameAs(TaskOutcome.SUCCESS)
 
         if (useDecimalType) {
-            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
                 .asString()
                 .contains("public java.math.BigDecimal getSalary()")
                 .doesNotContain("public java.nio.ByteBuffer getSalary()")
         } else {
-            assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+            assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
                 .exists()
                 .content()
                 .asString()
@@ -705,6 +709,7 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
@@ -714,13 +719,13 @@ class ColumbaFunctionalTest {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
             argo {
                 columba {
-                    velocityTemplateDirectory = file('templates/custom/')
+                    velocityTemplateDirectory = file('templates${File.separator}custom${File.separator}')
                 }
             }
             
@@ -743,7 +748,7 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
             .exists()
             .content()
             .asString()
@@ -760,7 +765,7 @@ class ColumbaFunctionalTest {
     )
     fun t8() {
 
-        val classpath = readPluginClasspath<ColumbaFunctionalTest>()
+        val classpath = readTestClasspath<ColumbaFunctionalTest>()
 
         /* Given */
         build append """
@@ -773,16 +778,18 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
             dependencies {
+                implementation 'org.apache.avro:avro:1.11.1'
                 compileApacheAvroJava files($classpath)
             }
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -815,7 +822,7 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/example/avro/User.java"))
             .exists()
             .content()
             .asString()
@@ -834,12 +841,10 @@ class ColumbaFunctionalTest {
     @ValueSource(strings = ["String", "CharSequence", "Utf8"])
     fun t9(stringType: String) {
 
-        val classpath = readPluginClasspath<ColumbaFunctionalTest>()
+        val classpath = readTestClasspath<ColumbaFunctionalTest>()
 
         /* Given */
         build append """
-             
-            import org.apache.avro.generic.GenericData
                                   
             plugins {
                 id 'java'
@@ -848,17 +853,18 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
             dependencies {
-                implementation files($classpath)
+                implementation 'org.apache.avro:avro:1.11.1'
                 compileApacheAvroJava files($classpath)
             }
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -867,7 +873,7 @@ class ColumbaFunctionalTest {
                     additionalLogicalTypeFactories.put('timezone', 'io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory')
                     additionalConverters.add('io.github.leofuso.argo.custom.TimeZoneConversion')
                     fields {
-                        stringType = GenericData.StringType.$stringType
+                        stringType = '$stringType'
                     }
                 }
             }
@@ -888,7 +894,7 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/test/Event.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/test/Event.java"))
             .exists()
             .content()
             .asString()
@@ -907,12 +913,10 @@ class ColumbaFunctionalTest {
     @ValueSource(strings = ["String", "CharSequence", "Utf8"])
     fun t10(stringType: String) {
 
-        val classpath = readPluginClasspath<ColumbaFunctionalTest>()
+        val classpath = readTestClasspath<ColumbaFunctionalTest>()
 
         /* Given */
         build append """
-             
-            import org.apache.avro.generic.GenericData
                                   
             plugins {
                 id 'java'
@@ -921,17 +925,18 @@ class ColumbaFunctionalTest {
             }
             
             repositories {
+                mavenLocal()
                 mavenCentral()
             }
             
             dependencies {
-                implementation files($classpath)
+                implementation 'org.apache.avro:avro:1.11.1'
                 compileApacheAvroJava files($classpath)
             }
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(17)
                 }
             }
             
@@ -940,7 +945,7 @@ class ColumbaFunctionalTest {
                     additionalLogicalTypeFactories.put('timezone', 'io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory')
                     additionalConverters.add('io.github.leofuso.argo.custom.TimeZoneConversion')
                     fields {
-                        stringType = GenericData.StringType.$stringType
+                        stringType = '$stringType'
                     }
                 }
             }
@@ -961,11 +966,339 @@ class ColumbaFunctionalTest {
             .extracting { it?.outcome }
             .isSameAs(TaskOutcome.SUCCESS)
 
-        assertThat(Path("${rootDir.absolutePath}/build/generated-main-specific-record/test/Event.java"))
+        assertThat(platformAgnosticPath("${rootDir.absolutePath}/build/generated-main-specific-record/test/Event.java"))
             .exists()
             .content()
             .asString()
             .contains("java.time.Instant start;")
             .contains("java.util.TimeZone timezone;")
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given a build with IDLs with runtime classpath input having the same type, in the same namespace,
+ when building,
+ then should fail with correct output.
+"""
+    )
+    fun t11() {
+
+        /* Given */
+        build append """
+            
+            plugins {
+                id 'java'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenLocal()
+                mavenCentral()
+            }
+            
+            dependencies {
+                
+            }
+            
+        """
+            .trimIndent()
+
+        val v1 = rootDir tmkdirs "src/main/avro/v1/test.avdl"
+        v1 append loadResource("tasks/protocol/namespace/v1.avdl").readText()
+
+        val v2 = rootDir tmkdirs "src/main/avro/v1/test_same_protocol.avdl"
+        v2 append loadResource("tasks/protocol/namespace/v1.avdl").readText()
+
+        /* When */
+        val result = buildGradleRunnerAndFail("build", "generateApacheAvroProtocol")
+
+        /* Then */
+        val generateProtocol = result.task(":generateApacheAvroProtocol")
+        assertThat(generateProtocol)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.FAILED)
+
+        assertThat(result.output)
+            .contains("There's already another Protocol defined in the classpath with the same name.")
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given a build with external IDL source files ― and 'generateApacheAvroProtocol' configured,
+ when building,
+ then should produce the necessary IDL, Protocol and Java files.
+"""
+    )
+    fun t12() {
+
+        /* Given */
+        build append """
+            
+            plugins {
+                id 'java'
+                id 'idea'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenLocal()
+                mavenCentral()
+            }
+            
+            def sharedIDLJar = tasks.register('sharedIDLJar', Jar) {
+                from 'src/shared'
+            }.get()
+            
+            dependencies {
+                generateApacheAvroProtocol sharedIDLJar.outputs.files
+            }
+            
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(17)
+                }
+            }
+        """
+            .trimIndent()
+
+        val shared = rootDir tmkdirs "src/shared/shared.avdl"
+        shared append loadResource("tasks/protocol/shared.avdl").readText()
+
+        val dependent = rootDir tmkdirs "src/main/avro/dependent.avdl"
+        dependent append loadResource("tasks/protocol/dependent.avdl").readText()
+
+        /* When */
+        val result = buildGradleRunner("build", "sharedIDLJar")
+
+        /* Then */
+        val generateProtocol = result.task(":generateApacheAvroProtocol")
+        assertThat(generateProtocol)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record"
+        assertThat(
+            listOf(
+                platformAgnosticPath("$buildPath/com/example/shared/SomethingShared.java"),
+                platformAgnosticPath("$buildPath/com/example/dependent/DependentProtocol.java"),
+                platformAgnosticPath("$buildPath/com/example/dependent/ThisDependsOnTemporal.java"),
+                platformAgnosticPath(
+                    "${rootDir.absolutePath}/build/generated-main-avro-protocol/com/example/dependent/DependentProtocol.avpr"
+                )
+            )
+        ).allSatisfy { assertThat(it).exists() }
+
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given a complete Argo 'gradle.build', without a defined toolchain,
+ when building,
+ then should produce the necessary IDL, Protocol and Java files.
+"""
+    )
+    fun t13() {
+
+        /* Given */
+        build append """
+                        
+            plugins {
+                id 'java'
+                id 'idea'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenLocal()
+                mavenCentral()
+            }
+            
+            dependencies {
+                
+            }
+            
+            argo {
+                columba {
+                    compilerVersion = '1.11.1'
+                    outputEncoding = 'UTF-8'
+                    fields {
+                        visibility = 'PRIVATE'
+                        useDecimalType = true
+                        stringType = 'CharSequence'
+                    }
+                    accessors {
+                        noSetters = false
+                        addExtraOptionalGetters = false
+                        useOptionalGetters = true
+                        optionalGettersForNullableFieldsOnly = true
+                    }
+                }
+            }
+
+        """
+            .trimIndent()
+
+        rootDir tmkdirs "src/main/avro/protocol/interop.avdl" append
+            loadResource("parser/scenarios/protocol/interop.avdl").readText()
+
+        rootDir tmkdirs "src/main/avro/receipt/obs.receipt.avsc" append
+            loadResource("parser/scenarios/reference/chain/obs.receipt.avsc").readText()
+
+        rootDir tmkdirs "src/main/avro/receipt/obs.receipt-line.avsc" append
+            loadResource("parser/scenarios/reference/chain/obs.receipt-line.avsc").readText()
+
+        rootDir tmkdirs "src/main/avro/obs.statement-line.avsc" append
+            loadResource("parser/scenarios/reference/chain/obs.statement-line.avsc").readText()
+
+        /* When */
+        val result = buildGradleRunner()
+
+        /* Then */
+        val generateProtocol = result.task(":generateApacheAvroProtocol")
+        assertThat(generateProtocol)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        val compile = result.task(":compileApacheAvroJava")
+        assertThat(compile)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record"
+        assertThat(
+            listOf(
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Details.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Ratio.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/ReceiptLine.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Source.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/StatementLine.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Department.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Operation.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Receipt.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Node.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/InteropProtocol.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Interop.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Kind.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Foo.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/MD5.java")
+            )
+        ).allSatisfy { assertThat(it).exists() }
+    }
+
+    @Test
+    @DisplayName(
+        """
+ Given a complete Argo 'gradle.build', with two different toolchains,
+ when building,
+ then should produce the necessary IDL, Protocol and Java files.
+"""
+    )
+    fun t14() {
+
+        /* Given */
+        build append """
+                        
+            plugins {
+                id 'java'
+                id 'idea'
+                id 'io.github.leofuso.argo'
+            }
+            
+            repositories {
+                mavenLocal()
+                mavenCentral()
+            }
+            
+            dependencies {
+                
+            }
+            
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(19)
+                }
+            }
+            
+            argo {
+                columba {
+                    toolchain {
+                        languageVersion = JavaLanguageVersion.of(17)
+                    }
+                    compilerVersion = '1.11.1'
+                    outputEncoding = 'UTF-8'
+                    fields {
+                        visibility = 'PRIVATE'
+                        useDecimalType = true
+                        stringType = 'CharSequence'
+                    }
+                    accessors {
+                        noSetters = false
+                        addExtraOptionalGetters = false
+                        useOptionalGetters = true
+                        optionalGettersForNullableFieldsOnly = true
+                    }
+                }
+            }
+
+        """
+            .trimIndent()
+
+        rootDir tmkdirs "src/main/avro/protocol/interop.avdl" append
+            loadResource("parser/scenarios/protocol/interop.avdl").readText()
+
+        rootDir tmkdirs "src/main/avro/receipt/obs.receipt.avsc" append
+            loadResource("parser/scenarios/reference/chain/obs.receipt.avsc").readText()
+
+        rootDir tmkdirs "src/main/avro/receipt/obs.receipt-line.avsc" append
+            loadResource("parser/scenarios/reference/chain/obs.receipt-line.avsc").readText()
+
+        rootDir tmkdirs "src/main/avro/obs.statement-line.avsc" append
+            loadResource("parser/scenarios/reference/chain/obs.statement-line.avsc").readText()
+
+        /* When */
+        val result = buildGradleRunner()
+
+        /* Then */
+        val generateProtocol = result.task(":generateApacheAvroProtocol")
+        assertThat(generateProtocol)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        val compile = result.task(":compileApacheAvroJava")
+        assertThat(compile)
+            .isNotNull
+            .extracting { it?.outcome }
+            .isSameAs(TaskOutcome.SUCCESS)
+
+        val buildPath = "${rootDir.absolutePath}/build/generated-main-specific-record"
+        assertThat(
+            listOf(
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Details.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Ratio.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/ReceiptLine.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Source.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/StatementLine.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Department.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Operation.java"),
+                platformAgnosticPath("$buildPath/io/github/leofuso/obs/demo/events/Receipt.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Node.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/InteropProtocol.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Interop.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Kind.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/Foo.java"),
+                platformAgnosticPath("$buildPath/org/apache/avro/MD5.java")
+            )
+        ).allSatisfy { assertThat(it).exists() }
+
+        assertThat(result.output)
+            .contains("Using 'Java 17")
     }
 }

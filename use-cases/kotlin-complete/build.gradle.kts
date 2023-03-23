@@ -6,31 +6,33 @@ plugins {
 }
 
 dependencies {
-    compileApacheAvroJava("io.github.leofuso.argo:custom-tools:0.0.1-SNAPSHOT")
-    compileApacheAvroJavaSources("io.github.leofuso.argo:custom-tools:0.0.1-SNAPSHOT")
-    implementation("io.github.leofuso.argo:custom-tools:0.0.1-SNAPSHOT")
+
+    implementation("org.apache.avro:avro:1.11.1")
+    compileApacheAvroJava(project(":external-tools")) {
+        isTransitive = false
+    }
+    compileApacheAvroJavaSources(project(":external-tools"))
 }
 
 kotlin {
-    jvmToolchain(JavaVersion.VERSION_11.ordinal)
+    jvmToolchain(17)
 }
 
 argo {
     columba {
 
-        getCompiler().set("org.apache.avro:avro-compiler:1.11.1")
         getOutputEncoding().set("UTF-8")
         getExcluded().add("**/*Json.avsc")
 
-        getAdditionalVelocityTools().add("io.github.leofuso.argo.custom.TimestampGenerator")
         getVelocityTemplateDirectory().set(File("templates/custom/"))
-        getAdditionalConverters().add("io.github.leofuso.argo.custom.TimeZoneConversion")
-        getAdditionalLogicalTypeFactories().put("timezone", "io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory")
+        velocityTool("io.github.leofuso.argo.custom.TimestampGenerator")
+        converter("io.github.leofuso.argo.custom.TimeZoneConversion")
+        logicalTypeFactory("timezone", "io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory")
 
         fields {
-            getVisibility().set(org.apache.avro.compiler.specific.SpecificCompiler.FieldVisibility.PRIVATE)
+            getVisibility().set("PRIVATE")
             useDecimalType = true
-            getStringType().set(org.apache.avro.generic.GenericData.StringType.String)
+            getStringType().set("String")
         }
         accessors {
             noSetters = true

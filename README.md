@@ -1,6 +1,7 @@
 # Of Argo
 
 [![Analysis](https://github.com/LeoFuso/argo/actions/workflows/analysis.yaml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/analysis.yaml)
+[![Compatibility](https://github.com/LeoFuso/argo/actions/workflows/compatibility.yaml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/compatibility.yaml)
 [![Publish Plugin to Portal](https://github.com/LeoFuso/argo/actions/workflows/publish-plugin.yaml/badge.svg)](https://github.com/LeoFuso/argo/actions/workflows/publish-plugin.yaml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
