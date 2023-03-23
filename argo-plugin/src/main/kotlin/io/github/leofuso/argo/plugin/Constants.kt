@@ -34,7 +34,7 @@ const val ZIP_EXTENSION = "zip"
 * Default dependencies
 */
 const val DEFAULT_COLUMBA_CLI_DEPENDENCY = "io.github.leofuso.columba:columba-cli"
-const val DEFAULT_COLUMBA_CLI_DEPENDENCY_VERSION = "0.1.2-SNAPSHOT"
+const val DEFAULT_COLUMBA_CLI_DEPENDENCY_VERSION = "0.1.2"
 const val DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY = "org.apache.avro:avro-compiler"
 const val DEFAULT_APACHE_AVRO_COMPILER_DEPENDENCY_VERSION = "1.11.1"
 const val DEFAULT_JACKSON_DATABIND_DEPENDENCY = "com.fasterxml.jackson.core:jackson-databind"

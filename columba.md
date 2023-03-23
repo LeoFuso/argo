@@ -59,7 +59,7 @@ argo {
         toolchain {
             languageVersion = JavaLanguageVersion.of(17)
         }
-        version = '0.1.2-SNAPSHOT' // Columba CLI version
+        version = '0.1.2' // Columba CLI version
         compilerVersion = '1.11.1' // avro-compiler version
     }
 }
