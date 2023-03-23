@@ -32,6 +32,14 @@ publishing {
         groupId = project.group.toString()
         version = project.version.toString()
         from(components["java"])
+        versionMapping {
+            usage("java-api") {
+                fromResolutionOf("runtimeClasspath")
+            }
+            usage("java-runtime") {
+                fromResolutionResult()
+            }
+        }
         pom {
             description.set(extra["local.description"] as String)
             name.set("$groupId:${project.name}")
@@ -62,12 +70,12 @@ publishing {
     }
 }
 
+signing {
+    sign(publishing.publications["Sonatype"])
+}
 
 if (System.getenv("CI") != null) {
     signing {
-
-        sign { publishing.publications }
-
         val signingKeyId: String? by project
         val signingKey: String? by project
         val signingPassword: String? by project
