@@ -6,12 +6,7 @@ plugins {
 }
 
 nexusPublishing {
-
     packageGroup.set("io.github.leofuso")
-
-    val isSnapshot = System.getProperty("global.version").endsWith("SNAPSHOT")
-    useStaging.set(isSnapshot)
-
     repositories {
         create("Sonatype") {
             nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
