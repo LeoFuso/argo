@@ -2,7 +2,7 @@
 
 ...and its inner workings.
 
-**Disclaimer**: Functionality on **Windows OS** has not yet been verified.
+**Disclaimer**: Functionality on **Windows OS** has not yet been verified, but should work as intended.
 
 ### Of its usage
 
@@ -27,11 +27,14 @@ plugins {
 
 See all [available versions](CHANGELOG.md).
 
-The plugin automatically applies a compiler dependency, it is used to compile the `build.gradle(.kts)`.
-The need of this dependency is to be able to reference specific classes available to the compiler;
-those classes offer customized behavior during the compilation, e.g., the different _String_ types supported by the _Avro Protocol_.
+The plugin performs its tasks with **process isolation**, meaning you can run **Columba** with a different
+[Toolchain](https://docs.gradle.org/current/userguide/toolchains.html#specify_custom_toolchains_for_individual_tasks).
+Another advantage is that all the dependencies related to code generation are consumed in isolation, as well. 
 
-You can, also, customize the Avro compiler dependency, as you may need different versions in runtime and
+The plugin automatically applies some dependencies needed in its runtime, but it does so with classpath isolation. 
+In other words, it shouldn't get in the way of conflicting dependencies.
+
+You can, also, customize the Avro compiler dependency, as well as the Columba version, as you may need different versions in runtime and
 during the source code generation:
 
 `build.gradle`
@@ -44,9 +47,20 @@ dependencies {
     implementation 'org.apache.avro:avro:1.11.0'
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(19)
+    }
+}
+
 argo {
     columba {
-        compiler = 'org.apache.avro:avro-compiler:1.11.1'
+        // custom toolchain
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+        version = '0.1.2-SNAPSHOT' // Columba CLI version
+        compilerVersion = '1.11.1' // avro-compiler version
     }
 }
 ```
@@ -108,8 +122,7 @@ and [VelocityTools](https://velocity.apache.org/tools/3.1/) during the Code Gene
 
 `build.gradle`
 ```groovy
-import org.apache.avro.generic.GenericData
-                                  
+ 
 plugins {
     id 'java'
     id 'io.github.leofuso.argo'
@@ -120,7 +133,6 @@ repositories {
 }
 
 dependencies {
-    implementation files('/usr/your-user/downloads/some-jar.jar')
     compileApacheAvroJava files('/usr/your-user/downloads/some-jar.jar')
 }
 
@@ -132,20 +144,18 @@ java {
 
 argo {
     columba {
-        additionalLogicalTypeFactories.put('timezone', 'io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory')
-        additionalConverters.add('io.github.leofuso.argo.custom.TimeZoneConversion')
+        logicalTypeFactory('timezone', 'io.github.leofuso.argo.custom.TimeZoneLogicalTypeFactory')
+        converter('io.github.leofuso.argo.custom.TimeZoneConversion')
         velocityTemplateDirectory = file('templates/custom/')
-        additionalVelocityTools = [
-            'io.github.leofuso.argo.custom.TimestampGenerator',
-            'io.github.leofuso.argo.custom.CommentGenerator'
-        ]
+        velocityTool('io.github.leofuso.argo.custom.TimestampGenerator')
+        velocityTool('io.github.leofuso.argo.custom.CommentGenerator')
         fields {
-            stringType = GenericData.StringType.Utf8
+            stringType = 'Utf8'
         }
     }
 }
 ```
-Keep in mind that **both** `implementation` and `compileApacheAvroJava` are necessary.
+Keep in mind that all dependencies added to `compileApacheAvroJava` are also added to `implementation`.
 Since additional **LogicalTypeFactories** or **CustomConversions** should be present in the `classpath` during
 the task run, you can't use a custom conversion first declared on the source code that the build targets.
 
@@ -162,17 +172,26 @@ implementation, all configurations are passed _as is_ to the compiler.
 `build.gradle`
 ```groovy
 
-import org.apache.avro.compiler.specific.SpecificCompiler
-import org.apache.avro.generic.GenericData
-
 argo {
     columba {
-        compiler = 'org.apache.avro:avro-compiler:1.11.1' // necessary due to the SpecificCompiler usage.
+        
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(19)
+        }
+        
+        version = '1.11.0' // necessary due to the Columba Cli usage.
+        compilerVersion = '1.11.1' // necessary due to the SpecificCompiler usage.
         outputEncoding = 'UTF-8' // Encoding for the generated classes.
+        
+        logicalTypeFactory('factory', 'SomeFactory')
+        converter('SomeConverter')
+        velocityTemplateDirectory = file('templates/custom/')
+        velocityTool('AVelocityTool')
+        
         fields {
-            visibility = SpecificCompiler.FieldVisibility.PRIVATE // Java class property field visibility, either PRIVATE or PUBLIC. 
+            visibility = 'PRIVATE' // Java class property field visibility, either PRIVATE or PUBLIC. 
             useDecimalType = true // either or not to use BigDecimal as decimal type, instead of ByteArray.
-            stringType = GenericData.StringType.CharSequence // String property implementing class, either CharSequence, String, Utf8.
+            stringType = 'CharSequence' // String property implementing class, either CharSequence, String, Utf8.
         }
         accessors {
             noSetters = false // all properties final
@@ -191,7 +210,7 @@ associated with typos.
 
 ### Option details
 
-To be defined.
+To be detailed.
 
 ## Of Compatibility
 
@@ -199,7 +218,7 @@ All tests were performed using the following specs:
 
 | Gradle | Java | Compiler                               |
 |--------|------|----------------------------------------|
-| 7.6    | 11   | `org.apache.avro:avro-compiler:1.11.1` |
+| 7.6    | 17   | `org.apache.avro:avro-compiler:1.11.1` |
 
 
 ## Of IntelliJ integration
