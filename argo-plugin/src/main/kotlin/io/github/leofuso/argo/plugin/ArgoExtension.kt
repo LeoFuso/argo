@@ -2,12 +2,15 @@ package io.github.leofuso.argo.plugin
 
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.jvm.toolchain.JavaLauncher
@@ -18,6 +21,7 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.property
+import java.net.URI
 import javax.inject.Inject
 
 object ArgoExtensionSupplier {
@@ -42,7 +46,45 @@ abstract class ArgoExtension {
     fun navis(action: Action<in NavisOptions>) = action.invoke(getNavis())
 }
 
-interface NavisOptions
+abstract class NavisOptions {
+
+    abstract fun getURL(): Property<URI>
+
+    @Nested
+    abstract fun getSecurity(): NavisSecurityOptions
+
+    fun security(action: Action<in NavisSecurityOptions>) = action.invoke(getSecurity())
+
+    fun url(url: String) = getURL().set(URI(url))
+
+}
+
+abstract class NavisSecurityOptions {
+
+    @Nested
+    abstract fun getBasicAuth(): SecurityBasicAuthOptions
+
+    fun basicAuth(action: Action<in SecurityBasicAuthOptions>) = action.invoke(getBasicAuth())
+
+}
+
+abstract class SecurityBasicAuthOptions {
+
+    @get:Internal
+    internal val userInfoCredentialProvider = this.getObjectFactory().property(PasswordCredentials::class.java)
+
+    fun userInfo() = userInfoCredentialProvider.set(getProviderFactory().credentials(PasswordCredentials::class.java, "SchemaRegistry"))
+
+    fun userInfo(action: Action<in PasswordCredentials>) = action.invoke(userInfoCredentialProvider.get())
+
+    @Inject
+    @Internal
+    abstract fun getProviderFactory(): ProviderFactory
+
+    @Inject
+    @Internal
+    abstract fun getObjectFactory(): ObjectFactory
+}
 
 @Suppress("TooManyFunctions", "MemberVisibilityCanBePrivate")
 abstract class ColumbaOptions(@Inject val project: Project) {

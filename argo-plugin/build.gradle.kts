@@ -5,7 +5,14 @@ plugins {
     id("argo.plugin-conventions")
 }
 
+repositories {
+    maven("https://packages.confluent.io/maven/")
+}
+
 dependencies {
+
+    compileOnly(libs.schema.registry)
+
     testRuntimeOnly(libs.junit.launcher)
     testImplementation(libs.compiler)
     testImplementation(libs.bundles.junit)

@@ -1,5 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
+
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 dependencyResolutionManagement {
@@ -10,6 +11,7 @@ dependencyResolutionManagement {
             mavenLocal()
             mavenCentral()
             gradlePluginPortal()
+            maven("https://packages.confluent.io/maven/")
         }
     }
 
@@ -17,6 +19,7 @@ dependencyResolutionManagement {
         google()
         mavenLocal()
         mavenCentral()
+        maven("https://packages.confluent.io/maven/")
     }
 
     versionCatalogs {
