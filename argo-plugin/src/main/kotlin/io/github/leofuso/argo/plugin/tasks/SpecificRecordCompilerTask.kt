@@ -1,10 +1,10 @@
 package io.github.leofuso.argo.plugin.tasks
 
-import io.github.leofuso.argo.plugin.ColumbaOptions
 import io.github.leofuso.argo.plugin.GROUP_SOURCE_GENERATION
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
 import io.github.leofuso.argo.plugin.columba.arguments.*
+import io.github.leofuso.argo.plugin.columba.extensions.ColumbaOptions
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty

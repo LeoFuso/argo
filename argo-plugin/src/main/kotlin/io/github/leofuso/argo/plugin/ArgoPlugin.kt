@@ -1,6 +1,6 @@
 package io.github.leofuso.argo.plugin
 
-import io.github.leofuso.argo.plugin.columba.Columba
+import io.github.leofuso.argo.plugin.columba.ColumbaConfigurer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
@@ -23,10 +23,10 @@ abstract class ArgoPlugin : Plugin<Project> {
             project.logger.info("Using Gradle ${project.gradle.gradleVersion}.")
 
             /* Columba Setup */
-            val columba = Columba(extension.getColumba(), project)
+            val columbaConfigurer = ColumbaConfigurer(extension.getColumba(), project)
             project.extensions.getByType<SourceSetContainer>()
                 .configureEach { source ->
-                    columba.configureFor(source)
+                    columbaConfigurer.configureFor(source)
                 }
         }
 

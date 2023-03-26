@@ -6,13 +6,13 @@ import io.github.leofuso.argo.plugin.CLASS_EXTENSION
 import io.github.leofuso.argo.plugin.COLUMBA_CLI_DEPENDENCY
 import io.github.leofuso.argo.plugin.COLUMBA_CLI_DEPENDENCY_VERSION
 import io.github.leofuso.argo.plugin.CONFIGURATION_COLUMBA
-import io.github.leofuso.argo.plugin.ColumbaOptions
 import io.github.leofuso.argo.plugin.IDL_EXTENSION
 import io.github.leofuso.argo.plugin.JACKSON_DATABIND_DEPENDENCY
 import io.github.leofuso.argo.plugin.KOTLIN_LANGUAGE_NAME
 import io.github.leofuso.argo.plugin.KOTLIN_PLUGIN_ID
 import io.github.leofuso.argo.plugin.PROTOCOL_EXTENSION
 import io.github.leofuso.argo.plugin.SCHEMA_EXTENSION
+import io.github.leofuso.argo.plugin.columba.extensions.ColumbaOptions
 import io.github.leofuso.argo.plugin.properties.GlobalProperties
 import io.github.leofuso.argo.plugin.tasks.IDLProtocolTask
 import io.github.leofuso.argo.plugin.tasks.SpecificRecordCompilerTask
@@ -35,12 +35,14 @@ import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.ide.idea.GenerateIdeaModule
 import java.util.*
 
-class Columba(private val extension: ColumbaOptions, private val project: Project) {
+class ColumbaConfigurer(private val extension: ColumbaOptions, private val project: Project) {
 
     fun configureFor(sourceSet: SourceSet) {
 
-        /* Columba config */
+        /* Default config */
         val columbaConfiguration = project.addColumbaConfiguration(sourceSet, extension)
+
+        /* Compile config */
         val compileApacheAvroJavaConfiguration = project.addCompileApacheAvroJavaConfiguration(sourceSet)
 
         /* Source configs */
@@ -50,6 +52,7 @@ class Columba(private val extension: ColumbaOptions, private val project: Projec
             "Schema(.$SCHEMA_EXTENSION) and Protocol(.$PROTOCOL_EXTENSION) source files to be compiled."
         )
 
+        /* Tasks configs */
         val generateApacheAvroProtocolTaskName = sourceSet.getTaskName("generate", "apacheAvroProtocol")
         val generateApacheAvroProtocolConfiguration = project.addSourcesConfiguration(
             generateApacheAvroProtocolTaskName,
@@ -163,48 +166,49 @@ class Columba(private val extension: ColumbaOptions, private val project: Projec
                 }
             }
         }
-}
 
-private fun DependencyConstraintHandler.addConstraint(key: String, cause: String, strictly: String? = null): DependencyConstraint {
-    val properties = GlobalProperties
-    val notation = properties.getProperty(key)
-    return create(notation) { constraint ->
-        constraint.because(cause)
-        constraint.version { versionConstraint ->
-            if (strictly != null) {
-                versionConstraint.strictly(strictly)
+    private fun DependencyConstraintHandler.addConstraint(key: String, cause: String, strictly: String? = null): DependencyConstraint {
+        val properties = GlobalProperties
+        val notation = properties.getProperty(key)
+        return create(notation) { constraint ->
+            constraint.because(cause)
+            constraint.version { versionConstraint ->
+                if (strictly != null) {
+                    versionConstraint.strictly(strictly)
+                }
+                val prefered = properties.getProperty("$key.version")
+                versionConstraint.prefer(prefered)
             }
-            val prefered = properties.getProperty("$key.version")
-            versionConstraint.prefer(prefered)
         }
     }
-}
 
-private fun Project.addSourcesConfiguration(name: String, description: String): Configuration = configurations.maybeCreate(name)
-    .let { config ->
-        config.isVisible = false
-        config.isTransitive = false
-        config.isCanBeResolved = true
-        config.isCanBeConsumed = false
-        config.description = description
-        config
-    }
-
-private fun Project.addCompileApacheAvroJavaConfiguration(sourceSet: SourceSet): Configuration {
-    val name = sourceSet.getCompileTaskName("apacheAvroJava")
-    return project.configurations.maybeCreate(name)
+    private fun Project.addSourcesConfiguration(name: String, description: String): Configuration = configurations.maybeCreate(name)
         .let { config ->
             config.isVisible = false
-            config.isTransitive = true
+            config.isTransitive = false
             config.isCanBeResolved = true
             config.isCanBeConsumed = false
-            config.description = "Additional Classes(.$CLASS_EXTENSION) needed for SpecificRecord Java source file generation."
-
-            project.afterEvaluate {
-                it.configurations
-                    .getAt(sourceSet.implementationConfigurationName)
-                    .extendsFrom(config)
-            }
+            config.description = description
             config
         }
+
+    private fun Project.addCompileApacheAvroJavaConfiguration(sourceSet: SourceSet): Configuration {
+        val name = sourceSet.getCompileTaskName("apacheAvroJava")
+        return project.configurations.maybeCreate(name)
+            .let { config ->
+                config.isVisible = false
+                config.isTransitive = true
+                config.isCanBeResolved = true
+                config.isCanBeConsumed = false
+                config.description = "Additional Classes(.$CLASS_EXTENSION) needed for SpecificRecord Java source file generation."
+
+                project.afterEvaluate {
+                    it.configurations
+                        .getAt(sourceSet.implementationConfigurationName)
+                        .extendsFrom(config)
+                }
+                config
+            }
+    }
+
 }
