@@ -1,11 +1,8 @@
 package io.github.leofuso.argo.plugin.navis.security
 
 import org.gradle.api.credentials.Credentials
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
-import org.gradle.kotlin.dsl.property
-import javax.inject.Inject
 import javax.security.auth.spi.LoginModule
 
 /**
@@ -27,9 +24,7 @@ import javax.security.auth.spi.LoginModule
  *  schema.registry.sasl.jaas.config.option.password=password
  *  ```
  */
-abstract class JAASCredentials @Inject constructor(private val factory: ObjectFactory) : Credentials {
-
-    private val _saslJaasConfig: Property<String> = factory.property()
+abstract class JAASCredentials : Credentials {
 
     enum class LoginModuleControlFlag(val flag: String) {
         REQUIRED("required"),
@@ -53,10 +48,10 @@ abstract class JAASCredentials @Inject constructor(private val factory: ObjectFa
      * ```
      *
      */
-    fun getSaslJaasConfig(): String {
+    fun toProperty(): String {
 
-        if (_saslJaasConfig.isPresent) {
-            _saslJaasConfig.get()
+        if (getSaslJaasConfig().isPresent) {
+            getSaslJaasConfig().get()
         }
 
         val loginModule = getLoginModule()
@@ -76,12 +71,14 @@ abstract class JAASCredentials @Inject constructor(private val factory: ObjectFa
         return "$loginModule $loginModuleControlFlag $options;"
     }
 
+    abstract fun getSaslJaasConfig(): Property<String>
+
     /**
      * A way of manually setting the [sasl.jaas.config][org.apache.kafka.common.config.SaslConfigs.SASL_JAAS_CONFIG]
      * without needing to populate the other properties.
      * @param config the complete [sasl.jaas.config][org.apache.kafka.common.config.SaslConfigs.SASL_JAAS_CONFIG].
      */
-    fun saslJaasConfig(config: String) = _saslJaasConfig.set(config)
+    fun saslJaasConfig(config: String) = getSaslJaasConfig().set(config)
 
     abstract fun getLoginModule(): Property<Class<out LoginModule>>
 

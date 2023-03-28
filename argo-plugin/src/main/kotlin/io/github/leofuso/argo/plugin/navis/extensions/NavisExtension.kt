@@ -1,6 +1,6 @@
 package io.github.leofuso.argo.plugin.navis.extensions
 
-import io.github.leofuso.argo.plugin.navis.SchemaRegistrySecurityCredentialsProviderFactory
+import io.github.leofuso.argo.plugin.navis.CredentialsProviderFactory
 import org.gradle.api.Action
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.model.ObjectFactory
@@ -11,6 +11,7 @@ import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.newInstance
 import org.gradle.kotlin.dsl.property
 import java.net.URI
+import java.net.URL
 import javax.inject.Inject
 
 abstract class NavisOptions {
@@ -20,24 +21,19 @@ abstract class NavisOptions {
     @Nested
     abstract fun getSecurity(): NavisSecurityOptions
 
-    fun security(action: Action<in NavisSecurityOptions>) = action.invoke(getSecurity())
-
     fun url(url: String) = getURL().set(URI(url))
 
-}
+    fun url(url: URL) = getURL().set(url.toURI())
 
-abstract class NavisSecurityOptions {
+    fun url(uri: URI) = getURL().set(uri)
 
-    @Nested
-    abstract fun getBasicAuth(): SecurityBasicAuthOptions
-
-    fun basicAuth(action: Action<in SecurityBasicAuthOptions>) = action.invoke(getBasicAuth())
+    fun security(action: Action<in NavisSecurityOptions>) = action.invoke(getSecurity())
 
 }
 
-abstract class SecurityBasicAuthOptions @Inject constructor(objectFactory: ObjectFactory) {
+abstract class NavisSecurityOptions @Inject constructor(objectFactory: ObjectFactory) {
 
-    private val factory: SchemaRegistrySecurityCredentialsProviderFactory = objectFactory.newInstance()
+    private val factory: CredentialsProviderFactory = objectFactory.newInstance()
     private val _credentials: Property<Credentials> = objectFactory.property()
 
     @get:Internal

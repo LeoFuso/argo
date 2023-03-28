@@ -77,7 +77,12 @@ tasks {
 
     test {
 
-        jvmArgs("-Xss320k")
+        jvmArgs(
+            "-Xss320k",
+            "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+            "--add-opens", "java.base/java.util=ALL-UNNAMED"
+        )
+
         minHeapSize = "120m"
         maxHeapSize = "280m"
         maxParallelForks = Runtime.getRuntime().availableProcessors().div(2)
