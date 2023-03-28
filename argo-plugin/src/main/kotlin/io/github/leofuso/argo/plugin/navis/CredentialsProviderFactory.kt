@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.security.auth.spi.LoginModule
 
-class CredentialsProviderFactory @Inject constructor(
+open class CredentialsProviderFactory @Inject constructor(
     private val objectsFactory: ObjectFactory,
     private val providerFactory: ProviderFactory
 ) : TaskExecutionGraphListener {
