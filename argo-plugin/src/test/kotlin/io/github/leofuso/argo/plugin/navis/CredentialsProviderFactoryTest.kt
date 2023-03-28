@@ -2,6 +2,7 @@ package io.github.leofuso.argo.plugin.navis
 
 import io.github.leofuso.argo.plugin.fixtures.MockedProviderFactory
 import io.github.leofuso.argo.plugin.navis.security.UserInfoCredentials
+import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
@@ -38,7 +39,6 @@ class CredentialsProviderFactoryTest {
         )
 
         val credentials = subject.provide(UserInfoCredentials::class.java) { it.username("LeoFuso") }
-        checkNotNull(credentials.get().getUsername().get())
-        TODO("Not yet implemented")
+        assertThat(credentials.get().getUsername().get()).isEqualTo("LeoFuso")
     }
 }
