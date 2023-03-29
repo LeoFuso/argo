@@ -14,24 +14,7 @@ import java.net.URI
 import java.net.URL
 import javax.inject.Inject
 
-abstract class NavisOptions {
-
-    abstract fun getURL(): Property<URI>
-
-    @Nested
-    abstract fun getSecurity(): NavisSecurityOptions
-
-    fun url(url: String) = getURL().set(URI(url))
-
-    fun url(url: URL) = getURL().set(url.toURI())
-
-    fun url(uri: URI) = getURL().set(uri)
-
-    fun security(action: Action<in NavisSecurityOptions>) = action.invoke(getSecurity())
-
-}
-
-abstract class NavisSecurityOptions @Inject constructor(objectFactory: ObjectFactory) {
+abstract class NavisOptions @Inject constructor(objectFactory: ObjectFactory) {
 
     private val factory: CredentialsProviderFactory = objectFactory.newInstance()
     private val _credentials: Property<Credentials> = objectFactory.property()
@@ -40,6 +23,14 @@ abstract class NavisSecurityOptions @Inject constructor(objectFactory: ObjectFac
     internal val credentials: Property<Credentials>
         get() = _credentials
 
+    abstract fun getURL(): Property<URI>
+
+    fun url(url: String) = getURL().set(URI(url))
+
+    fun url(url: URL) = getURL().set(url.toURI())
+
+    fun url(uri: URI) = getURL().set(uri)
+
     fun credentials(type: Class<out Credentials>) {
         if (_credentials.isPresent) {
             error("Multi credentials are unsupported. Credentials already defined of Class [${_credentials.get()::class.java}].")
@@ -47,11 +38,18 @@ abstract class NavisSecurityOptions @Inject constructor(objectFactory: ObjectFac
         _credentials.set(factory.provide(type))
     }
 
-    fun credentials(type: Class<out Credentials>, action: Action<in Credentials>) {
+    fun <T : Credentials> credentials(type: Class<out T>, action: Action<in T>) {
         if (_credentials.isPresent) {
             error("Multi credentials are unsupported. Credentials already defined of Class [${_credentials.get()::class.java}].")
         }
         _credentials.set(factory.provide(type, action))
     }
 
+    @Nested
+    abstract fun getDownloadNavisAction(): DownloadNavisOptions
+
+    fun download(action: Action<in DownloadNavisOptions>) = action.invoke(getDownloadNavisAction())
+
 }
+
+abstract class DownloadNavisOptions
