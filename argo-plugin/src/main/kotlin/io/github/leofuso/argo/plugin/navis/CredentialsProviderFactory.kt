@@ -35,16 +35,19 @@ open class CredentialsProviderFactory @Inject constructor(
     @Suppress("UNCHECKED_CAST")
     fun <T : Credentials> provide(type: Class<out T>, action: Action<in T>? = null): Provider<T> {
         return when {
+
             UserInfoCredentials::class.java.isAssignableFrom(type) ->
                 evaluateAtConfigurationTime(
                     UserInfoCredentialsProvider(action as? Action<UserInfoCredentials>)
                 )
+
             JAASCredentials::class.java.isAssignableFrom(type) ->
                 evaluateAtConfigurationTime(
                     JAASCredentialsProvider(action as? Action<JAASCredentials>)
                 )
 
-            else -> error("Unsupported credentials type: $type.")
+            else -> throw IllegalArgumentException("Unsupported credentials type: $type.")
+
         } as Provider<T>
     }
 

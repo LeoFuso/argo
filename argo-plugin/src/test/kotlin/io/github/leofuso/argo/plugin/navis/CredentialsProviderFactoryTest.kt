@@ -7,8 +7,10 @@ import org.apache.kafka.common.security.plain.PlainLoginModule
 import org.apache.kafka.common.security.scram.ScramLoginModule
 import org.eclipse.jetty.jaas.spi.JDBCLoginModule
 import org.gradle.api.Project
+import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.api.provider.Provider
+import org.gradle.kotlin.dsl.newInstance
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.hasEntry
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
@@ -40,6 +43,24 @@ class CredentialsProviderFactoryTest {
             .withProjectDir(rootDir)
             .withName("credentials-provider-factory-test")
             .build()
+    }
+
+    @Test
+    @DisplayName(
+        """
+        Given an unsupported 'Credentials',
+        when provided,
+        then throw 'IllegalArgumentException'.
+        """
+    )
+    fun id1680133015908() {
+
+        /* Given */
+        val subject: CredentialsProviderFactory = project.objects.newInstance()
+
+        /*  When then */
+        expectThrows<IllegalArgumentException> { subject.provide(HttpHeaderCredentials::class.java) }
+
     }
 
     @Test
