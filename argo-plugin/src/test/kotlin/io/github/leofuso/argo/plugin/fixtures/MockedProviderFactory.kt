@@ -11,8 +11,8 @@ import org.gradle.api.provider.Provider
 class MockedProviderFactory(private val properties: Map<String, String>) : DefaultProviderFactory() {
 
     override fun gradleProperty(propertyName: String): Provider<String> {
-        val value = properties[propertyName] ?: error("Property '$propertyName' not found.")
-        return Providers.of(value)
+        val value = properties[propertyName]
+        return Providers.ofNullable(value)
     }
 
     override fun gradlePropertiesPrefixedBy(variableNamePrefix: String): Provider<MutableMap<String, String>> {

@@ -21,6 +21,7 @@ log4j = "2.20.0"
 junit = "5.9.2"
 junit-launcher = "1.9.2"
 assertj = "3.24.2"
+strikt = "0.34.1"
 
 [plugins]
 idea = { id = "org.gradle.idea" }
@@ -61,6 +62,7 @@ junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.r
 junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
 junit-params = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit" }
 assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+strikt = { group = "io.strikt", name = "strikt-core", version.ref = "strikt" }
 combinatorics = { group = "com.speedment.common", name = "combinatorics", version = "3.2.10" }
 
 

@@ -13,10 +13,18 @@ dependencies {
 
     compileOnly(libs.schema.registry)
 
-    testRuntimeOnly(libs.junit.launcher)
     testImplementation(libs.compiler)
+    testImplementation(libs.schema.registry) {
+        exclude("org.slf4j", "slf4j-reload4j")
+            .because("SLF4J multiple binders warning.")
+        exclude("org.slf4j", "slf4j-log4j12")
+            .because("SLF4J multiple binders warning.")
+    }
+
+    testRuntimeOnly(libs.junit.launcher)
     testImplementation(libs.bundles.junit)
     testImplementation(libs.assertj)
+    testImplementation(libs.strikt)
     testImplementation(libs.combinatorics)
 }
 

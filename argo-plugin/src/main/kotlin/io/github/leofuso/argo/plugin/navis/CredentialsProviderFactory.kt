@@ -19,6 +19,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.kotlin.dsl.invoke
+import org.gradle.kotlin.dsl.mapProperty
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -36,11 +37,11 @@ open class CredentialsProviderFactory @Inject constructor(
         return when {
             UserInfoCredentials::class.java.isAssignableFrom(type) ->
                 evaluateAtConfigurationTime(
-                    UserInfoCredentialsProvider(action as Action<UserInfoCredentials>)
+                    UserInfoCredentialsProvider(action as? Action<UserInfoCredentials>)
                 )
             JAASCredentials::class.java.isAssignableFrom(type) ->
                 evaluateAtConfigurationTime(
-                    JAASCredentialsProvider(action as Action<JAASCredentials>)
+                    JAASCredentialsProvider(action as? Action<JAASCredentials>)
                 )
 
             else -> error("Unsupported credentials type: $type.")
@@ -122,8 +123,10 @@ open class CredentialsProviderFactory @Inject constructor(
             val primary = methodAccessor.invoke()
             if (primary.isPresent) {
                 val value = primary.get()
-                if (value is String && value.isNotBlank()) {
-                    return value
+                return if (value is String && value.isNotBlank()) {
+                    value
+                } else {
+                    value
                 }
             }
 
@@ -140,14 +143,14 @@ open class CredentialsProviderFactory @Inject constructor(
         }
 
         fun <T : Any> getOptionalProperty(
-            key: String = identity,
+            key: String? = null,
             methodAccessor: () -> Property<T>,
             transformer: (String) -> T = { it as T }
         ): T? {
 
             val primary = methodAccessor.invoke()
             if (primary.isPresent) {
-                primary.get()
+                return primary.get()
             }
 
             val identityProperty = identityProperty(key)
@@ -156,10 +159,10 @@ open class CredentialsProviderFactory @Inject constructor(
                 .orNull
         }
 
-        fun <K, V> getOptionalProperties(
-            prefix: String,
+        inline fun <reified K, reified V> getOptionalProperties(
+            prefix: String? = null,
             methodAccessor: () -> MapProperty<K, V>,
-            transformer: (Map<String, String>) -> Map<K, V> = { it as Map<K, V> }
+            noinline transformer: (Map<String, String>) -> Map<K, V> = { it as Map<K, V> }
         ): Map<K, V> {
 
             val identityProperty = identityProperty(prefix)
@@ -172,15 +175,17 @@ open class CredentialsProviderFactory @Inject constructor(
                 }
                 .map(transformer)
 
-            return methodAccessor.invoke()
-                .convention(gradleProperty)
-                .getOrElse(emptyMap())
+            val mapProperty = objectsFactory.mapProperty<K, V>()
+            mapProperty.putAll(gradleProperty)
+            mapProperty.putAll(methodAccessor.invoke())
+
+            return mapProperty.getOrElse(emptyMap())
         }
 
         fun assertRequiredValuesPresence() {
             if (missingProperties.isNotEmpty()) {
                 val errorBuilder = TreeFormatter()
-                errorBuilder.node("The following Gradle properties are missing for '$identity' credentials")
+                errorBuilder.node("The following Gradle properties are missing for '${getProvidedType().simpleName}' credentials")
                 errorBuilder.startChildren()
                 for (missingProperty in missingProperties) {
                     errorBuilder.node(missingProperty)
@@ -192,21 +197,21 @@ open class CredentialsProviderFactory @Inject constructor(
         }
 
         private fun identityProperty(property: String?): String {
-            return identity + property
+            return property?.let { identity + it } ?: identity
         }
     }
 
     private inner class UserInfoCredentialsProvider(action: Action<UserInfoCredentials>? = null) :
-        CredentialsProvider<UserInfoCredentials>("$CLIENT_NAMESPACE$USER_INFO_CONFIG.", action) {
+        CredentialsProvider<UserInfoCredentials>("$CLIENT_NAMESPACE$USER_INFO_CONFIG", action) {
 
         @Synchronized
         override fun mergeProperties(credentials: UserInfoCredentials): UserInfoCredentials {
-            val username = getRequiredProperty("username", credentials::getUsername)
-            val password = getRequiredProperty("password", credentials::getPassword)
+            val username = getRequiredProperty(".username", credentials::getUsername)
+            val password = getRequiredProperty(".password", credentials::getPassword)
             assertRequiredValuesPresence()
 
-            credentials.username(checkNotNull(username) { "At this stage it can't be null." })
-            credentials.password(checkNotNull(password) { "At this stage it can't be null." })
+            credentials.username(checkNotNull(username) { "At this stage, it can't be null." })
+            credentials.password(checkNotNull(password) { "At this stage, it can't be null." })
             return credentials
         }
 
@@ -214,7 +219,7 @@ open class CredentialsProviderFactory @Inject constructor(
     }
 
     private inner class JAASCredentialsProvider(action: Action<JAASCredentials>? = null) :
-        CredentialsProvider<JAASCredentials>("$CLIENT_NAMESPACE$SASL_JAAS_CONFIG.", action) {
+        CredentialsProvider<JAASCredentials>("$CLIENT_NAMESPACE$SASL_JAAS_CONFIG", action) {
 
         @Synchronized
         override fun mergeProperties(credentials: JAASCredentials): JAASCredentials {
@@ -226,12 +231,12 @@ open class CredentialsProviderFactory @Inject constructor(
             }
 
             val loginModule = getRequiredProperty(
-                "login.module",
+                ".login.module",
                 credentials::getLoginModule
             ) { property ->
                 Class.forName(property)
                     .let { clazz ->
-                        if (clazz.isAssignableFrom(LoginModule::class.java)) {
+                        if (LoginModule::class.java.isAssignableFrom(clazz)) {
                             @Suppress("UNCHECKED_CAST")
                             clazz as Class<out LoginModule>
                         } else {
@@ -241,7 +246,7 @@ open class CredentialsProviderFactory @Inject constructor(
             }
 
             val loginModuleControlFlag = getRequiredProperty(
-                "control.flag",
+                ".control.flag",
                 credentials::getLoginModuleControlFlag
             ) { property ->
                 when (property.uppercase()) {
@@ -254,10 +259,10 @@ open class CredentialsProviderFactory @Inject constructor(
             }
             assertRequiredValuesPresence()
 
-            credentials.loginModule(checkNotNull(loginModule) { "At this stage it can't be null." })
-            credentials.controlFlag(checkNotNull(loginModuleControlFlag) { "At this stage it can't be null." })
+            credentials.loginModule(checkNotNull(loginModule) { "At this stage, it can't be null." })
+            credentials.controlFlag(checkNotNull(loginModuleControlFlag) { "At this stage, it can't be null." })
 
-            val options = getOptionalProperties("option", credentials::getOptions)
+            val options = getOptionalProperties(".option.", credentials::getOptions)
             credentials.options(options)
 
             return credentials

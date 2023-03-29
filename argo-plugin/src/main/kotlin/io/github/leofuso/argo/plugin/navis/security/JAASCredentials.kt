@@ -51,7 +51,7 @@ abstract class JAASCredentials : Credentials {
     fun toProperty(): String {
 
         if (getSaslJaasConfig().isPresent) {
-            getSaslJaasConfig().get()
+            return getSaslJaasConfig().get()
         }
 
         val loginModule = getLoginModule()
@@ -68,7 +68,7 @@ abstract class JAASCredentials : Credentials {
             .map { it.joinToString(" ") { (key: String, value: String) -> "$key='$value'" } }
             .get()
 
-        return "$loginModule $loginModuleControlFlag $options;"
+        return "${loginModule.name} $loginModuleControlFlag $options;"
     }
 
     abstract fun getSaslJaasConfig(): Property<String>
