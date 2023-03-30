@@ -14,6 +14,7 @@ import java.net.URI
 import java.net.URL
 import javax.inject.Inject
 
+@Suppress("unused")
 abstract class NavisOptions @Inject constructor(objectFactory: ObjectFactory) {
 
     private val factory: CredentialsProviderFactory = objectFactory.newInstance()
