@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package io.github.leofuso.argo.plugin
 
 /**
@@ -7,4 +9,4 @@ fun CharSequence?.isNotNullOrBlank(): Boolean {
     return !this.isNullOrBlank()
 }
 
-fun unsuported(reason: String): Nothing = throw UnsupportedOperationException("This operation is not supported: $reason")
+fun unsupported(reason: String): Nothing = throw UnsupportedOperationException("This operation is not supported: $reason")

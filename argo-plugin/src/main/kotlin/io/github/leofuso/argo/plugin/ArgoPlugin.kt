@@ -9,7 +9,6 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
 import org.gradle.util.GradleVersion
 
-@Suppress("unused")
 abstract class ArgoPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {

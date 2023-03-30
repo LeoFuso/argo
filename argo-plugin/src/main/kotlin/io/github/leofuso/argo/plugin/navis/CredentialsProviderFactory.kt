@@ -113,7 +113,7 @@ open class CredentialsProviderFactory @Inject constructor(
          *
          *  For each property in [credentials]:
          * * checks if it was configured via DSL or via Gradle properties;
-         * * Merge them, prioritazing the ones configured via DSL.
+         * * Merge them, prioritizing the ones configured via DSL.
          *
          */
         abstract fun mergeProperties(credentials: T): T

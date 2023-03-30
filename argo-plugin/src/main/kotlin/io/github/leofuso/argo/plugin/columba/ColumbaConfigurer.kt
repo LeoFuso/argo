@@ -33,7 +33,6 @@ import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.ide.idea.GenerateIdeaModule
-import java.util.*
 
 class ColumbaConfigurer(private val extension: ColumbaOptions, private val project: Project) {
 
@@ -118,7 +117,7 @@ class ColumbaConfigurer(private val extension: ColumbaOptions, private val proje
     private fun Project.addColumbaConfiguration(sourceSet: SourceSet, extension: ColumbaOptions): Configuration =
         configurations.create(sourceSet.getColumbaConfigurationName()) { config ->
 
-            config.description = "Needed dependencies to generate SpecificRecord Java source files in isolation."
+            config.description = "Needed dependencies to generate 'SpecificRecord' Java source files in isolation."
             config.isVisible = false
             config.isTransitive = true
             config.isCanBeResolved = true
@@ -176,8 +175,8 @@ class ColumbaConfigurer(private val extension: ColumbaOptions, private val proje
                 if (strictly != null) {
                     versionConstraint.strictly(strictly)
                 }
-                val prefered = properties.getProperty("$key.version")
-                versionConstraint.prefer(prefered)
+                val preferred = properties.getProperty("$key.version")
+                versionConstraint.prefer(preferred)
             }
         }
     }
@@ -200,7 +199,7 @@ class ColumbaConfigurer(private val extension: ColumbaOptions, private val proje
                 config.isTransitive = true
                 config.isCanBeResolved = true
                 config.isCanBeConsumed = false
-                config.description = "Additional Classes(.$CLASS_EXTENSION) needed for SpecificRecord Java source file generation."
+                config.description = "Additional Classes(.$CLASS_EXTENSION) needed for 'SpecificRecord' Java source file generation."
 
                 project.afterEvaluate {
                     it.configurations

@@ -102,7 +102,7 @@ abstract class CodeGenerationTask : DefaultTask() {
     abstract fun getWorkerExecutor(): WorkerExecutor
 
     /**
-     * Adds some source to this task. The given source objects will be evaluated in accordance with [org.gradle.api.Project.files].
+     * Adds some source to this task. The given source objects are evaluated in accordance with [org.gradle.api.Project.files].
      *
      * @param sources The source to add
      */

@@ -32,7 +32,7 @@ internal class DefaultColumbaInvoker : ColumbaInvoker {
 internal class NoopColumbaInvoker(private val classpath: FileCollection) : ColumbaInvoker {
 
     override fun invoke(arguments: List<String>) {
-        println("NO-OP cli invokation.")
+        println("NO-OP cli invocation.")
         println(
             "\tArgs: ${arguments.joinToString(
                 "\n",

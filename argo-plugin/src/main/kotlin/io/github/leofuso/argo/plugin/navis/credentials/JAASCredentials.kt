@@ -11,7 +11,7 @@ import javax.security.auth.spi.LoginModule
  * A user can populate this credential by any of these strategies:
  *
  *  1. Populating a `gradle.config` file, either in the project or in the Gradle directory, with the needed properties;
- *  2. Passing the needed properties as project variables to Gradle, e.g. `-Pschema.registry.sasl.jaas.config`;
+ *  2. Passing the needed properties as project variables to Gradle, e.g. `--project-prop schema.registry.sasl.jaas.config=config`;
  *  2. Using the DSL to manually populate this credential;
  *
  *  Expected configuration:

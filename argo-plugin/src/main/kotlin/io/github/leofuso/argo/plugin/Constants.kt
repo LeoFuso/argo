@@ -25,7 +25,7 @@ const val JAVA_EXTENSION = "java"
 const val AVRO_EXTENSION_NAME = "avro"
 
 /**
- * Compreesed extensions
+ * Compressed extensions
  */
 const val JAR_EXTENSION = "jar"
 const val ZIP_EXTENSION = "zip"
@@ -36,8 +36,5 @@ const val ZIP_EXTENSION = "zip"
 const val COLUMBA_CLI_DEPENDENCY = "libs.columba.cli"
 const val COLUMBA_CLI_DEPENDENCY_VERSION = "libs.columba.cli.version"
 const val APACHE_AVRO_COMPILER_DEPENDENCY = "libs.compiler"
-const val APACHE_AVRO_COMPILER_DEPENDENCY_VERSION = "libs.compiler.version"
 const val JACKSON_DATABIND_DEPENDENCY = "libs.jackson.databind"
-const val JACKSON_DATABIND_DEPENDENCY_VERSION = "libs.jackson.databind.version"
 const val APACHE_COMMONS_TEXT_DEPENDENCY = "libs.apache.commons.text"
-const val APACHE_COMMONS_TEXT_DEPENDENCY_VERSION = "libs.apache.commons.text.version"

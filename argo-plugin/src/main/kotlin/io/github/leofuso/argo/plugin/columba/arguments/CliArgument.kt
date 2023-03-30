@@ -29,7 +29,7 @@ const val DECIMAL_TYPE_ARGS = "--use-decimal-type"
 const val STRING_TYPE_ARGS = "--string-type"
 
 /**
- * Acessors
+ * Accessors
  */
 const val ALLOW_SETTERS_ARGS = "--allow-setters"
 const val EXTRA_OPTIONAL_GETTERS_ARGS = "--add-extra-optional-getters"

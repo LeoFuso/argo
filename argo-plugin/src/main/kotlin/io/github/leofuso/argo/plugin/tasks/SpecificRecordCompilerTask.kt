@@ -129,7 +129,7 @@ abstract class SpecificRecordCompilerTask : CodeGenerationTask() {
     @TaskAction
     fun process() {
         val sources = getSources()
-        logger.lifecycle("Generating SpecificRecord Java sources from {} definition files.", sources.files.size)
+        logger.lifecycle("Generating 'SpecificRecord' Java sources from {} definition files.", sources.files.size)
 
         val exclusion = pattern.excludes
         if (exclusion.isNotEmpty()) {

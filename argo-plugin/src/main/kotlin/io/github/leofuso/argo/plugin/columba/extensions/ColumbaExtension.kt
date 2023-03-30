@@ -35,7 +35,6 @@ abstract class ColumbaOptions(@Inject val project: Project) {
     /**
      * Customizes the default [JavaToolchainSpec].
      */
-    @Suppress("unused")
     fun toolchain(action: Action<in JavaToolchainSpec>) = action.invoke(_toolchain)
 
     abstract fun getVersion(): Property<String>
@@ -62,7 +61,6 @@ abstract class ColumbaOptions(@Inject val project: Project) {
      * Add a Velocity Tool to the additional velocity tools collection.
      * @param tool the fully qualified name of the velocity tool to be added.
      */
-    @Suppress("unused")
     fun velocityTool(tool: String) = getAdditionalVelocityTools().add(tool)
 
     abstract fun getVelocityTemplateDirectory(): DirectoryProperty
@@ -74,7 +72,6 @@ abstract class ColumbaOptions(@Inject val project: Project) {
      * @param name the name of the factory to be added.
      * @param reference the fully qualified name of the logical type factory to be added.
      */
-    @Suppress("unused")
     fun logicalTypeFactory(name: String, reference: String) = getAdditionalLogicalTypeFactories().put(name, reference)
 
     abstract fun getAdditionalConverters(): ListProperty<String>
@@ -83,7 +80,6 @@ abstract class ColumbaOptions(@Inject val project: Project) {
      * Add a Converter to the additional converter collection.
      * @param converter the fully qualified name of the converter to be added.
      */
-    @Suppress("unused")
     fun converter(converter: String) = getAdditionalConverters().add(converter)
 
     @Internal
