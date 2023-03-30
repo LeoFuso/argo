@@ -1,5 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
+import Versions.replace
+
 
 plugins {
     id("argo.plugin-conventions")
@@ -7,6 +9,14 @@ plugins {
 
 repositories {
     maven("https://packages.confluent.io/maven/")
+}
+
+configurations.all {
+    replace(libs.compiler) { "Conflict resolution." }
+    replace(libs.jackson.databind) { "The version of the compiler has a security issue associated with this dependency." }
+    replace(libs.apache.commons.text) { "The version of the compiler has a security issue associated with this dependency." }
+    replace(libs.apache.commons.lang) { "Conflict resolution." }
+    replace(libs.slf4j.api) { "Conflict resolution." }
 }
 
 dependencies {

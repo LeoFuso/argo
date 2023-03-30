@@ -1,9 +1,10 @@
-@file:Suppress("UnstableApiUsage")
+@file:Suppress("UnstableApiUsage", "SpellCheckingInspection")
 
 import io.gitlab.arturbosch.detekt.Detekt
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
+    base
     jacoco
     id("org.jetbrains.kotlin.jvm")
     id("org.jmailen.kotlinter")
@@ -11,7 +12,7 @@ plugins {
     id("org.sonarqube")
 }
 
-val versionCatalog = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
+val versionCatalog: VersionCatalog = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
 val detektVersion: String = versionCatalog.findVersion("detekt").get().requiredVersion
 
 repositories {

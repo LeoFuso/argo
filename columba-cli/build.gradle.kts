@@ -1,5 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
+import Versions.replace
 import org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE
 import org.gradle.api.attributes.Bundling.EXTERNAL
 import org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
@@ -16,6 +17,14 @@ plugins {
 
 application {
     mainClass.set("io.github.leofuso.columba.cli.MainKt")
+}
+
+configurations.all {
+    replace(libs.jackson.core) { "Conflict resolution." }
+    replace(libs.jackson.databind) { "The version of the compiler has a security issue associated with this dependency." }
+    replace(libs.apache.commons.text) { "The version of the compiler has a security issue associated with this dependency." }
+    replace(libs.apache.commons.lang) { "Conflict resolution." }
+    replace(libs.slf4j.api) { "Conflict resolution." }
 }
 
 val internal: Configuration by configurations.creating {
@@ -35,8 +44,6 @@ dependencies {
 
     api(libs.clikt) { because("Facilitate CLI implementation.") }
     implementation(libs.compiler) { because("Decoupling the runtime environment. A user can choose the compiler version.") }
-    implementation(libs.jackson.databind) { because("The version of the compiler has a security issue associated with this dependency.") }
-    implementation(libs.apache.commons.text) { because("The version of the compiler has a security issue associated with this dependency.") }
 
     runtimeOnly(libs.slf4j.simple) { because("libs.compiler depends on SLF4J.") }
 
