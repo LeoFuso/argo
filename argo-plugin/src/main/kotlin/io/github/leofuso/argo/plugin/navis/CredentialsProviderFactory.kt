@@ -1,8 +1,8 @@
 package io.github.leofuso.argo.plugin.navis
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig.*
-import io.github.leofuso.argo.plugin.navis.security.JAASCredentials
-import io.github.leofuso.argo.plugin.navis.security.UserInfoCredentials
+import io.github.leofuso.argo.plugin.navis.credentials.JAASCredentials
+import io.github.leofuso.argo.plugin.navis.credentials.UserInfoCredentials
 import org.apache.kafka.common.config.SaslConfigs.*
 import org.gradle.api.Action
 import org.gradle.api.ProjectConfigurationException

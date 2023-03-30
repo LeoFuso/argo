@@ -1,4 +1,4 @@
-package io.github.leofuso.argo.plugin.navis.security
+package io.github.leofuso.argo.plugin.navis.credentials
 
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.provider.MapProperty

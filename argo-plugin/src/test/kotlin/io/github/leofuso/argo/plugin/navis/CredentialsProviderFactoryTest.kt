@@ -1,8 +1,8 @@
 package io.github.leofuso.argo.plugin.navis
 
 import io.github.leofuso.argo.plugin.fixtures.MockedProviderFactory
-import io.github.leofuso.argo.plugin.navis.security.JAASCredentials
-import io.github.leofuso.argo.plugin.navis.security.UserInfoCredentials
+import io.github.leofuso.argo.plugin.navis.credentials.JAASCredentials
+import io.github.leofuso.argo.plugin.navis.credentials.UserInfoCredentials
 import org.apache.kafka.common.security.plain.PlainLoginModule
 import org.apache.kafka.common.security.scram.ScramLoginModule
 import org.eclipse.jetty.jaas.spi.JDBCLoginModule
