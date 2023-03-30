@@ -1,6 +1,6 @@
 # Of Columba
 
-...and its inner workings.
+and its inner workings.
 
 **Disclaimer**: Functionality on **Windows OS** has not yet been verified, but should work as intended.
 
@@ -87,7 +87,7 @@ Running `gradle build` should be enough to your project setup.
 
 ## Of Columba parser
 
-There is no required pre-defined order of appearence for the source files, nor should you worry about inline definitions vs separeted
+There is no required pre-defined order of appearance for the source files, nor should you worry about inline definitions vs multiple
 file definitions, and duplicated resolutions are ignored by default.
 The parser component of the plugin tries its best to ensure a smooth experience regarding Schema dependencies, but the parser can fail.
 If that's the case, please open an issue about it!
@@ -118,7 +118,8 @@ There are as many configurations as there are SourceSets.
 ### Tools
 
 Should you want to import [custom conversions, LogicalTypeFactories](https://avro.apache.org/docs/1.11.1/specification/#logical-types)
-and [VelocityTools](https://velocity.apache.org/tools/3.1/) during the Code Generation phase, there are specific configuraions to do so, see below:
+and [VelocityTools](https://velocity.apache.org/tools/3.1/) during the Code Generation phase, there are specific configurations to do so,
+see below:
 
 `build.gradle`
 ```groovy
@@ -205,9 +206,6 @@ argo {
 
 [Decimal type ref](https://avro.apache.org/docs/1.11.1/specification/#decimal).
 
-As you can see it, it was a deliberate choice to reference the actual classes that the SpecificCompiler uses, to prevent miss config
-associated with typos.
-
 ### Option details
 
 To be detailed.
@@ -249,7 +247,8 @@ One can find examples of how to apply the plugin using _Kotlin DSL_ [here](use-c
 
 The development of this plugin in a direct response to [David's plugin](https://github.com/davidmc24/gradle-avro-plugin)
 of the same functionality.
-Any resemblence is not a coincidence. I've used David's plugin as a starting point, and copy some
-of its functionality **as is**. David, and the community surrouding their plugin, did a wonderful job,
-and I'm most definitely a user of David's plugin. If you're in doubt about which plugin to use, use
-David's, since it is the most battle tested, at least for now!
+Any resemblance is not a coincidence.
+David's plugin was used as a starting point, and copy some
+of its functionality **as is**.
+David, and the community surrounding their plugin, did a wonderful job,
+and its value can't be diminished.

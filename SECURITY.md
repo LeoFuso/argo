@@ -8,5 +8,5 @@
 
 ## Reporting a Vulnerability
 
-There's a specific issue template to report security vulnerabilits, feel free to open a new one!
+There's a specific issue template to report security vulnerabilities, feel free to open a new one!
 Having just a few dependencies, it is unlikely your report it is going to be disregarded.
