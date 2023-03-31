@@ -42,10 +42,7 @@ open class SecurityProviderFactory @Inject constructor(
     private val missingProviderErrors: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : io.github.leofuso.argo.plugin.navis.security.credentials.Credentials> provide(
-        type: Class<out T>,
-        action: Action<in T>? = null
-    ): Provider<T> {
+    fun <T : Credentials> provide(type: Class<out T>, action: Action<in T>? = null): Provider<T> {
         return when {
 
             UserInfoCredentials::class.java.isAssignableFrom(type) ->
@@ -70,9 +67,7 @@ open class SecurityProviderFactory @Inject constructor(
         }
     }
 
-    private fun <T : io.github.leofuso.argo.plugin.navis.security.credentials.Credentials?> evaluateAtConfigurationTime(
-        provider: Callable<T>
-    ): Provider<T> {
+    private fun <T : Credentials?> evaluateAtConfigurationTime(provider: Callable<T>): Provider<T> {
         return InterceptingProvider(provider)
     }
 
@@ -106,7 +101,7 @@ open class SecurityProviderFactory @Inject constructor(
     }
 
     @Suppress("UnstableApiUsage", "UNCHECKED_CAST")
-    private abstract inner class CredentialsProvider<T : io.github.leofuso.argo.plugin.navis.security.credentials.Credentials>(
+    private abstract inner class CredentialsProvider<T : Credentials>(
         protected val identity: String,
         private val action: Action<in T>? = null
     ) : Callable<T> {

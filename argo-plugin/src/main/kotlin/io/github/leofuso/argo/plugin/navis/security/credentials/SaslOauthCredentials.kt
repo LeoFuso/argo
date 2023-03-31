@@ -2,6 +2,7 @@ package io.github.leofuso.argo.plugin.navis.security.credentials
 
 import org.gradle.api.tasks.Internal
 
+@Suppress("unused")
 abstract class SaslOauthCredentials : JAASCredentials, BearerAuthCredentials {
 
     @Internal
