@@ -1,13 +1,14 @@
-package io.github.leofuso.argo.plugin.navis.credentials
+package io.github.leofuso.argo.plugin.navis.security.credentials
 
-import org.gradle.api.credentials.Credentials
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig.USER_INFO_CONFIG
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Internal
 
 /**
  * A username/password credentials that can be used to log in to something protected by a username and password.
  *
  */
-abstract class UserInfoCredentials : Credentials {
+abstract class UserInfoCredentials : BasicAuthCredentials {
 
     /**
      * Returns the username to use when authenticating.
@@ -36,4 +37,24 @@ abstract class UserInfoCredentials : Credentials {
      * @param password The password.
      */
     fun password(password: String) = getPassword().set(password)
+
+    @Internal
+    override fun getAlias(): String = "USER_INFO"
+
+    @Internal
+    override fun toProperties(): MutableMap<String, String> {
+        val source = super.toProperties()
+        val zip = getUsername().zip(getPassword()) {
+                first, second ->
+            "'$first:$second'"
+        }
+        val config = zip.orElse("").get()
+        source += USER_INFO_CONFIG to config
+        return source
+    }
+
+    override fun toString(): String {
+        return "[ Hidden ]"
+    }
+
 }

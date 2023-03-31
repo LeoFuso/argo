@@ -1,6 +1,6 @@
-package io.github.leofuso.argo.plugin.navis.credentials
+package io.github.leofuso.argo.plugin.navis.security.credentials
 
-import org.gradle.api.credentials.Credentials
+import org.apache.kafka.common.config.SaslConfigs.*
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import javax.security.auth.spi.LoginModule
@@ -24,7 +24,8 @@ import javax.security.auth.spi.LoginModule
  *  schema.registry.sasl.jaas.config.option.password=password
  *  ```
  */
-abstract class JAASCredentials : Credentials {
+@Suppress("ComplexInterface")
+interface JAASCredentials : Credentials {
 
     enum class LoginModuleControlFlag(val flag: String) {
         REQUIRED("required"),
@@ -46,12 +47,14 @@ abstract class JAASCredentials : Credentials {
      * ```
      *   <loginModuleClass> <controlFlag> (<optionName>=<optionValue>)*;
      * ```
-     *
      */
-    fun toProperty(): String {
+    override fun toProperties(): MutableMap<String, String> {
+
+        fun toProperty(config: String) = mutableMapOf(SASL_JAAS_CONFIG to config)
 
         if (getSaslJaasConfig().isPresent) {
-            return getSaslJaasConfig().get()
+            val config = getSaslJaasConfig().get()
+            return toProperty(config)
         }
 
         val loginModule = getLoginModule()
@@ -68,10 +71,11 @@ abstract class JAASCredentials : Credentials {
             .map { it.joinToString(" ") { (key: String, value: String) -> "$key='$value'" } }
             .get()
 
-        return "${loginModule.name} $loginModuleControlFlag $options;"
+        val config = "${loginModule.name} $loginModuleControlFlag $options;"
+        return toProperty(config)
     }
 
-    abstract fun getSaslJaasConfig(): Property<String>
+    fun getSaslJaasConfig(): Property<String>
 
     /**
      * A way of manually setting the [sasl.jaas.config][org.apache.kafka.common.config.SaslConfigs.SASL_JAAS_CONFIG]
@@ -80,15 +84,15 @@ abstract class JAASCredentials : Credentials {
      */
     fun saslJaasConfig(config: String) = getSaslJaasConfig().set(config)
 
-    abstract fun getLoginModule(): Property<Class<out LoginModule>>
+    fun getLoginModule(): Property<Class<out LoginModule>>
 
     fun loginModule(module: Class<out LoginModule>) = getLoginModule().set(module)
 
-    abstract fun getLoginModuleControlFlag(): Property<LoginModuleControlFlag>
+    fun getLoginModuleControlFlag(): Property<LoginModuleControlFlag>
 
     fun controlFlag(flag: LoginModuleControlFlag) = getLoginModuleControlFlag().set(flag)
 
-    abstract fun getOptions(): MapProperty<String, String>
+    fun getOptions(): MapProperty<String, String>
 
     fun options(options: Map<String, String>) = options.forEach(::option)
 

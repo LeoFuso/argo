@@ -1,8 +1,10 @@
+@file:Suppress("unused")
+
 package io.github.leofuso.argo.plugin.navis.extensions
 
-import io.github.leofuso.argo.plugin.navis.CredentialsProviderFactory
+import io.github.leofuso.argo.plugin.navis.security.SecurityProviderFactory
+import io.github.leofuso.argo.plugin.navis.security.credentials.Credentials
 import org.gradle.api.Action
-import org.gradle.api.credentials.Credentials
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
@@ -14,15 +16,7 @@ import java.net.URI
 import java.net.URL
 import javax.inject.Inject
 
-@Suppress("unused")
-abstract class NavisOptions @Inject constructor(objectFactory: ObjectFactory) {
-
-    private val factory: CredentialsProviderFactory = objectFactory.newInstance()
-    private val _credentials: Property<Credentials> = objectFactory.property()
-
-    @get:Internal
-    internal val credentials: Property<Credentials>
-        get() = _credentials
+abstract class NavisOptions {
 
     abstract fun getURL(): Property<URI>
 
@@ -31,6 +25,27 @@ abstract class NavisOptions @Inject constructor(objectFactory: ObjectFactory) {
     fun url(url: URL) = getURL().set(url.toURI())
 
     fun url(uri: URI) = getURL().set(uri)
+
+    @Nested
+    abstract fun getSecurity(): SecurityNavisOptions
+
+    fun security(action: Action<in SecurityNavisOptions>) = action.invoke(getSecurity())
+
+    @Nested
+    abstract fun getDownload(): DownloadNavisOptions
+
+    fun download(action: Action<in DownloadNavisOptions>) = action.invoke(getDownload())
+
+}
+
+abstract class SecurityNavisOptions @Inject constructor(objectFactory: ObjectFactory) {
+
+    private val factory: SecurityProviderFactory = objectFactory.newInstance()
+    private val _credentials: Property<Credentials> = objectFactory.property()
+
+    @get:Internal
+    internal val credentials: Property<Credentials>
+        get() = _credentials
 
     fun credentials(type: Class<out Credentials>) {
         if (_credentials.isPresent) {
@@ -45,11 +60,6 @@ abstract class NavisOptions @Inject constructor(objectFactory: ObjectFactory) {
         }
         _credentials.set(factory.provide(type, action))
     }
-
-    @Nested
-    abstract fun getDownloadNavisAction(): DownloadNavisOptions
-
-    fun download(action: Action<in DownloadNavisOptions>) = action.invoke(getDownloadNavisAction())
 
 }
 

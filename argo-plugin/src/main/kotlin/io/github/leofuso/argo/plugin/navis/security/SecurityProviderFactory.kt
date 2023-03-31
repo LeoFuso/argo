@@ -1,12 +1,13 @@
-package io.github.leofuso.argo.plugin.navis
+package io.github.leofuso.argo.plugin.navis.security
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig.*
-import io.github.leofuso.argo.plugin.navis.credentials.JAASCredentials
-import io.github.leofuso.argo.plugin.navis.credentials.UserInfoCredentials
+import io.github.leofuso.argo.plugin.navis.security.credentials.Credentials
+import io.github.leofuso.argo.plugin.navis.security.credentials.JAASCredentials
+import io.github.leofuso.argo.plugin.navis.security.credentials.SaslBasicAuthCredentials
+import io.github.leofuso.argo.plugin.navis.security.credentials.UserInfoCredentials
 import org.apache.kafka.common.config.SaslConfigs.*
 import org.gradle.api.Action
 import org.gradle.api.ProjectConfigurationException
-import org.gradle.api.credentials.Credentials
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.internal.provider.DefaultProvider
@@ -25,7 +26,15 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.security.auth.spi.LoginModule
 
-open class CredentialsProviderFactory @Inject constructor(
+/**
+ * A SecurityProviderFactory is able to produce the following security-related providers:
+ *  * [Credentials] to Authenticate against the Schema Registry API, both Basic Auth and Bearer Token strategies.
+ *  * SSL related constructs used to communicate with the Schema Registry API.
+ *
+ *  Note: Bearer Token and SSL strategies are **not** implemented yet.
+ *
+ */
+open class SecurityProviderFactory @Inject constructor(
     private val objectsFactory: ObjectFactory,
     private val providerFactory: ProviderFactory
 ) : TaskExecutionGraphListener {
@@ -33,17 +42,20 @@ open class CredentialsProviderFactory @Inject constructor(
     private val missingProviderErrors: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Credentials> provide(type: Class<out T>, action: Action<in T>? = null): Provider<T> {
+    fun <T : io.github.leofuso.argo.plugin.navis.security.credentials.Credentials> provide(
+        type: Class<out T>,
+        action: Action<in T>? = null
+    ): Provider<T> {
         return when {
 
             UserInfoCredentials::class.java.isAssignableFrom(type) ->
                 evaluateAtConfigurationTime(
-                    UserInfoCredentialsProvider(action as? Action<UserInfoCredentials>)
+                    UserInfoAuthCredentialsProvider(action as? Action<UserInfoCredentials>)
                 )
 
-            JAASCredentials::class.java.isAssignableFrom(type) ->
+            SaslBasicAuthCredentials::class.java.isAssignableFrom(type) ->
                 evaluateAtConfigurationTime(
-                    JAASCredentialsProvider(action as? Action<JAASCredentials>)
+                    JAASBasicAuthCredentialsProvider(action as? Action<SaslBasicAuthCredentials>)
                 )
 
             else -> throw IllegalArgumentException("Unsupported credentials type: $type.")
@@ -58,7 +70,9 @@ open class CredentialsProviderFactory @Inject constructor(
         }
     }
 
-    private fun <T : Credentials?> evaluateAtConfigurationTime(provider: Callable<T>): Provider<T> {
+    private fun <T : io.github.leofuso.argo.plugin.navis.security.credentials.Credentials?> evaluateAtConfigurationTime(
+        provider: Callable<T>
+    ): Provider<T> {
         return InterceptingProvider(provider)
     }
 
@@ -92,7 +106,7 @@ open class CredentialsProviderFactory @Inject constructor(
     }
 
     @Suppress("UnstableApiUsage", "UNCHECKED_CAST")
-    private abstract inner class CredentialsProvider<T : Credentials>(
+    private abstract inner class CredentialsProvider<T : io.github.leofuso.argo.plugin.navis.security.credentials.Credentials>(
         protected val identity: String,
         private val action: Action<in T>? = null
     ) : Callable<T> {
@@ -204,7 +218,7 @@ open class CredentialsProviderFactory @Inject constructor(
         }
     }
 
-    private inner class UserInfoCredentialsProvider(action: Action<UserInfoCredentials>? = null) :
+    private inner class UserInfoAuthCredentialsProvider(action: Action<UserInfoCredentials>? = null) :
         CredentialsProvider<UserInfoCredentials>("$CLIENT_NAMESPACE$USER_INFO_CONFIG", action) {
 
         @Synchronized
@@ -221,11 +235,11 @@ open class CredentialsProviderFactory @Inject constructor(
         override fun getProvidedType() = UserInfoCredentials::class.java
     }
 
-    private inner class JAASCredentialsProvider(action: Action<JAASCredentials>? = null) :
-        CredentialsProvider<JAASCredentials>("$CLIENT_NAMESPACE$SASL_JAAS_CONFIG", action) {
+    private inner class JAASBasicAuthCredentialsProvider(action: Action<SaslBasicAuthCredentials>? = null) :
+        CredentialsProvider<SaslBasicAuthCredentials>("$CLIENT_NAMESPACE$SASL_JAAS_CONFIG", action) {
 
         @Synchronized
-        override fun mergeProperties(credentials: JAASCredentials): JAASCredentials {
+        override fun mergeProperties(credentials: SaslBasicAuthCredentials): SaslBasicAuthCredentials {
 
             val rootConfig = getOptionalProperty(methodAccessor = credentials::getSaslJaasConfig)
             if (rootConfig != null) {
@@ -271,6 +285,6 @@ open class CredentialsProviderFactory @Inject constructor(
             return credentials
         }
 
-        override fun getProvidedType() = JAASCredentials::class.java
+        override fun getProvidedType() = SaslBasicAuthCredentials::class.java
     }
 }

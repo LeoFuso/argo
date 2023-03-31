@@ -1,16 +1,19 @@
 package io.github.leofuso.argo.plugin.navis
 
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig.BASIC_AUTH_CREDENTIALS_SOURCE
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig.USER_INFO_CONFIG
 import io.github.leofuso.argo.plugin.fixtures.MockedProviderFactory
-import io.github.leofuso.argo.plugin.navis.credentials.JAASCredentials
-import io.github.leofuso.argo.plugin.navis.credentials.UserInfoCredentials
+import io.github.leofuso.argo.plugin.navis.security.SecurityProviderFactory
+import io.github.leofuso.argo.plugin.navis.security.credentials.JAASCredentials
+import io.github.leofuso.argo.plugin.navis.security.credentials.SaslBasicAuthCredentials
+import io.github.leofuso.argo.plugin.navis.security.credentials.UserInfoCredentials
+import org.apache.kafka.common.config.SaslConfigs.*
 import org.apache.kafka.common.security.plain.PlainLoginModule
 import org.apache.kafka.common.security.scram.ScramLoginModule
 import org.eclipse.jetty.jaas.spi.JDBCLoginModule
 import org.gradle.api.Project
-import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.api.provider.Provider
-import org.gradle.kotlin.dsl.newInstance
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -18,7 +21,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.api.expectThrows
 import strikt.assertions.hasEntry
 import strikt.assertions.isA
 import strikt.assertions.isEmpty
@@ -29,8 +31,8 @@ import strikt.assertions.isTrue
 import java.io.File
 import javax.security.auth.spi.LoginModule
 
-@DisplayName("Navis: Unit tests related to 'CredentialsProviderFactory'.")
-class CredentialsProviderFactoryTest {
+@DisplayName("Navis: Unit tests related to 'SecurityProviderFactory'.")
+class SecurityProviderFactoryTest {
 
     @TempDir
     private lateinit var rootDir: File
@@ -41,26 +43,8 @@ class CredentialsProviderFactoryTest {
         project = ProjectBuilder
             .builder()
             .withProjectDir(rootDir)
-            .withName("credentials-provider-factory-test")
+            .withName("security-provider-factory-test")
             .build()
-    }
-
-    @Test
-    @DisplayName(
-        """
-        Given an unsupported 'Credentials',
-        when provided,
-        then throw 'IllegalArgumentException'.
-        """
-    )
-    fun id1680133015908() {
-
-        /* Given */
-        val subject: CredentialsProviderFactory = project.objects.newInstance()
-
-        /*  When then */
-        expectThrows<IllegalArgumentException> { subject.provide(HttpHeaderCredentials::class.java) }
-
     }
 
     @Test
@@ -75,14 +59,14 @@ class CredentialsProviderFactoryTest {
 
         /* Given */
         val expectedUsername = "LeoFuso"
-        val expectedPassword = "secret"
+        val expectedPassword = "@!&!S#\$qdL2zS@@t#q6"
 
         val gradleProperties = mapOf(
             "schema.registry.basic.auth.user.info.username" to expectedUsername,
             "schema.registry.basic.auth.user.info.password" to expectedPassword
         )
 
-        val subject = CredentialsProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
 
         /* When */
         val credentials = subject.provide(UserInfoCredentials::class.java)
@@ -99,6 +83,13 @@ class CredentialsProviderFactoryTest {
                         .isEqualTo(expectedUsername)
                     get { getPassword().get() }
                         .isEqualTo(expectedPassword)
+
+                    get(UserInfoCredentials::toProperties)
+                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO")
+                        .hasEntry(USER_INFO_CONFIG, "'$expectedUsername:$expectedPassword'")
+
+                    get(UserInfoCredentials::toString)
+                        .isEqualTo("[ Hidden ]")
                 }
         }
     }
@@ -115,14 +106,14 @@ class CredentialsProviderFactoryTest {
 
         /* Given */
         val expectedUsername = "LeoFuso"
-        val expectedPassword = "secret"
+        val expectedPassword = "@!&!S#\$qdL2zS@@t#q6"
 
         val gradleProperties = mapOf(
             "schema.registry.basic.auth.user.info.username" to "Unknown",
             "schema.registry.basic.auth.user.info.password" to expectedPassword
         )
 
-        val subject = CredentialsProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
 
         /* When */
         val credentials = subject
@@ -140,6 +131,13 @@ class CredentialsProviderFactoryTest {
                         .isEqualTo(expectedUsername)
                     get { getPassword().get() }
                         .isEqualTo(expectedPassword)
+
+                    get(UserInfoCredentials::toProperties)
+                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO")
+                        .hasEntry(USER_INFO_CONFIG, "'$expectedUsername:$expectedPassword'")
+
+                    get(UserInfoCredentials::toString)
+                        .isEqualTo("[ Hidden ]")
                 }
         }
     }
@@ -158,7 +156,7 @@ class CredentialsProviderFactoryTest {
         val expectedUsername = "LeoFuso"
         val expectedPassword = "secret"
 
-        val subject = CredentialsProviderFactory(project.objects, MockedProviderFactory(emptyMap()))
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(emptyMap()))
 
         /* When */
         val credentials = subject
@@ -179,6 +177,13 @@ class CredentialsProviderFactoryTest {
                         .isEqualTo(expectedUsername)
                     get { getPassword().get() }
                         .isEqualTo(expectedPassword)
+
+                    get(UserInfoCredentials::toProperties)
+                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "USER_INFO")
+                        .hasEntry(USER_INFO_CONFIG, "'$expectedUsername:$expectedPassword'")
+
+                    get(UserInfoCredentials::toString)
+                        .isEqualTo("[ Hidden ]")
                 }
         }
     }
@@ -200,7 +205,7 @@ class CredentialsProviderFactoryTest {
             "schema.registry.basic.auth.user.info.password" to expectedPassword
         )
 
-        val subject = CredentialsProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
 
         /* When */
         val credentials = subject.provide(UserInfoCredentials::class.java)
@@ -218,7 +223,7 @@ class CredentialsProviderFactoryTest {
     @Test
     @DisplayName(
         """
-        Given a 'JAASCredentials' entirely configured using the individual 'gradle.properties',
+        Given a basic auth 'JAASCredentials' entirely configured using the individual 'gradle.properties',
         when provided,
         then all values should match.
         """
@@ -241,17 +246,17 @@ class CredentialsProviderFactoryTest {
             "schema.registry.sasl.jaas.config.option.password" to expectedPassword
         )
 
-        val subject = CredentialsProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
 
         /* When */
-        val credentials = subject.provide(JAASCredentials::class.java)
+        val credentials = subject.provide(SaslBasicAuthCredentials::class.java)
 
         /* Then */
         expectThat(credentials) {
             isA<Provider<JAASCredentials>>()
-            get(Provider<JAASCredentials>::isPresent)
+            get(Provider<SaslBasicAuthCredentials>::isPresent)
                 .isTrue()
-            get(Provider<JAASCredentials>::get)
+            get(Provider<SaslBasicAuthCredentials>::get)
                 .isA<JAASCredentials>()
                 .and {
 
@@ -265,8 +270,9 @@ class CredentialsProviderFactoryTest {
                         .hasEntry("username", expectedUsername)
                         .hasEntry("password", expectedPassword)
 
-                    get(JAASCredentials::toProperty)
-                        .isEqualTo(expectedConfig)
+                    get(JAASCredentials::toProperties)
+                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "SASL_INHERIT")
+                        .hasEntry(SASL_JAAS_CONFIG, expectedConfig)
                 }
         }
     }
@@ -274,7 +280,7 @@ class CredentialsProviderFactoryTest {
     @Test
     @DisplayName(
         """
-        Given a 'JAASCredentials' entirely configured using root attribute with 'gradle.properties',
+        Given a basic auth 'JAASCredentials' entirely configured using root attribute with 'gradle.properties',
         when provided,
         then all values should match.
         """
@@ -292,33 +298,32 @@ class CredentialsProviderFactoryTest {
 
         val gradleProperties = mapOf("schema.registry.sasl.jaas.config" to expectedConfig)
 
-        val subject = CredentialsProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
 
         /* When */
-        val credentials = subject.provide(JAASCredentials::class.java)
+        val credentials = subject.provide(SaslBasicAuthCredentials::class.java)
 
         /* Then */
         expectThat(credentials) {
-            isA<Provider<JAASCredentials>>()
-            get(Provider<JAASCredentials>::isPresent)
+            isA<Provider<SaslBasicAuthCredentials>>()
+            get(Provider<SaslBasicAuthCredentials>::isPresent)
                 .isTrue()
-            get(Provider<JAASCredentials>::get)
-                .isA<JAASCredentials>()
+            get(Provider<SaslBasicAuthCredentials>::get)
+                .isA<SaslBasicAuthCredentials>()
                 .and {
 
-                    get(JAASCredentials::getLoginModule)
-                        .get(Provider<Class<out LoginModule>>::isPresent)
+                    get { getLoginModule().isPresent }
                         .isFalse()
 
-                    get(JAASCredentials::getLoginModuleControlFlag)
-                        .get(Provider<JAASCredentials.LoginModuleControlFlag>::isPresent)
+                    get { getLoginModuleControlFlag().isPresent }
                         .isFalse()
 
                     get { getOptions().get() }
                         .isEmpty()
 
-                    get(JAASCredentials::toProperty)
-                        .isEqualTo(expectedConfig)
+                    get(SaslBasicAuthCredentials::toProperties)
+                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "SASL_INHERIT")
+                        .hasEntry(SASL_JAAS_CONFIG, expectedConfig)
                 }
         }
     }
@@ -326,7 +331,7 @@ class CredentialsProviderFactoryTest {
     @Test
     @DisplayName(
         """
-        Given a 'JAASCredentials' entirely configured using 'Kotlin DSL' in the individual properties,
+        Given a basic auth 'JAASCredentials' entirely configured using 'Kotlin DSL' in the individual properties,
         when provided,
         then all values should match.
         """
@@ -342,10 +347,10 @@ class CredentialsProviderFactoryTest {
         val expectedConfig =
             "${expectedLoginModule.name} ${expectedControlFlag.flag} username='$expectedUsername' password='$expectedPassword';"
 
-        val subject = CredentialsProviderFactory(project.objects, MockedProviderFactory(emptyMap()))
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(emptyMap()))
 
         /* When */
-        val credentials = subject.provide(JAASCredentials::class.java) {
+        val credentials = subject.provide(SaslBasicAuthCredentials::class.java) {
             it.loginModule(expectedLoginModule)
             it.controlFlag(expectedControlFlag)
             it.option("username", expectedUsername)
@@ -354,11 +359,11 @@ class CredentialsProviderFactoryTest {
 
         /* Then */
         expectThat(credentials) {
-            isA<Provider<JAASCredentials>>()
-            get(Provider<JAASCredentials>::isPresent)
+            isA<Provider<SaslBasicAuthCredentials>>()
+            get(Provider<SaslBasicAuthCredentials>::isPresent)
                 .isTrue()
-            get(Provider<JAASCredentials>::get)
-                .isA<JAASCredentials>()
+            get(Provider<SaslBasicAuthCredentials>::get)
+                .isA<SaslBasicAuthCredentials>()
                 .and {
 
                     get { getLoginModule().get() }
@@ -371,8 +376,9 @@ class CredentialsProviderFactoryTest {
                         .hasEntry("username", expectedUsername)
                         .hasEntry("password", expectedPassword)
 
-                    get(JAASCredentials::toProperty)
-                        .isEqualTo(expectedConfig)
+                    get(SaslBasicAuthCredentials::toProperties)
+                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "SASL_INHERIT")
+                        .hasEntry(SASL_JAAS_CONFIG, expectedConfig)
                 }
         }
     }
@@ -380,7 +386,7 @@ class CredentialsProviderFactoryTest {
     @Test
     @DisplayName(
         """
-        Given a 'JAASCredentials' entirely configured using 'Kotlin DSL' in the root property,
+        Given a basic auth 'JAASCredentials' entirely configured using 'Kotlin DSL' in the root property,
         when provided,
         then all values should match.
         """
@@ -396,35 +402,36 @@ class CredentialsProviderFactoryTest {
         val expectedConfig =
             "${expectedLoginModule.name} ${expectedControlFlag.flag} username='$expectedUsername' password='$expectedPassword';"
 
-        val subject = CredentialsProviderFactory(project.objects, MockedProviderFactory(emptyMap()))
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(emptyMap()))
 
         /* When */
-        val credentials = subject.provide(JAASCredentials::class.java) {
+        val credentials = subject.provide(SaslBasicAuthCredentials::class.java) {
             it.saslJaasConfig(expectedConfig)
         }
 
         /* Then */
         expectThat(credentials) {
-            isA<Provider<JAASCredentials>>()
-            get(Provider<JAASCredentials>::isPresent)
+            isA<Provider<SaslBasicAuthCredentials>>()
+            get(Provider<SaslBasicAuthCredentials>::isPresent)
                 .isTrue()
-            get(Provider<JAASCredentials>::get)
-                .isA<JAASCredentials>()
+            get(Provider<SaslBasicAuthCredentials>::get)
+                .isA<SaslBasicAuthCredentials>()
                 .and {
 
-                    get(JAASCredentials::getLoginModule)
+                    get(SaslBasicAuthCredentials::getLoginModule)
                         .get(Provider<Class<out LoginModule>>::isPresent)
                         .isFalse()
 
-                    get(JAASCredentials::getLoginModuleControlFlag)
+                    get(SaslBasicAuthCredentials::getLoginModuleControlFlag)
                         .get(Provider<JAASCredentials.LoginModuleControlFlag>::isPresent)
                         .isFalse()
 
                     get { getOptions().get() }
                         .isEmpty()
 
-                    get(JAASCredentials::toProperty)
-                        .isEqualTo(expectedConfig)
+                    get(SaslBasicAuthCredentials::toProperties)
+                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "SASL_INHERIT")
+                        .hasEntry(SASL_JAAS_CONFIG, expectedConfig)
                 }
         }
     }
@@ -432,7 +439,7 @@ class CredentialsProviderFactoryTest {
     @Test
     @DisplayName(
         """
-        Given a 'JAASCredentials' configured using both 'gradle.properties' and 'Kotlin DSL',
+        Given a basic auth 'JAASCredentials' configured using both 'gradle.properties' and 'Kotlin DSL',
         when provided,
         then all values should match.
         """
@@ -459,10 +466,10 @@ class CredentialsProviderFactoryTest {
             "schema.registry.sasl.jaas.config.option.dbPassword" to expectedDbPassword
         )
 
-        val subject = CredentialsProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
 
         /* When */
-        val credentials = subject.provide(JAASCredentials::class.java) {
+        val credentials = subject.provide(SaslBasicAuthCredentials::class.java) {
             it.loginModule(expectedLoginModule)
             it.controlFlag(expectedControlFlag)
             it.option("dbDriver", expectedDbDriver)
@@ -472,11 +479,11 @@ class CredentialsProviderFactoryTest {
 
         /* Then */
         expectThat(credentials) {
-            isA<Provider<JAASCredentials>>()
-            get(Provider<JAASCredentials>::isPresent)
+            isA<Provider<SaslBasicAuthCredentials>>()
+            get(Provider<SaslBasicAuthCredentials>::isPresent)
                 .isTrue()
-            get(Provider<JAASCredentials>::get)
-                .isA<JAASCredentials>()
+            get(Provider<SaslBasicAuthCredentials>::get)
+                .isA<SaslBasicAuthCredentials>()
                 .and {
 
                     get { getLoginModule().get() }
@@ -491,8 +498,9 @@ class CredentialsProviderFactoryTest {
                         .hasEntry("dbUserName", expectedDbUsername)
                         .hasEntry("dbPassword", expectedDbPassword)
 
-                    get(JAASCredentials::toProperty)
-                        .isEqualTo(expectedConfig)
+                    get(SaslBasicAuthCredentials::toProperties)
+                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "SASL_INHERIT")
+                        .hasEntry(SASL_JAAS_CONFIG, expectedConfig)
                 }
         }
     }
@@ -500,7 +508,7 @@ class CredentialsProviderFactoryTest {
     @Test
     @DisplayName(
         """
-        Given a 'JAASCredentials' with missing required properties,
+        Given a basic auth 'JAASCredentials' with missing required properties,
         when provided,
         then fail, accusing 'missing properties'.
         """
@@ -516,14 +524,14 @@ class CredentialsProviderFactoryTest {
             "schema.registry.sasl.jaas.config.option.dbPassword" to expectedDbPassword
         )
 
-        val subject = CredentialsProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
 
         /* When */
-        val credentials = subject.provide(JAASCredentials::class.java)
+        val credentials = subject.provide(SaslBasicAuthCredentials::class.java)
 
         /* Then */
         expectThat(credentials) {
-            isA<Provider<JAASCredentials>>()
+            isA<Provider<SaslBasicAuthCredentials>>()
 
             expectCatching { credentials.get() }
                 .isFailure()
