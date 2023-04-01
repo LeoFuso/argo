@@ -18,7 +18,7 @@ import org.gradle.api.tasks.Internal
  * &nbsp;
  *
  * Each [Credentials] has its own required parameters.
- * To check how to configure it, please refer to [child][Credentials] documentation.
+ * To check how to configure it, please refer to [child's][Credentials] documentation.
  *
  * &nbsp;
  * &nbsp;
