@@ -9,23 +9,7 @@ import org.gradle.api.provider.Property
 import javax.security.auth.spi.LoginModule
 
 /**
- * Used to allow for user customization of SASL over JAAS.
- *
- * A user can populate this credential by any of these strategies:
- *
- *  1. Populating a `gradle.config` file, either in the project or in the Gradle directory, with the needed properties;
- *  2. Passing the needed properties as project variables to Gradle, e.g. `--project-prop schema.registry.sasl.jaas.config=config`;
- *  2. Using the DSL to manually populate this credential;
- *
- *  Expected configuration:
- *
- *  ```
- *  schema.registry.sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username='username' password='password';
- *  schema.registry.sasl.jaas.config.login.module=org.apache.kafka.common.security.scram.ScramLoginModule
- *  schema.registry.sasl.jaas.config.control.flag=required
- *  schema.registry.sasl.jaas.config.option.username=username
- *  schema.registry.sasl.jaas.config.option.password=password
- *  ```
+
  */
 @Suppress("ComplexInterface")
 interface JAASCredentials : Credentials {

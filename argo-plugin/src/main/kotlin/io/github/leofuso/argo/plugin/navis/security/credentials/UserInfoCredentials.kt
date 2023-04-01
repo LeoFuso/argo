@@ -7,6 +7,16 @@ import org.gradle.api.tasks.Internal
 /**
  * A username/password credentials that can be used to log in to something protected by a username and password.
  *
+ * Expected properties:
+ *
+ * &nbsp;
+ *
+ * `schema.registry.basic.auth.user.info.username = ` [username][UserInfoCredentials.getUsername]
+ *
+ * `schema.registry.basic.auth.user.info.username = ` [password][UserInfoCredentials.getPassword]
+ *
+ * &nbsp;
+ *
  */
 abstract class UserInfoCredentials : BasicAuthCredentials {
 
@@ -39,18 +49,17 @@ abstract class UserInfoCredentials : BasicAuthCredentials {
     fun password(password: String) = getPassword().set(password)
 
     @Internal
-    override fun getAlias(): String = "USER_INFO"
-
-    @Internal
     override fun toProperties(): MutableMap<String, String> {
         val source = super.toProperties()
         getUsername()
             .zip(getPassword()) { first, second -> "'$first:$second'" }
             .required(USER_INFO_CONFIG)
             .let(source::plusAssign)
-
         return source
     }
+
+    @Internal
+    override fun getAlias(): String = "USER_INFO"
 
     override fun toString(): String {
         return "[ Hidden ]"

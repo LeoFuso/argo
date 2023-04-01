@@ -4,6 +4,18 @@ import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 
+/**
+ * A static token used to authenticate against an external OAuth service.
+ *
+ * Expected properties:
+ *
+ * &nbsp;
+ *
+ * `schema.registry.bearer.auth.token = ` [token][StaticTokenCredentials.getToken]
+ *
+ * &nbsp;
+ *
+ */
 abstract class StaticTokenCredentials : BearerAuthCredentials {
 
     @Internal

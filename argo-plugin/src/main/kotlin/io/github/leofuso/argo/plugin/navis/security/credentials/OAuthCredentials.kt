@@ -6,6 +6,34 @@ import org.gradle.api.tasks.Internal
 import java.net.URL
 import java.time.Duration
 
+/**
+ * Used to authenticate against an external OAuth service.
+ *
+ * Expected properties:
+ *
+ * &nbsp;
+ *
+ * `schema.registry.bearer.auth.logical.cluster = ` [cluster][OAuthCredentials.getLogicalCluster]
+ *
+ * `schema.registry.bearer.auth.identity.pool.id = ` [poolId][OAuthCredentials.getIdentityPoolId]
+ *
+ * `schema.registry.bearer.auth.client.id = ` [clientId][OAuthCredentials.getClientId]
+ *
+ * `schema.registry.bearer.auth.client.secret = ` [clientSecret][OAuthCredentials.getClientSecret]
+ *
+ * `schema.registry.bearer.auth.scope = ` [scope][OAuthCredentials.getScope] (optional)
+ *
+ * `schema.registry.bearer.auth.issuer.endpoint.url = ` [issuer][OAuthCredentials.getIssuerEndpointUrl]
+ *
+ * `schema.registry.bearer.auth.cache.expiry.buffer.seconds = ` [cacheExpire][OAuthCredentials.getCacheExpireBuffer] (optional)
+ *
+ * `schema.registry.bearer.auth.scope.claim.name = ` [scopeClaimName][OAuthCredentials.getScopeClaimName] (optional)
+ *
+ * `schema.registry.bearer.auth.sub.claim.name = ` [subClaimName][OAuthCredentials.getSubClaimName] (optional)
+ *
+ * &nbsp;
+ *
+ */
 abstract class OAuthCredentials : BearerAuthCredentials {
 
     @Internal
