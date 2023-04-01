@@ -1,10 +1,7 @@
 package io.github.leofuso.argo.plugin.navis.security
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig.*
-import io.github.leofuso.argo.plugin.navis.security.credentials.Credentials
-import io.github.leofuso.argo.plugin.navis.security.credentials.JAASCredentials
-import io.github.leofuso.argo.plugin.navis.security.credentials.SaslBasicAuthCredentials
-import io.github.leofuso.argo.plugin.navis.security.credentials.UserInfoCredentials
+import io.github.leofuso.argo.plugin.navis.security.credentials.*
 import org.apache.kafka.common.config.SaslConfigs.*
 import org.gradle.api.Action
 import org.gradle.api.ProjectConfigurationException
@@ -21,6 +18,9 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.mapProperty
+import java.lang.reflect.ParameterizedType
+import java.net.URL
+import java.time.Duration
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -31,7 +31,7 @@ import javax.security.auth.spi.LoginModule
  *  * [Credentials] to Authenticate against the Schema Registry API, both Basic Auth and Bearer Token strategies.
  *  * SSL related constructs used to communicate with the Schema Registry API.
  *
- *  Note: Bearer Token and SSL strategies are **not** implemented yet.
+ *  Note: SSL strategies are **not** implemented yet.
  *
  */
 open class SecurityProviderFactory @Inject constructor(
@@ -47,12 +47,27 @@ open class SecurityProviderFactory @Inject constructor(
 
             UserInfoCredentials::class.java.isAssignableFrom(type) ->
                 evaluateAtConfigurationTime(
-                    UserInfoAuthCredentialsProvider(action as? Action<UserInfoCredentials>)
+                    UserInfoCredentialsProvider(action as? Action<UserInfoCredentials>)
+                )
+
+            URLCredentials::class.java.isAssignableFrom(type) ->
+                evaluateAtConfigurationTime(
+                    URLCredentialsProvider()
                 )
 
             SaslBasicAuthCredentials::class.java.isAssignableFrom(type) ->
                 evaluateAtConfigurationTime(
                     JAASBasicAuthCredentialsProvider(action as? Action<SaslBasicAuthCredentials>)
+                )
+
+            OAuthCredentials::class.java.isAssignableFrom(type) ->
+                evaluateAtConfigurationTime(
+                    OAuthCredentialsProvider(action as? Action<OAuthCredentials>)
+                )
+
+            StaticTokenCredentials::class.java.isAssignableFrom(type) ->
+                evaluateAtConfigurationTime(
+                    StaticTokenCredentialsProvider(action as? Action<StaticTokenCredentials>)
                 )
 
             else -> throw IllegalArgumentException("Unsupported credentials type: $type.")
@@ -109,7 +124,7 @@ open class SecurityProviderFactory @Inject constructor(
         private val missingProperties: MutableSet<String> = LinkedHashSet()
 
         override fun call(): T {
-            val type = getProvidedType()
+            val type: Class<T> = getProvidedType()
             val credentials: T = objectsFactory.newInstance(type)
             action?.invoke(credentials)
             return mergeProperties(credentials)
@@ -125,24 +140,31 @@ open class SecurityProviderFactory @Inject constructor(
          * * Merge them, prioritizing the ones configured via DSL.
          *
          */
-        abstract fun mergeProperties(credentials: T): T
+        open fun mergeProperties(credentials: T): T = credentials
 
-        abstract fun getProvidedType(): Class<T>
+        open fun getProvidedType(): Class<T> = this.javaClass.genericSuperclass
+            .let { it as ParameterizedType }
+            .actualTypeArguments
+            .first()
+            .let { it as Class<T> }
 
         @Suppress("ReturnCount")
         fun <T : Any> getRequiredProperty(key: String, methodAccessor: () -> Property<T>, transformer: (String) -> T = { it as T }): T? {
 
+            val identityProperty = identityProperty(key)
             val primary = methodAccessor.invoke()
             if (primary.isPresent) {
                 val value = primary.get()
                 return if (value is String && value.isNotBlank()) {
                     value
+                } else if (value is String && value.isBlank()) {
+                    missingProperties.add(identityProperty)
+                    return null
                 } else {
                     value
                 }
             }
 
-            val identityProperty = identityProperty(key)
             val gradleProperty = providerFactory.gradleProperty(identityProperty)
             val absent = !gradleProperty.isPresent
             val isBlank = gradleProperty.isPresent && gradleProperty.get().isBlank()
@@ -213,22 +235,31 @@ open class SecurityProviderFactory @Inject constructor(
         }
     }
 
-    private inner class UserInfoAuthCredentialsProvider(action: Action<UserInfoCredentials>? = null) :
+    private inner class UserInfoCredentialsProvider(action: Action<UserInfoCredentials>? = null) :
         CredentialsProvider<UserInfoCredentials>("$CLIENT_NAMESPACE$USER_INFO_CONFIG", action) {
 
         @Synchronized
         override fun mergeProperties(credentials: UserInfoCredentials): UserInfoCredentials {
-            val username = getRequiredProperty(".username", credentials::getUsername)
-            val password = getRequiredProperty(".password", credentials::getPassword)
+
+            getRequiredProperty(
+                ".username",
+                credentials::getUsername
+            )?.let(credentials::username)
+
+            getRequiredProperty(
+                ".password",
+                credentials::getPassword
+            )?.let(credentials::password)
+
             assertRequiredValuesPresence()
 
-            credentials.username(checkNotNull(username) { "At this stage, it can't be null." })
-            credentials.password(checkNotNull(password) { "At this stage, it can't be null." })
             return credentials
         }
 
-        override fun getProvidedType() = UserInfoCredentials::class.java
     }
+
+    private inner class URLCredentialsProvider(action: Action<URLCredentials>? = null) :
+        CredentialsProvider<URLCredentials>("DEFAULT", action)
 
     private inner class JAASBasicAuthCredentialsProvider(action: Action<SaslBasicAuthCredentials>? = null) :
         CredentialsProvider<SaslBasicAuthCredentials>("$CLIENT_NAMESPACE$SASL_JAAS_CONFIG", action) {
@@ -280,6 +311,84 @@ open class SecurityProviderFactory @Inject constructor(
             return credentials
         }
 
-        override fun getProvidedType() = SaslBasicAuthCredentials::class.java
+    }
+
+    private inner class OAuthCredentialsProvider(action: Action<OAuthCredentials>? = null) :
+        CredentialsProvider<OAuthCredentials>(CLIENT_NAMESPACE, action) {
+
+        @Synchronized
+        override fun mergeProperties(credentials: OAuthCredentials): OAuthCredentials {
+
+            getRequiredProperty(
+                BEARER_AUTH_LOGICAL_CLUSTER,
+                credentials::getLogicalCluster
+            )?.let(credentials::logicalCluster)
+
+            getRequiredProperty(
+                BEARER_AUTH_IDENTITY_POOL_ID,
+                credentials::getIdentityPoolId
+            )?.let(credentials::identityPoolId)
+
+            getRequiredProperty(
+                BEARER_AUTH_CLIENT_ID,
+                credentials::getClientId
+            )?.let(credentials::clientId)
+
+            getRequiredProperty(
+                BEARER_AUTH_CLIENT_SECRET,
+                credentials::getClientSecret
+            )?.let(credentials::clientSecret)
+
+            getOptionalProperty(
+                BEARER_AUTH_SCOPE,
+                credentials::getScope
+            )?.let(credentials::scope)
+
+            getRequiredProperty(
+                BEARER_AUTH_ISSUER_ENDPOINT_URL,
+                credentials::getIssuerEndpointUrl,
+                ::URL
+            )?.let(credentials::issuerEndpointUrl)
+
+            getOptionalProperty(
+                BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS,
+                credentials::getCacheExpireBuffer
+            ) {
+                val seconds = it.toLong()
+                Duration.ofSeconds(seconds)
+            }?.let(credentials::cacheExpireBuffer)
+
+            getOptionalProperty(
+                BEARER_AUTH_SCOPE_CLAIM_NAME,
+                credentials::getScopeClaimName
+            )?.let(credentials::scopeClaimName)
+
+            getOptionalProperty(
+                BEARER_AUTH_SUB_CLAIM_NAME,
+                credentials::getSubClaimName
+            )?.let(credentials::subClaimName)
+
+            assertRequiredValuesPresence()
+
+            return credentials
+        }
+
+    }
+
+    private inner class StaticTokenCredentialsProvider(action: Action<StaticTokenCredentials>? = null) :
+        CredentialsProvider<StaticTokenCredentials>(CLIENT_NAMESPACE, action) {
+
+        @Synchronized
+        override fun mergeProperties(credentials: StaticTokenCredentials): StaticTokenCredentials {
+
+            getRequiredProperty(
+                BEARER_AUTH_TOKEN_CONFIG,
+                credentials::getToken
+            )?.let(credentials::token)
+
+            assertRequiredValuesPresence()
+
+            return credentials
+        }
     }
 }

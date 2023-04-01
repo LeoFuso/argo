@@ -1,6 +1,9 @@
 package io.github.leofuso.argo.plugin.navis.security.credentials
 
 import org.apache.kafka.common.config.SaslConfigs.*
+import org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule
+import org.apache.kafka.common.security.plain.PlainLoginModule
+import org.apache.kafka.common.security.scram.ScramLoginModule
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import javax.security.auth.spi.LoginModule
@@ -60,6 +63,14 @@ interface JAASCredentials : Credentials {
         val loginModule = getLoginModule()
             .orNull
             ?: error("Missing property value for 'LoginModule'.")
+
+        when (loginModule.kotlin) {
+            // is (ScramLoginModule::class.java).name ->
+            is ScramLoginModule,
+            is PlainLoginModule,
+            is OAuthBearerLoginModule -> {}
+            else -> {}
+        }
 
         val loginModuleControlFlag = getLoginModuleControlFlag()
             .map(LoginModuleControlFlag::flag)

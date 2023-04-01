@@ -1,7 +1,9 @@
 package io.github.leofuso.argo.plugin.navis.security.credentials
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig.*
+import org.apache.kafka.common.config.ConfigException
 import org.gradle.api.NonExtensible
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 
 /**
@@ -15,6 +17,23 @@ interface Credentials {
 
     @Internal
     fun toProperties(): MutableMap<String, String>
+
+    fun Provider<String>.required(name: String): Pair<String, String> = orNull
+        ?.let {
+            if (it.isBlank()) {
+                throw ConfigException("The ${javaClass.simpleName} configuration option $it value must not be blank.")
+            }
+            name to it
+        }
+        ?: throw ConfigException("The ${javaClass.simpleName} configuration option $name value is required.")
+
+    fun Provider<String>.nonRequired(name: String): Pair<String, String>? = orNull
+        ?.let {
+            if (it.isBlank()) {
+                throw ConfigException("The ${javaClass.simpleName} configuration option $name value must not be blank.")
+            }
+            return name to it
+        }
 
 }
 

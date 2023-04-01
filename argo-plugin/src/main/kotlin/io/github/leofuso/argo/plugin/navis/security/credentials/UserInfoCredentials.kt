@@ -44,12 +44,11 @@ abstract class UserInfoCredentials : BasicAuthCredentials {
     @Internal
     override fun toProperties(): MutableMap<String, String> {
         val source = super.toProperties()
-        val zip = getUsername().zip(getPassword()) {
-                first, second ->
-            "'$first:$second'"
-        }
-        val config = zip.orElse("").get()
-        source += USER_INFO_CONFIG to config
+        getUsername()
+            .zip(getPassword()) { first, second -> "'$first:$second'" }
+            .required(USER_INFO_CONFIG)
+            .let(source::plusAssign)
+
         return source
     }
 
