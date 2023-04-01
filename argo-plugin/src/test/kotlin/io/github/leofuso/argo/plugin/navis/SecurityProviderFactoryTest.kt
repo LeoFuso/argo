@@ -1,16 +1,10 @@
 package io.github.leofuso.argo.plugin.navis
 
-import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig.BASIC_AUTH_CREDENTIALS_SOURCE
-import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig.USER_INFO_CONFIG
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig.*
 import io.github.leofuso.argo.plugin.fixtures.MockedProviderFactory
 import io.github.leofuso.argo.plugin.navis.security.SecurityProviderFactory
-import io.github.leofuso.argo.plugin.navis.security.credentials.JAASCredentials
-import io.github.leofuso.argo.plugin.navis.security.credentials.SaslBasicAuthCredentials
-import io.github.leofuso.argo.plugin.navis.security.credentials.UserInfoCredentials
+import io.github.leofuso.argo.plugin.navis.security.credentials.*
 import org.apache.kafka.common.config.SaslConfigs.*
-import org.apache.kafka.common.security.plain.PlainLoginModule
-import org.apache.kafka.common.security.scram.ScramLoginModule
-import org.eclipse.jetty.jaas.spi.JDBCLoginModule
 import org.gradle.api.Project
 import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.api.provider.Provider
@@ -21,15 +15,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import strikt.api.expectCatching
 import strikt.api.expectThat
-import strikt.assertions.hasEntry
-import strikt.assertions.isA
-import strikt.assertions.isEmpty
-import strikt.assertions.isEqualTo
-import strikt.assertions.isFailure
-import strikt.assertions.isFalse
-import strikt.assertions.isTrue
+import strikt.assertions.*
 import java.io.File
-import javax.security.auth.spi.LoginModule
+import java.net.URL
+import java.time.Duration
 
 @DisplayName("Navis: Unit tests related to 'SecurityProviderFactory'.")
 class SecurityProviderFactoryTest {
@@ -223,7 +212,7 @@ class SecurityProviderFactoryTest {
     @Test
     @DisplayName(
         """
-        Given a basic auth 'JAASCredentials' entirely configured using the individual 'gradle.properties',
+        Given a 'StaticTokenCredentials' configured using the individual 'gradle.properties',
         when provided,
         then all values should match.
         """
@@ -231,48 +220,28 @@ class SecurityProviderFactoryTest {
     fun id1680112676357() {
 
         /* Given */
-        val expectedLoginModule = ScramLoginModule::class.java
-        val expectedControlFlag = JAASCredentials.LoginModuleControlFlag.REQUIRED
-        val expectedUsername = "LeoFuso"
-        val expectedPassword = "secret"
-
-        val expectedConfig =
-            "${expectedLoginModule.name} ${expectedControlFlag.flag} username='$expectedUsername' password='$expectedPassword';"
+        val expectedToken = "26%sU*#@LP#4Zgr!@!o"
 
         val gradleProperties = mapOf(
-            "schema.registry.sasl.jaas.config.login.module" to expectedLoginModule.name,
-            "schema.registry.sasl.jaas.config.control.flag" to expectedControlFlag.flag,
-            "schema.registry.sasl.jaas.config.option.username" to expectedUsername,
-            "schema.registry.sasl.jaas.config.option.password" to expectedPassword
+            "schema.registry.$BEARER_AUTH_TOKEN_CONFIG" to expectedToken
         )
 
         val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
 
         /* When */
-        val credentials = subject.provide(SaslBasicAuthCredentials::class.java)
+        val credentials = subject.provide(StaticTokenCredentials::class.java)
 
         /* Then */
         expectThat(credentials) {
-            isA<Provider<JAASCredentials>>()
-            get(Provider<SaslBasicAuthCredentials>::isPresent)
+            isA<Provider<BearerAuthCredentials>>()
+            get(Provider<StaticTokenCredentials>::isPresent)
                 .isTrue()
-            get(Provider<SaslBasicAuthCredentials>::get)
-                .isA<JAASCredentials>()
+            get(Provider<StaticTokenCredentials>::get)
+                .isA<BearerAuthCredentials>()
                 .and {
-
-                    get { getLoginModule().get() }
-                        .isEqualTo(expectedLoginModule)
-
-                    get { getLoginModuleControlFlag().get() }
-                        .isEqualTo(expectedControlFlag)
-
-                    get { getOptions().get() }
-                        .hasEntry("username", expectedUsername)
-                        .hasEntry("password", expectedPassword)
-
-                    get(JAASCredentials::toProperties)
-                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "SASL_INHERIT")
-                        .hasEntry(SASL_JAAS_CONFIG, expectedConfig)
+                    get(BearerAuthCredentials::toProperties)
+                        .hasEntry(BEARER_AUTH_CREDENTIALS_SOURCE, "STATIC_TOKEN")
+                        .hasEntry(BEARER_AUTH_TOKEN_CONFIG, expectedToken)
                 }
         }
     }
@@ -280,7 +249,7 @@ class SecurityProviderFactoryTest {
     @Test
     @DisplayName(
         """
-        Given a basic auth 'JAASCredentials' entirely configured using root attribute with 'gradle.properties',
+        Given a 'StaticTokenCredentials' configured using 'Kotlin DSL',
         when provided,
         then all values should match.
         """
@@ -288,42 +257,26 @@ class SecurityProviderFactoryTest {
     fun id1680126508274() {
 
         /* Given */
-        val expectedLoginModule = PlainLoginModule::class.java
-        val expectedControlFlag = JAASCredentials.LoginModuleControlFlag.REQUIRED
-        val expectedUsername = "LeoFuso"
-        val expectedPassword = "secret"
+        val expectedToken = "26%sU*#@LP#4Zgr!@!o"
 
-        val expectedConfig =
-            "${expectedLoginModule.name} ${expectedControlFlag.flag} username='$expectedUsername' password='$expectedPassword';"
-
-        val gradleProperties = mapOf("schema.registry.sasl.jaas.config" to expectedConfig)
-
-        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(emptyMap()))
 
         /* When */
-        val credentials = subject.provide(SaslBasicAuthCredentials::class.java)
+        val credentials = subject.provide(StaticTokenCredentials::class.java) {
+            it.token(expectedToken)
+        }
 
         /* Then */
         expectThat(credentials) {
-            isA<Provider<SaslBasicAuthCredentials>>()
-            get(Provider<SaslBasicAuthCredentials>::isPresent)
+            isA<Provider<StaticTokenCredentials>>()
+            get(Provider<StaticTokenCredentials>::isPresent)
                 .isTrue()
-            get(Provider<SaslBasicAuthCredentials>::get)
-                .isA<SaslBasicAuthCredentials>()
+            get(Provider<StaticTokenCredentials>::get)
+                .isA<BearerAuthCredentials>()
                 .and {
-
-                    get { getLoginModule().isPresent }
-                        .isFalse()
-
-                    get { getLoginModuleControlFlag().isPresent }
-                        .isFalse()
-
-                    get { getOptions().get() }
-                        .isEmpty()
-
-                    get(SaslBasicAuthCredentials::toProperties)
-                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "SASL_INHERIT")
-                        .hasEntry(SASL_JAAS_CONFIG, expectedConfig)
+                    get(BearerAuthCredentials::toProperties)
+                        .hasEntry(BEARER_AUTH_CREDENTIALS_SOURCE, "STATIC_TOKEN")
+                        .hasEntry(BEARER_AUTH_TOKEN_CONFIG, expectedToken)
                 }
         }
     }
@@ -331,7 +284,34 @@ class SecurityProviderFactoryTest {
     @Test
     @DisplayName(
         """
-        Given a basic auth 'JAASCredentials' entirely configured using 'Kotlin DSL' in the individual properties,
+        Given a 'StaticTokenCredentials' with missing required properties,
+        when provided,
+        then fail, accusing 'missing properties'.
+        """
+    )
+    fun id1680379228942() {
+
+        /* Given */
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(emptyMap()))
+
+        /* When */
+        val credentials = subject.provide(StaticTokenCredentials::class.java)
+
+        /* Then */
+        expectThat(credentials) {
+            isA<Provider<StaticTokenCredentials>>()
+
+            expectCatching { credentials.get() }
+                .isFailure()
+                .isA<MissingValueException>()
+        }
+
+    }
+
+    @Test
+    @DisplayName(
+        """
+        Given an 'OAuthCredentials' entirely configured using the individual 'gradle.properties',
         when provided,
         then all values should match.
         """
@@ -339,46 +319,47 @@ class SecurityProviderFactoryTest {
     fun id1680128156467() {
 
         /* Given */
-        val expectedLoginModule = ScramLoginModule::class.java
-        val expectedControlFlag = JAASCredentials.LoginModuleControlFlag.REQUIRED
-        val expectedUsername = "LeoFuso"
-        val expectedPassword = "secret"
+        @Suppress("SpellCheckingInspection")
+        val gradleProperties = mapOf(
+            "$CLIENT_NAMESPACE$BEARER_AUTH_LOGICAL_CLUSTER" to "LSRC-XXXXX",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_IDENTITY_POOL_ID" to "5bed8df5-75a7-4f98-9879-5118629e5b1f",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_ID" to "LeoFuso",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_SECRET" to "26%sU*#@LP#4Zgr!@!o",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_SCOPE" to "schemas",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_ISSUER_ENDPOINT_URL" to "https://openid.io",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS" to "180",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_SCOPE_CLAIM_NAME" to "email",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_SUB_CLAIM_NAME" to "auth0|USER-ID"
+        )
 
-        val expectedConfig =
-            "${expectedLoginModule.name} ${expectedControlFlag.flag} username='$expectedUsername' password='$expectedPassword';"
-
-        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(emptyMap()))
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
 
         /* When */
-        val credentials = subject.provide(SaslBasicAuthCredentials::class.java) {
-            it.loginModule(expectedLoginModule)
-            it.controlFlag(expectedControlFlag)
-            it.option("username", expectedUsername)
-            it.option("password", expectedPassword)
-        }
+        val credentials = subject.provide(OAuthCredentials::class.java)
 
         /* Then */
         expectThat(credentials) {
-            isA<Provider<SaslBasicAuthCredentials>>()
-            get(Provider<SaslBasicAuthCredentials>::isPresent)
+            isA<Provider<OAuthCredentials>>()
+            get(Provider<OAuthCredentials>::isPresent)
                 .isTrue()
-            get(Provider<SaslBasicAuthCredentials>::get)
-                .isA<SaslBasicAuthCredentials>()
+            get(Provider<OAuthCredentials>::get)
+                .isA<OAuthCredentials>()
                 .and {
 
-                    get { getLoginModule().get() }
-                        .isEqualTo(expectedLoginModule)
-
-                    get { getLoginModuleControlFlag().get() }
-                        .isEqualTo(expectedControlFlag)
-
-                    get { getOptions().get() }
-                        .hasEntry("username", expectedUsername)
-                        .hasEntry("password", expectedPassword)
-
-                    get(SaslBasicAuthCredentials::toProperties)
-                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "SASL_INHERIT")
-                        .hasEntry(SASL_JAAS_CONFIG, expectedConfig)
+                    get(OAuthCredentials::toProperties)
+                        .hasEntry(BEARER_AUTH_CREDENTIALS_SOURCE, "OAUTHBEARER")
+                        .hasEntry(BEARER_AUTH_LOGICAL_CLUSTER, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_LOGICAL_CLUSTER"])
+                        .hasEntry(BEARER_AUTH_IDENTITY_POOL_ID, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_IDENTITY_POOL_ID"])
+                        .hasEntry(BEARER_AUTH_CLIENT_ID, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_ID"])
+                        .hasEntry(BEARER_AUTH_CLIENT_SECRET, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_SECRET"])
+                        .hasEntry(BEARER_AUTH_SCOPE, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_SCOPE"])
+                        .hasEntry(BEARER_AUTH_ISSUER_ENDPOINT_URL, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_ISSUER_ENDPOINT_URL"])
+                        .hasEntry(
+                            BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS,
+                            gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS"]
+                        )
+                        .hasEntry(BEARER_AUTH_SCOPE_CLAIM_NAME, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_SCOPE_CLAIM_NAME"])
+                        .hasEntry(BEARER_AUTH_SUB_CLAIM_NAME, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_SUB_CLAIM_NAME"])
                 }
         }
     }
@@ -386,7 +367,7 @@ class SecurityProviderFactoryTest {
     @Test
     @DisplayName(
         """
-        Given a basic auth 'JAASCredentials' entirely configured using 'Kotlin DSL' in the root property,
+        Given an 'OAuthCredentials' entirely configured using 'Kotlin DSL',
         when provided,
         then all values should match.
         """
@@ -394,44 +375,54 @@ class SecurityProviderFactoryTest {
     fun id1680128523149() {
 
         /* Given */
-        val expectedLoginModule = PlainLoginModule::class.java
-        val expectedControlFlag = JAASCredentials.LoginModuleControlFlag.REQUIRED
-        val expectedUsername = "LeoFuso"
-        val expectedPassword = "secret"
-
-        val expectedConfig =
-            "${expectedLoginModule.name} ${expectedControlFlag.flag} username='$expectedUsername' password='$expectedPassword';"
+        @Suppress("SpellCheckingInspection")
+        val gradleProperties = mapOf(
+            BEARER_AUTH_LOGICAL_CLUSTER to "LSRC-XXXXX",
+            BEARER_AUTH_IDENTITY_POOL_ID to "5bed8df5-75a7-4f98-9879-5118629e5b1f",
+            BEARER_AUTH_CLIENT_ID to "LeoFuso",
+            BEARER_AUTH_CLIENT_SECRET to "26%sU*#@LP#4Zgr!@!o",
+            BEARER_AUTH_SCOPE to "schemas",
+            BEARER_AUTH_ISSUER_ENDPOINT_URL to "https://openid.io",
+            BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS to "180",
+            BEARER_AUTH_SCOPE_CLAIM_NAME to "email",
+            BEARER_AUTH_SUB_CLAIM_NAME to "auth0|USER-ID"
+        )
 
         val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(emptyMap()))
 
         /* When */
-        val credentials = subject.provide(SaslBasicAuthCredentials::class.java) {
-            it.saslJaasConfig(expectedConfig)
+        val credentials = subject.provide(OAuthCredentials::class.java) {
+            it.logicalCluster(gradleProperties[BEARER_AUTH_LOGICAL_CLUSTER]!!)
+            it.identityPoolId(gradleProperties[BEARER_AUTH_IDENTITY_POOL_ID]!!)
+            it.clientId(gradleProperties[BEARER_AUTH_CLIENT_ID]!!)
+            it.clientSecret(gradleProperties[BEARER_AUTH_CLIENT_SECRET]!!)
+            it.scope(gradleProperties[BEARER_AUTH_SCOPE]!!)
+            it.issuerEndpointUrl(URL(gradleProperties[BEARER_AUTH_ISSUER_ENDPOINT_URL]))
+            it.cacheExpireBuffer(Duration.ofSeconds(gradleProperties[BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS]!!.toLong()))
+            it.scopeClaimName(gradleProperties[BEARER_AUTH_SCOPE_CLAIM_NAME]!!)
+            it.subClaimName(gradleProperties[BEARER_AUTH_SUB_CLAIM_NAME]!!)
         }
 
         /* Then */
         expectThat(credentials) {
-            isA<Provider<SaslBasicAuthCredentials>>()
-            get(Provider<SaslBasicAuthCredentials>::isPresent)
+            isA<Provider<OAuthCredentials>>()
+            get(Provider<OAuthCredentials>::isPresent)
                 .isTrue()
-            get(Provider<SaslBasicAuthCredentials>::get)
-                .isA<SaslBasicAuthCredentials>()
+            get(Provider<OAuthCredentials>::get)
+                .isA<OAuthCredentials>()
                 .and {
 
-                    get(SaslBasicAuthCredentials::getLoginModule)
-                        .get(Provider<Class<out LoginModule>>::isPresent)
-                        .isFalse()
-
-                    get(SaslBasicAuthCredentials::getLoginModuleControlFlag)
-                        .get(Provider<JAASCredentials.LoginModuleControlFlag>::isPresent)
-                        .isFalse()
-
-                    get { getOptions().get() }
-                        .isEmpty()
-
-                    get(SaslBasicAuthCredentials::toProperties)
-                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "SASL_INHERIT")
-                        .hasEntry(SASL_JAAS_CONFIG, expectedConfig)
+                    get(OAuthCredentials::toProperties)
+                        .hasEntry(BEARER_AUTH_CREDENTIALS_SOURCE, "OAUTHBEARER")
+                        .hasEntry(BEARER_AUTH_LOGICAL_CLUSTER, gradleProperties[BEARER_AUTH_LOGICAL_CLUSTER])
+                        .hasEntry(BEARER_AUTH_IDENTITY_POOL_ID, gradleProperties[BEARER_AUTH_IDENTITY_POOL_ID])
+                        .hasEntry(BEARER_AUTH_CLIENT_ID, gradleProperties[BEARER_AUTH_CLIENT_ID])
+                        .hasEntry(BEARER_AUTH_CLIENT_SECRET, gradleProperties[BEARER_AUTH_CLIENT_SECRET])
+                        .hasEntry(BEARER_AUTH_SCOPE, gradleProperties[BEARER_AUTH_SCOPE])
+                        .hasEntry(BEARER_AUTH_ISSUER_ENDPOINT_URL, gradleProperties[BEARER_AUTH_ISSUER_ENDPOINT_URL])
+                        .hasEntry(BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS, gradleProperties[BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS])
+                        .hasEntry(BEARER_AUTH_SCOPE_CLAIM_NAME, gradleProperties[BEARER_AUTH_SCOPE_CLAIM_NAME])
+                        .hasEntry(BEARER_AUTH_SUB_CLAIM_NAME, gradleProperties[BEARER_AUTH_SUB_CLAIM_NAME])
                 }
         }
     }
@@ -439,7 +430,7 @@ class SecurityProviderFactoryTest {
     @Test
     @DisplayName(
         """
-        Given a basic auth 'JAASCredentials' configured using both 'gradle.properties' and 'Kotlin DSL',
+        Given an 'OAuthCredentials' configured using both 'gradle.properties' and 'Kotlin DSL',
         when provided,
         then all values should match.
         """
@@ -447,60 +438,57 @@ class SecurityProviderFactoryTest {
     fun id1680128844102() {
 
         /* Given */
-        val expectedLoginModule = JDBCLoginModule::class.java
-        val expectedControlFlag = JAASCredentials.LoginModuleControlFlag.REQUIRED
-        val expectedDbDriver = "org.postgresql.Driver"
-        val expectedDbUrl = "jdbc:postgresql://fake-dns:5432/vault-db"
-        val expectedDbUsername = "LeoFuso"
-        val expectedDbPassword = "secret"
-
-        val expectedConfig =
-            "${expectedLoginModule.name} ${expectedControlFlag.flag} " +
-                "dbDriver='$expectedDbDriver' " +
-                "dbUrl='$expectedDbUrl' " +
-                "dbUserName='$expectedDbUsername' " +
-                "dbPassword='$expectedDbPassword';"
-
-        val gradleProperties = mapOf(
-            "schema.registry.sasl.jaas.config.option.dbUrl" to "jdbc:postgresql://localhost:5432/vault-db",
-            "schema.registry.sasl.jaas.config.option.dbPassword" to expectedDbPassword
+        @Suppress("SpellCheckingInspection")
+        val propFixture = mapOf(
+            "$CLIENT_NAMESPACE$BEARER_AUTH_LOGICAL_CLUSTER" to "LSRC-XXXXX",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_IDENTITY_POOL_ID" to "5bed8df5-75a7-4f98-9879-5118629e5b1f",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_ID" to "LeoFuso",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_SECRET" to "26%sU*#@LP#4Zgr!@!o",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_SCOPE" to "schemas",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_ISSUER_ENDPOINT_URL" to "https://openid.io",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS" to "180",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_SCOPE_CLAIM_NAME" to "email",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_SUB_CLAIM_NAME" to "auth0|USER-ID"
         )
 
-        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
+        val subject = SecurityProviderFactory(
+            project.objects,
+            MockedProviderFactory(
+                propFixture.filterNot { (key, _) ->
+                    key.contains(BEARER_AUTH_CLIENT_ID) || key.contains(BEARER_AUTH_CLIENT_SECRET)
+                }
+            )
+        )
 
         /* When */
-        val credentials = subject.provide(SaslBasicAuthCredentials::class.java) {
-            it.loginModule(expectedLoginModule)
-            it.controlFlag(expectedControlFlag)
-            it.option("dbDriver", expectedDbDriver)
-            it.option("dbUrl", expectedDbUrl)
-            it.option("dbUserName", expectedDbUsername)
+        val credentials = subject.provide(OAuthCredentials::class.java) {
+            it.clientId(propFixture["$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_ID"]!!)
+            it.clientSecret(propFixture["$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_SECRET"]!!)
         }
 
         /* Then */
         expectThat(credentials) {
-            isA<Provider<SaslBasicAuthCredentials>>()
-            get(Provider<SaslBasicAuthCredentials>::isPresent)
+            isA<Provider<OAuthCredentials>>()
+            get(Provider<OAuthCredentials>::isPresent)
                 .isTrue()
-            get(Provider<SaslBasicAuthCredentials>::get)
-                .isA<SaslBasicAuthCredentials>()
+            get(Provider<OAuthCredentials>::get)
+                .isA<OAuthCredentials>()
                 .and {
 
-                    get { getLoginModule().get() }
-                        .isEqualTo(expectedLoginModule)
-
-                    get { getLoginModuleControlFlag().get() }
-                        .isEqualTo(expectedControlFlag)
-
-                    get { getOptions().get() }
-                        .hasEntry("dbDriver", expectedDbDriver)
-                        .hasEntry("dbUrl", expectedDbUrl)
-                        .hasEntry("dbUserName", expectedDbUsername)
-                        .hasEntry("dbPassword", expectedDbPassword)
-
-                    get(SaslBasicAuthCredentials::toProperties)
-                        .hasEntry(BASIC_AUTH_CREDENTIALS_SOURCE, "SASL_INHERIT")
-                        .hasEntry(SASL_JAAS_CONFIG, expectedConfig)
+                    get(OAuthCredentials::toProperties)
+                        .hasEntry(BEARER_AUTH_CREDENTIALS_SOURCE, "OAUTHBEARER")
+                        .hasEntry(BEARER_AUTH_LOGICAL_CLUSTER, propFixture["$CLIENT_NAMESPACE$BEARER_AUTH_LOGICAL_CLUSTER"])
+                        .hasEntry(BEARER_AUTH_IDENTITY_POOL_ID, propFixture["$CLIENT_NAMESPACE$BEARER_AUTH_IDENTITY_POOL_ID"])
+                        .hasEntry(BEARER_AUTH_CLIENT_ID, propFixture["$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_ID"])
+                        .hasEntry(BEARER_AUTH_CLIENT_SECRET, propFixture["$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_SECRET"])
+                        .hasEntry(BEARER_AUTH_SCOPE, propFixture["$CLIENT_NAMESPACE$BEARER_AUTH_SCOPE"])
+                        .hasEntry(BEARER_AUTH_ISSUER_ENDPOINT_URL, propFixture["$CLIENT_NAMESPACE$BEARER_AUTH_ISSUER_ENDPOINT_URL"])
+                        .hasEntry(
+                            BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS,
+                            propFixture["$CLIENT_NAMESPACE$BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS"]
+                        )
+                        .hasEntry(BEARER_AUTH_SCOPE_CLAIM_NAME, propFixture["$CLIENT_NAMESPACE$BEARER_AUTH_SCOPE_CLAIM_NAME"])
+                        .hasEntry(BEARER_AUTH_SUB_CLAIM_NAME, propFixture["$CLIENT_NAMESPACE$BEARER_AUTH_SUB_CLAIM_NAME"])
                 }
         }
     }
@@ -508,7 +496,7 @@ class SecurityProviderFactoryTest {
     @Test
     @DisplayName(
         """
-        Given a basic auth 'JAASCredentials' with missing required properties,
+        Given an 'OAuthCredentials' with missing required properties,
         when provided,
         then fail, accusing 'missing properties'.
         """
@@ -516,26 +504,78 @@ class SecurityProviderFactoryTest {
     fun id1680131032529() {
 
         /* Given */
-        val expectedDbUrl = "jdbc:postgresql://fake-dns:5432/vault-db"
-        val expectedDbPassword = "secret"
-
+        @Suppress("SpellCheckingInspection")
         val gradleProperties = mapOf(
-            "schema.registry.sasl.jaas.config.option.dbUrl" to expectedDbUrl,
-            "schema.registry.sasl.jaas.config.option.dbPassword" to expectedDbPassword
+            "$CLIENT_NAMESPACE$BEARER_AUTH_LOGICAL_CLUSTER" to "LSRC-XXXXX",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_IDENTITY_POOL_ID" to "5bed8df5-75a7-4f98-9879-5118629e5b1f",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_SCOPE" to "schemas",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_ISSUER_ENDPOINT_URL" to "https://openid.io",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS" to "180",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_SCOPE_CLAIM_NAME" to "email",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_SUB_CLAIM_NAME" to "auth0|USER-ID"
         )
 
         val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
 
         /* When */
-        val credentials = subject.provide(SaslBasicAuthCredentials::class.java)
+        val credentials = subject.provide(OAuthCredentials::class.java)
 
         /* Then */
         expectThat(credentials) {
-            isA<Provider<SaslBasicAuthCredentials>>()
+            isA<Provider<OAuthCredentials>>()
 
             expectCatching { credentials.get() }
                 .isFailure()
                 .isA<MissingValueException>()
+        }
+    }
+
+    @Test
+    @DisplayName(
+        """
+        Given an 'OAuthCredentials' with missing optional properties,
+        when provided,
+        then all values should match.
+        """
+    )
+    fun id1680131032252() {
+
+        /* Given */
+        @Suppress("SpellCheckingInspection")
+        val gradleProperties = mapOf(
+            "$CLIENT_NAMESPACE$BEARER_AUTH_LOGICAL_CLUSTER" to "LSRC-XXXXX",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_IDENTITY_POOL_ID" to "5bed8df5-75a7-4f98-9879-5118629e5b1f",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_ID" to "LeoFuso",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_SECRET" to "26%sU*#@LP#4Zgr!@!o",
+            "$CLIENT_NAMESPACE$BEARER_AUTH_ISSUER_ENDPOINT_URL" to "https://openid.io"
+        )
+
+        val subject = SecurityProviderFactory(project.objects, MockedProviderFactory(gradleProperties))
+
+        /* When */
+        val credentials = subject.provide(OAuthCredentials::class.java)
+
+        /* Then */
+        expectThat(credentials) {
+            isA<Provider<OAuthCredentials>>()
+            get(Provider<OAuthCredentials>::isPresent)
+                .isTrue()
+            get(Provider<OAuthCredentials>::get)
+                .isA<OAuthCredentials>()
+                .and {
+
+                    get(OAuthCredentials::toProperties)
+                        .hasEntry(BEARER_AUTH_CREDENTIALS_SOURCE, "OAUTHBEARER")
+                        .hasEntry(BEARER_AUTH_LOGICAL_CLUSTER, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_LOGICAL_CLUSTER"])
+                        .hasEntry(BEARER_AUTH_IDENTITY_POOL_ID, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_IDENTITY_POOL_ID"])
+                        .hasEntry(BEARER_AUTH_CLIENT_ID, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_ID"])
+                        .hasEntry(BEARER_AUTH_CLIENT_SECRET, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_CLIENT_SECRET"])
+                        .doesNotContainKey(BEARER_AUTH_SCOPE)
+                        .hasEntry(BEARER_AUTH_ISSUER_ENDPOINT_URL, gradleProperties["$CLIENT_NAMESPACE$BEARER_AUTH_ISSUER_ENDPOINT_URL"])
+                        .doesNotContainKey(BEARER_AUTH_CACHE_EXPIRY_BUFFER_SECONDS)
+                        .doesNotContainKey(BEARER_AUTH_SCOPE_CLAIM_NAME)
+                        .doesNotContainKey(BEARER_AUTH_SUB_CLAIM_NAME)
+                }
         }
     }
 }

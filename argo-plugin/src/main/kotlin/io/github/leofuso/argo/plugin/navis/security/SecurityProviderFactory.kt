@@ -2,7 +2,6 @@ package io.github.leofuso.argo.plugin.navis.security
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig.*
 import io.github.leofuso.argo.plugin.navis.security.credentials.*
-import org.apache.kafka.common.config.SaslConfigs.*
 import org.gradle.api.Action
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.execution.TaskExecutionGraph
@@ -24,7 +23,6 @@ import java.time.Duration
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
-import javax.security.auth.spi.LoginModule
 
 /**
  * A SecurityProviderFactory is able to produce the following security-related providers:
@@ -53,11 +51,6 @@ open class SecurityProviderFactory @Inject constructor(
             URLCredentials::class.java.isAssignableFrom(type) ->
                 evaluateAtConfigurationTime(
                     URLCredentialsProvider()
-                )
-
-            SaslBasicAuthCredentials::class.java.isAssignableFrom(type) ->
-                evaluateAtConfigurationTime(
-                    JAASBasicAuthCredentialsProvider(action as? Action<SaslBasicAuthCredentials>)
                 )
 
             OAuthCredentials::class.java.isAssignableFrom(type) ->
@@ -260,58 +253,6 @@ open class SecurityProviderFactory @Inject constructor(
 
     private inner class URLCredentialsProvider(action: Action<URLCredentials>? = null) :
         CredentialsProvider<URLCredentials>("DEFAULT", action)
-
-    private inner class JAASBasicAuthCredentialsProvider(action: Action<SaslBasicAuthCredentials>? = null) :
-        CredentialsProvider<SaslBasicAuthCredentials>("$CLIENT_NAMESPACE$SASL_JAAS_CONFIG", action) {
-
-        @Synchronized
-        override fun mergeProperties(credentials: SaslBasicAuthCredentials): SaslBasicAuthCredentials {
-
-            val rootConfig = getOptionalProperty(methodAccessor = credentials::getSaslJaasConfig)
-            if (rootConfig != null) {
-                credentials.saslJaasConfig(rootConfig)
-                return credentials
-            }
-
-            val loginModule = getRequiredProperty(
-                ".login.module",
-                credentials::getLoginModule
-            ) { property ->
-                Class.forName(property)
-                    .let { clazz ->
-                        if (LoginModule::class.java.isAssignableFrom(clazz)) {
-                            @Suppress("UNCHECKED_CAST")
-                            clazz as Class<out LoginModule>
-                        } else {
-                            error("Unsupported 'LoginModule' property. Class [$property] does not implement LoginModule.")
-                        }
-                    }
-            }
-
-            val loginModuleControlFlag = getRequiredProperty(
-                ".control.flag",
-                credentials::getLoginModuleControlFlag
-            ) { property ->
-                when (property.uppercase()) {
-                    "REQUIRED" -> JAASCredentials.LoginModuleControlFlag.REQUIRED
-                    "REQUISITE" -> JAASCredentials.LoginModuleControlFlag.REQUISITE
-                    "SUFFICIENT" -> JAASCredentials.LoginModuleControlFlag.SUFFICIENT
-                    "OPTIONAL" -> JAASCredentials.LoginModuleControlFlag.OPTIONAL
-                    else -> error("Invalid login module control flag '$property' in JAAS config.")
-                }
-            }
-            assertRequiredValuesPresence()
-
-            credentials.loginModule(checkNotNull(loginModule) { "At this stage, it can't be null." })
-            credentials.controlFlag(checkNotNull(loginModuleControlFlag) { "At this stage, it can't be null." })
-
-            val options = getOptionalProperties(".option.", credentials::getOptions)
-            credentials.options(options)
-
-            return credentials
-        }
-
-    }
 
     private inner class OAuthCredentialsProvider(action: Action<OAuthCredentials>? = null) :
         CredentialsProvider<OAuthCredentials>(CLIENT_NAMESPACE, action) {
