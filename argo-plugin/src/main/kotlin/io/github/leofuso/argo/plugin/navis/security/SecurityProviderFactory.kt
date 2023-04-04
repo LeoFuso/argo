@@ -29,8 +29,6 @@ import javax.inject.Inject
  *  * [Credentials] to Authenticate against the Schema Registry API, both Basic Auth and Bearer Token strategies.
  *  * SSL related constructs used to communicate with the Schema Registry API.
  *
- *  Note: SSL strategies are **not** implemented yet.
- *
  */
 open class SecurityProviderFactory @Inject constructor(
     private val objectsFactory: ObjectFactory,
@@ -42,6 +40,11 @@ open class SecurityProviderFactory @Inject constructor(
     @Suppress("UNCHECKED_CAST")
     fun <T : Credentials> provide(type: Class<out T>, action: Action<in T>? = null): Provider<T> {
         return when {
+
+            SSLCredentials::class.java.isAssignableFrom(type) ->
+                evaluateAtConfigurationTime(
+                    SSLCredentialsProvider(action as? Action<SSLCredentials>)
+                )
 
             UserInfoCredentials::class.java.isAssignableFrom(type) ->
                 evaluateAtConfigurationTime(
@@ -225,6 +228,16 @@ open class SecurityProviderFactory @Inject constructor(
 
         private fun identityProperty(property: String?): String {
             return property?.let { identity + it } ?: identity
+        }
+    }
+
+    private inner class SSLCredentialsProvider(action: Action<SSLCredentials>? = null) :
+        CredentialsProvider<SSLCredentials>(CLIENT_NAMESPACE, action) {
+
+        override fun mergeProperties(credentials: SSLCredentials): SSLCredentials {
+            getOptionalProperties(methodAccessor = credentials::getOptions)
+                .let { properties -> credentials.options(properties) }
+            return credentials
         }
     }
 

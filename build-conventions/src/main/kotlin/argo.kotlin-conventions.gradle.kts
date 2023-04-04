@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
     base
+    idea
     jacoco
     id("org.jetbrains.kotlin.jvm")
     id("org.jmailen.kotlinter")
@@ -30,6 +31,13 @@ java {
     withSourcesJar()
 }
 
+idea {
+    module {
+        isDownloadSources = true
+        isDownloadJavadoc = true
+    }
+}
+
 kotlin {
     jvmToolchain(17)
 }
@@ -40,7 +48,7 @@ tasks {
         reports {
             html.required.set(true)
             txt.required.set(true)
-            md.required.set(true)
+            md.required.set(false)
         }
     }
 
