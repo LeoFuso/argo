@@ -4,6 +4,7 @@ package io.github.leofuso.argo.plugin.navis.extensions
 
 import io.github.leofuso.argo.plugin.navis.security.SecurityProviderFactory
 import io.github.leofuso.argo.plugin.navis.security.credentials.Credentials
+import io.github.leofuso.argo.plugin.navis.security.credentials.SSLCredentials
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
@@ -46,6 +47,12 @@ abstract class SecurityNavisOptions @Inject constructor(objectFactory: ObjectFac
     @get:Internal
     internal val credentials: Property<Credentials>
         get() = _credentials
+
+    abstract fun getSSL(): Property<SSLCredentials>
+
+    fun ssl(type: Class<SSLCredentials>) = getSSL().set(factory.provide(type))
+
+    fun ssl(type: Class<SSLCredentials>, action: Action<SSLCredentials>) = getSSL().set(factory.provide(type, action))
 
     fun credentials(type: Class<out Credentials>) {
         if (_credentials.isPresent) {
