@@ -13,7 +13,7 @@ import org.gradle.api.tasks.Internal
  *
  * `schema.registry.basic.auth.user.info.username = ` [username][UserInfoCredentials.getUsername]
  *
- * `schema.registry.basic.auth.user.info.username = ` [password][UserInfoCredentials.getPassword]
+ * `schema.registry.basic.auth.user.info.password = ` [password][UserInfoCredentials.getPassword]
  *
  * &nbsp;
  *
