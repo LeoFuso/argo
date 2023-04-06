@@ -7,11 +7,12 @@ const val KOTLIN_LANGUAGE_NAME = "kotlin"
 const val ARGO_EXTENSION = "argo"
 
 /**
- * Columba config
+ * Columba & Navis Config
  */
 const val CONFIGURATION_COLUMBA = "columba"
 
 const val GROUP_SOURCE_GENERATION = "Source Generation"
+const val GROUP_SCHEMA_REGISTRY = "Schema Registry"
 
 /**
  * Extensions
