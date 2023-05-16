@@ -27,6 +27,20 @@ tasks {
     }
 }
 
+project(":navis-cli")
+    .beforeEvaluate {
+
+        val lib = getDependency("navis-cli")
+        group = lib.group
+        version = lib.versionConstraint.toString()
+        extra["local.description"] =
+            """
+            A command line interface that supports Java code generation from JSON schema declaration files(.avsc),
+            JSON protocol declaration files(.avpr), and Avro IDL(.avdl) source files.
+        """.trimIndent()
+
+    }
+
 project(":columba-cli")
     .beforeEvaluate {
 
@@ -50,7 +64,7 @@ project(":argo-plugin")
         extra["local.description"] =
             """
                 A Gradle Plugin that supports Java code generation from JSON schema declaration files(.avsc),
-                JSON protocol declaration files(.avpr), and Avro IDL(.avdl) source files
+                JSON protocol declaration files(.avpr), and Avro IDL(.avdl) source files.
             """.trimIndent()
 
     }

@@ -33,7 +33,7 @@ class ConverterOptions : OptionGroup(
             ```
             --logical-type-factories timezone=io.github.leofuso.tools.TimeZoneLogicalTypeFactory
             --logical-type-factories other=io.github.leofuso.tools.OtherLogicalTypeFactory
-            -f other-one=io.github.leofuso.tools.OtherOneLogicalTypeFactory
+            -f                       other-one=io.github.leofuso.tools.OtherOneLogicalTypeFactory
             ```
             
         """

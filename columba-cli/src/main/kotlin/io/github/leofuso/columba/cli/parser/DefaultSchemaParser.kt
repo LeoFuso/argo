@@ -9,7 +9,9 @@ import java.util.regex.Pattern
 
 class DefaultSchemaParser(private val logger: ConsoleLogger) : DependencyGraphAwareSchemaParser {
 
-    private val undefinedPattern = Pattern.compile("(?i).*(undefined name|not a defined name|type not supported).*")
+    private val undefinedPattern = Pattern.compile(
+        "(?i)(?<message>.*(undefined name|not a defined name|type not supported)*:)(?<subject>.*)"
+    )
     private val duplicatedPattern = Pattern.compile("Can't redefine: (.*)")
 
     private val classifier = DefaultSchemaFileClassifier(logger)
@@ -25,8 +27,8 @@ class DefaultSchemaParser(private val logger: ConsoleLogger) : DependencyGraphAw
         val definitions = mutableMapOf<String, Schema>()
 
         do {
-            val initialDefinitions = definitions.size
 
+            val initialDefinitions = definitions.size
             queue.addAll(unresolved)
             while (iterator.hasNext()) {
                 val source = iterator.next()
@@ -54,7 +56,7 @@ class DefaultSchemaParser(private val logger: ConsoleLogger) : DependencyGraphAw
         if (unresolved.isNotEmpty()) {
             val files = unresolved.map(File::getPath).reduce { acc, next -> "$acc; $next" }
             logger.info(
-                "{} Schema(.{}) definition files remaining to be parsed. Files [{}].",
+                "{} Schema(.{}) definition files with unresolved dependencies. Files [{}].",
                 unresolved.size,
                 SCHEMA_EXTENSION,
                 files
@@ -85,7 +87,7 @@ class DefaultSchemaParser(private val logger: ConsoleLogger) : DependencyGraphAw
             return when {
                 duplicatedMatcher.matches() -> conflictResolution.resolve(duplicatedMatcher.group(1), source)
                 undefinedMatcher.matches() -> {
-                    logger.info("Found undefined name at [{}] ({}); will try again.", path, errorMessage)
+                    logger.info("Found undefined name at [{}] ({}); enqueued to another try.", path, errorMessage)
                     val notEnqueued = queue.contains(source).not()
                     if (notEnqueued) {
                         queue.addLast(source)

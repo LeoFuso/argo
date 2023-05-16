@@ -18,6 +18,7 @@ if (System.getenv("CI") == null) {
 
 include("argo-plugin")
 include("columba-cli")
+include("navis-cli")
 
 plugins {
     `gradle-enterprise`

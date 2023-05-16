@@ -5,7 +5,7 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 
 class AccessorOptions : OptionGroup(
-    name = "Acessor Options",
+    name = "Accessor Options",
     help = "Options related to Java field-accessor methods."
 ) {
     val allowSetters by option(
