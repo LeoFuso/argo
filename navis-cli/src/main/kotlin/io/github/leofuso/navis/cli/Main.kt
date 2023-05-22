@@ -83,24 +83,24 @@ class CommandRunner(private val out: PrintStream, private val err: PrintStream) 
         override fun getLogLevel(): LogLevel = command.logLevel
 
         override fun lifecycle(message: String?) = if (isLifecycleEnabled()) {
-            command.echo(message, true, false, lineSeparator)
+            command.echo(message, trailingNewline = true, err = false, lineSeparator = lineSeparator)
         } else {
             Unit
         }
 
         override fun info(message: String?) = if (isInfoEnabled()) {
-            command.echo(message, true, false, lineSeparator)
+            command.echo(message, trailingNewline = true, err = false, lineSeparator = lineSeparator)
         } else {
             Unit
         }
 
         override fun warn(message: String?) = if (isWarnEnabled()) {
-            command.echo("\u001B[33m$message\u001B[0m", true, false, lineSeparator)
+            command.echo("\u001B[33m$message\u001B[0m", trailingNewline = true, err = false, lineSeparator = lineSeparator)
         } else {
             Unit
         }
 
-        override fun error(message: String?) = command.echo(message, true, true, lineSeparator)
+        override fun error(message: String?) = command.echo(message, trailingNewline = true, err = true, lineSeparator = lineSeparator)
     }
 
 }
